@@ -1,0 +1,40 @@
+ARCHITECTURE
+
+    This is an 8 bit CPU with 64Kb of memory, with data stored in little endian.
+
+    The memory is divided in two parts, stack memory, and usable memory. 
+    Stack memory is only a byte long, from address 0x0000 to 0x00FF. 
+    The rest of memory is usable memory.
+    The reset location is immediately after the the stack memory, or address 0x0100.
+
+REGISTERS
+
+    Program Counter (PC). This is a 2 byte, 16 bit, register.
+    The value is automatically updated as instructions are being executed, or
+        can be updated manually via a jump command.
+
+    Stack Pointer (SP). This a 1 byte, 8 bit, register.
+    Stores the next free location on the stack.
+    Stack location is fixed and cannot be moved.
+    Because its range is from 0x0000 to 0x00FF, only a byte is needed to store address.
+
+    General Registers (A, B, C, D, E, F, G, H). These are all 8 bit registers.
+    There are no accumulator registers. 
+
+    Processor Flags (PF). For the sake of simplicity, this register is 1 byte, 8 bits, long.
+    There are only 4 flags, whose values are stored in the lower 4 bits of the register.
+    In order of LSB to MSB, 
+    Carry Flag (CF), Zero Flag, (ZF), Overflow Flag (OF), and Sign Flag (SF). 
+        CF is set if last operation causes 1. overflow from bit 7, or 2. undeflow from bit 0.
+        ZF is set if result of last operation was a 0.
+        OF is set if result yielded invalid 2's complement result. 
+            Determined by looking at carry bits between bits 6 and 7 and bit 7 and carry flag.
+        SF is set if the last operation set bit 7 to a one. 
+
+INSTRUCTIONS
+
+    There 35 mnemonics, and a total of 43 instructions. 
+    All but the stack instructions are general because of the amount of general registers.
+
+    LOAD 
+    
