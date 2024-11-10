@@ -5,7 +5,7 @@ ARCHITECTURE
     The memory is divided in two parts, stack memory, and usable memory. 
     Stack memory is only a byte long, from address 0x0000 to 0x00FF. 
     The rest of memory is usable memory.
-    The reset location is immediately after the the stack memory, or address 0x0100.
+    The reset location is immediately after the the stack memory, or address 0xFFFD.
 
 REGISTERS
 
@@ -38,7 +38,7 @@ INSTRUCTIONS
     All but the stack instructions are general because of the amount of general registers.
 
     OPCODE	KEYWORD     OPERAND 1	OPERAND 2 	AFFECTED FLAGS	BYTES	OPERATION
-    0x01	LDFM	    Reg	        Mem	        SF, ZF	        4	    Load data to reg from mem
+    `0x01	LDFM	    Reg	        Mem	        SF, ZF	        4	    Load data to reg from mem
     0x02	LDFI	    Reg	        Imm	        SF, ZF	        3	    Load to reg imm
     0x03	LDFR	    Reg1	    Reg2		                3	    Load to reg1 from reg2
     0x04	STOR	    Mem	        Reg		                    4	    Store to mem from reg
@@ -70,7 +70,7 @@ INSTRUCTIONS
     0x1E	SHRR	    Reg		                CF, SF, ZF	    2   	Shift contents in register right by 1 bit. CF becomes value of the old LSB
     0x1F	SHLM	    Mem		                CF, SF, ZF	    3   	Shift contents in memory left by 1 bit. CF becomes value of the old MSB
     0x20	SHRM	    Mem		                CF, SF, ZF	    3   	Shift contents in memory right by 1 bit. CF becomes value of the old LSB
-    0x21	JMP	        Imm			                            2	    Set PC to imm. 
+    `0x21	JMP	        Imm			                            2	    Set PC to imm. 
     0x22	JSR	        Mem			                            3	    Set PC to address stored in mem
     0x23	RSR				                                    1	    Return to previously stored address in stack
     0x24	JSC	        Imm			                            2	    Set PC to imm if SF is not set
@@ -99,5 +99,12 @@ UPDATES
         separate section for character memory for output screen,
         separate section for variable memory for programs,
         separate section for video memory for color section per pixel
+
+    % - literal
+    $ - variable
+    @ - register
+    # - label
+    . - section
+
 
 

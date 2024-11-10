@@ -1,0 +1,7 @@
+.variables
+$a 2F
+
+.start
+    LOAD @A $a
+    HALT
+    
