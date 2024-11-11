@@ -53,10 +53,10 @@ typedef struct CPU {
 
     void Execute (mem_t& memory); // Execute instructions
 
-    void Assert_CF (byte reg); // Set or unset CF
-    void Assert_ZF (byte reg); // Set or unset ZF
-    void Assert_OF (byte reg); // Set or unset OF
-    void Assert_SF (byte reg); // Set or unset SF
+    void Set_CF (word value); // Set or unset CF
+    void Set_ZF (byte reg); // Set or unset ZF
+    void Set_OF (byte comparison_value); // Set or unset OF
+    void Set_SF (byte reg); // Set or unset SF
 
     // Register opcodes
     static constexpr byte  

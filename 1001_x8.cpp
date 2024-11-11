@@ -74,8 +74,8 @@ void CPU::Execute (mem_t& memory) {
                 word address = FetchWord (memory);
                 GPR[reg] = ReadByte (address, memory);         
 
-                Assert_SF (reg);
-                Assert_ZF (reg);
+                Set_SF (reg);
+                Set_ZF (reg);
             } break;
 
             case INS_LDFI: {
@@ -83,8 +83,8 @@ void CPU::Execute (mem_t& memory) {
                 byte imm = FetchByte (memory);
                 GPR[reg] = imm;
 
-                Assert_SF (reg);
-                Assert_ZF (reg);
+                Set_SF (reg);
+                Set_ZF (reg);
             } break;
 
             case INS_LDFR: {
@@ -122,8 +122,8 @@ void CPU::Execute (mem_t& memory) {
                 byte reg = FetchByte (memory);
                 GPR[reg] = PullStack (memory);
     
-                Assert_SF (reg);
-                Assert_ZF (reg);
+                Set_SF (reg);
+                Set_ZF (reg);
             } break;
 
             case INS_PSHR: {
@@ -136,6 +136,89 @@ void CPU::Execute (mem_t& memory) {
                 PushStack (ReadByte (address, memory), memory);
             } break;
 
+            case INS_PULC: {
+                PC = (word) (PullStack (memory)) | ((word) (PullStack (memory)) << 8);
+            } break;
+
+            case INS_PSHC: {
+                PushStack (PC & 0xFF, memory);
+                PushStack (PC >> 8, memory);
+            } break;
+
+            case INS_PULF: {
+                byte flags = PullStack (memory);
+
+                CF = flags & 1;
+                ZF = (flags >> 1) & 1;
+                OF = (flags >> 2) & 2;
+                SF = (flags >> 3) & 2;
+            } break;
+
+            case INS_PSHF: {
+                byte flags = CF | (ZF << 1) | (OF << 2) | (SF << 3);
+                PushStack (flags, memory);
+            }
+
+            case INS_AND: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+
+                GPR[reg1] &= GPR[reg2];
+                
+                Set_SF (reg1);
+                Set_ZF (reg1);
+            } break;
+
+            case INS_EOR: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+
+                GPR[reg1] ^= GPR[reg2];
+                
+                Set_SF (reg1);
+                Set_ZF (reg1);
+            } break;
+
+            case INS_ORA: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+
+                GPR[reg1] |= GPR[reg2];
+                
+                Set_SF (reg1);
+                Set_ZF (reg1);
+            } break;
+
+            case INS_NOT: {
+                byte reg = FetchByte (memory);
+
+                GPR[reg] = ~GPR[reg];
+
+                Set_SF (reg);
+                Set_ZF (reg);
+            } break;
+
+            case INS_ADD: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+
+                byte cv_part1 = !((GPR[reg1] >> 7) ^ (GPR[reg2] >> 7));
+
+                word sum = GPR[reg1] + GPR[reg2] + CF;
+                GPR[reg1] = (sum & 0xFF);
+                
+
+                byte cv_part2 = (GPR[reg1] >> 7) ^ (GPR[reg2] >> 7);
+
+                Set_CF (sum);
+                Set_SF (reg1);
+                Set_ZF (reg1);
+                Set_OF (cv_part1 & cv_part2);
+            } break;
+
+            case INS_SUB: {
+
+            } break;
 
             case INS_JMP: {
                 word address = FetchWord (memory);
@@ -143,7 +226,7 @@ void CPU::Execute (mem_t& memory) {
             } break;
 
             default : {
-                // printf ("Instruction 0x%X not handled\r\n", ins);
+                printf ("Instruction 0x%X not handled\r\n", ins);
             } break;
         }
 
@@ -151,11 +234,11 @@ void CPU::Execute (mem_t& memory) {
     }
 }
 
-void CPU::Assert_CF (byte reg) {
-
+void CPU::Set_CF (word value) {
+    CF = value > 0xFF;
 }
 
-void CPU::Assert_ZF (byte reg) {
+void CPU::Set_ZF (byte reg) {
     if (GPR[reg] == 0) {
         ZF = 1;
     } else {
@@ -163,11 +246,11 @@ void CPU::Assert_ZF (byte reg) {
     }
 }
 
-void CPU::Assert_OF (byte reg) {
-
+void CPU::Set_OF (byte comparison_value) {
+    OF = comparison_value;
 }
 
-void CPU::Assert_SF (byte reg) {
+void CPU::Set_SF (byte reg) {
     if ((GPR[reg] >> 7) == 1) {
         SF = 1;
     } else {

@@ -47,18 +47,18 @@ INSTRUCTIONS
     `0x07	PULR	    Reg		                SF, ZF	        2	    Pull to reg from SP - 1
     `0x08	PSHR	    Reg			                            2	    Push to SP from reg
     `0x09	PSHM	    Mem			                            3   	Push to SP from mem
-    0x0A	PULC				                                1   	Pull to PC from SP - 1
-    0x0B	PSHC				                                1   	Push to SP from PC
-    0x0C	PULF				                                1   	Pull to PF from SP - 1
-    0x0D	PSHF				                                1   	Push to SP from PF
-    0x0E	AND	        Reg1	    Reg2	    SF, ZF	        3	    And contents of reg1 with reg2, storing result in reg1
-    0x0F	EOR	        Reg1	    Reg2	    SF, ZF	        3	    Xor contents of reg1 with reg2, storing result in reg1
-    0x10	ORA	        Reg1	    Reg2	    SF, ZF	        3	    Or contents of reg1 with reg2, storing result in reg1
-    0x11	NOT	        Reg		                SF, ZF, OF	    2	    Not the contents of reg, storing result in reg
+    `0x0A	PULC				                                1   	Pull to PC from SP - 1
+    `0x0B	PSHC				                                1   	Push to SP from PC
+    `0x0C	PULF				                                1   	Pull to PF from SP - 1
+    `0x0D	PSHF				                                1   	Push to SP from PF
+    `0x0E	AND	        Reg1	    Reg2	    SF, ZF	        3	    And contents of reg1 with reg2, storing result in reg1
+    `0x0F	EOR	        Reg1	    Reg2	    SF, ZF	        3	    Xor contents of reg1 with reg2, storing result in reg1
+    `0x10	ORA	        Reg1	    Reg2	    SF, ZF	        3	    Or contents of reg1 with reg2, storing result in reg1
+    `0x11	NOT	        Reg		                SF, ZF  	    2	    Not the contents of reg, storing result in reg
     0x12	ADD	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Add contents of reg1 with reg2, storing result in reg1
     0x13	SUB	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Subtract contents of reg1 with reg2, storing result in reg1
-    0x14	MULT	    Reg1	    Reg2	    CF, SF, ZF, OF	3	    Multiply contents of reg1 with reg2, storing result in reg1
-    0x15	DIV	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Divide contents of reg1 with reg2, storing result in reg1
+    !0x14	MULT	    Reg1	    Reg2	    CF, SF, ZF, OF	3	    Multiply contents of reg1 with reg2, storing result in reg1
+    !0x15	DIV	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Divide contents of reg1 with reg2, storing result in reg1
     0x16	CMPR	    Reg1	    Reg2	    CF, SF, ZF	    3	    Compare contents of reg1 with reg2. CF is set if reg1 >= reg2, ZF is set if reg1 = reg2
     0x17	CMPM	    Reg	        Mem	        CF, SF, ZF	    4	    Compare contents of reg with mem. CF is set if reg >= mem ZF is set if reg = mem
     0x18	CMPI	    Reg	        Imm	        CF, SF, ZF	    3	    Compare contents of reg with imm. CF is set if reg >= imm, ZF is set if reg = imm
