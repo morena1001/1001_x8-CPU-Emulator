@@ -1,0 +1,5 @@
+command to execute from root directory:
+
+cd DIRECTORY ; ./EXE_NAME ; cd ..
+
+will execute program in another directory, but bring you back to the root directory

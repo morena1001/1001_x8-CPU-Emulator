@@ -1,2 +1,5 @@
-emulator: main.cpp 1001_x8.cpp
-	g++ -o emulator main.cpp 1001_x8.cpp -I.
+all:
+	$(MAKE) -C cpu
+	$(MAKE) -C assembler
+	$(MAKE) -C screen
+	

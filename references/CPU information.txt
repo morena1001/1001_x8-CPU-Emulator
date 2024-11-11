@@ -38,23 +38,23 @@ INSTRUCTIONS
     All but the stack instructions are general because of the amount of general registers.
 
     OPCODE	KEYWORD     OPERAND 1	OPERAND 2 	AFFECTED FLAGS	BYTES	OPERATION
-    `0x01	LDFM	    Reg	        Mem	        SF, ZF	        4	    Load data to reg from mem
-    `0x02	LDFI	    Reg	        Imm	        SF, ZF	        3	    Load to reg imm
-    `0x03	LDFR	    Reg1	    Reg2		                3	    Load to reg1 from reg2
-    `0x04	STOR	    Mem	        Reg		                    4	    Store to mem from reg
-    `0x05	SWPR	    Reg1	    Reg2		                3	    Swap reg1 and reg2 values. Will use register H to store a temporary value
-    `0x06	SWPM	    Mem1	    Mem2		                5   	Swap mem1 and mem2 values. Will use registers G and H to store temporary values
-    `0x07	PULR	    Reg		                SF, ZF	        2	    Pull to reg from SP - 1
-    `0x08	PSHR	    Reg			                            2	    Push to SP from reg
-    `0x09	PSHM	    Mem			                            3   	Push to SP from mem
-    `0x0A	PULC				                                1   	Pull to PC from SP - 1
-    `0x0B	PSHC				                                1   	Push to SP from PC
-    `0x0C	PULF				                                1   	Pull to PF from SP - 1
-    `0x0D	PSHF				                                1   	Push to SP from PF
-    `0x0E	AND	        Reg1	    Reg2	    SF, ZF	        3	    And contents of reg1 with reg2, storing result in reg1
-    `0x0F	EOR	        Reg1	    Reg2	    SF, ZF	        3	    Xor contents of reg1 with reg2, storing result in reg1
-    `0x10	ORA	        Reg1	    Reg2	    SF, ZF	        3	    Or contents of reg1 with reg2, storing result in reg1
-    `0x11	NOT	        Reg		                SF, ZF  	    2	    Not the contents of reg, storing result in reg
+    0x01	LDFM	    Reg	        Mem	        SF, ZF	        4	    Load data to reg from mem
+    0x02	LDFI	    Reg	        Imm	        SF, ZF	        3	    Load to reg imm
+    0x03	LDFR	    Reg1	    Reg2		                3	    Load to reg1 from reg2
+    0x04	STOR	    Mem	        Reg		                    4	    Store to mem from reg
+    0x05	SWPR	    Reg1	    Reg2		                3	    Swap reg1 and reg2 values. Will use register H to store a temporary value
+    0x06	SWPM	    Mem1	    Mem2		                5   	Swap mem1 and mem2 values. Will use registers G and H to store temporary values
+    0x07	PULR	    Reg		                SF, ZF	        2	    Pull to reg from SP - 1
+    0x08	PSHR	    Reg			                            2	    Push to SP from reg
+    0x09	PSHM	    Mem			                            3   	Push to SP from mem
+    0x0A	PULC				                                1   	Pull to PC from SP - 1
+    0x0B	PSHC				                                1   	Push to SP from PC
+    0x0C	PULF				                                1   	Pull to PF from SP - 1
+    0x0D	PSHF				                                1   	Push to SP from PF
+    0x0E	AND	        Reg1	    Reg2	    SF, ZF	        3	    And contents of reg1 with reg2, storing result in reg1
+    0x0F	EOR	        Reg1	    Reg2	    SF, ZF	        3	    Xor contents of reg1 with reg2, storing result in reg1
+    0x10	ORA	        Reg1	    Reg2	    SF, ZF	        3	    Or contents of reg1 with reg2, storing result in reg1
+    0x11	NOT	        Reg		                SF, ZF  	    2	    Not the contents of reg, storing result in reg
     0x12	ADD	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Add contents of reg1 with reg2, storing result in reg1
     0x13	SUB	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Subtract contents of reg1 with reg2, storing result in reg1
     !0x14	MULT	    Reg1	    Reg2	    CF, SF, ZF, OF	3	    Multiply contents of reg1 with reg2, storing result in reg1
@@ -63,14 +63,14 @@ INSTRUCTIONS
     0x17	CMPM	    Reg	        Mem	        CF, SF, ZF	    4	    Compare contents of reg with mem. CF is set if reg >= mem ZF is set if reg = mem
     0x18	CMPI	    Reg	        Imm	        CF, SF, ZF	    3	    Compare contents of reg with imm. CF is set if reg >= imm, ZF is set if reg = imm
     0x19	INCR	    Reg		                SF, ZF	        2	    Increment value held in register
-    0x1A	INCM	    Mem		                SF, ZF	        3	    Increment value held in memory
+    0x1A	INCM	    Mem		                    	        3	    Increment value held in memory
     0x1B	DECR	    Reg		                SF, ZF	        2	    Decrement value held in register
-    0x1C	DECM	    Mem		                SF, ZF	        3	    Decrement value held in memory
+    0x1C	DECM	    Mem		                    	        3	    Decrement value held in memory
     0x1D	SHLR	    Reg		                CF, SF, ZF	    2   	Shift contents in register left by 1 bit. CF becomes value of the old MSB
     0x1E	SHRR	    Reg		                CF, SF, ZF	    2   	Shift contents in register right by 1 bit. CF becomes value of the old LSB
-    0x1F	SHLM	    Mem		                CF, SF, ZF	    3   	Shift contents in memory left by 1 bit. CF becomes value of the old MSB
-    0x20	SHRM	    Mem		                CF, SF, ZF	    3   	Shift contents in memory right by 1 bit. CF becomes value of the old LSB
-    `0x21	JMP	        Imm			                            2	    Set PC to imm. 
+    0x1F	SHLM	    Mem		                        	    3   	Shift contents in memory left by 1 bit.
+    0x20	SHRM	    Mem		                        	    3   	Shift contents in memory right by 1 bit.
+    0x21	JMP	        Imm			                            2	    Set PC to imm. 
     0x22	JSR	        Mem			                            3	    Set PC to address stored in mem
     0x23	RSR				                                    1	    Return to previously stored address in stack
     0x24	JSC	        Imm			                            2	    Set PC to imm if SF is not set
@@ -79,7 +79,7 @@ INSTRUCTIONS
     0x27	JCS	        Imm			                            2	    Set PC to imm if CF is set
     0x28	JOC	        Imm			                            2	    Set PC to imm if OF is not set
     0x29	JOS	        Imm			                            2	    Set PC to imm if OF is set
-    0x2A	JZC	        Imm			                            2	    Set PC to imm if  ZF is not set
+    0x2A	JZC	        Imm			                            2	    Set PC to imm if ZF is not set
     0x2B	JZS	        Imm			                            2	    Set PC to imm if ZF is set
     0x2C	CCF			                        CF	            1	    Clear CF
     0x2D	SCF			                        CF	            1	    Set CF
@@ -90,7 +90,7 @@ INSTRUCTIONS
     0x32	CZF			                        ZF	            1	    Clear ZF
     0x33	SZF			                        ZF	            1	    Set ZF
     0x34	NOP				                                    1	    No operation
-    `0x35	HALT				                                1	    Stops CPU
+    0x35	HALT				                                1	    Stops CPU
 
 
 UPDATES

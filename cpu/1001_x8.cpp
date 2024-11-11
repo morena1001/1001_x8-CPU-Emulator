@@ -202,27 +202,245 @@ void CPU::Execute (mem_t& memory) {
                 byte reg1 = FetchByte (memory);
                 byte reg2 = FetchByte (memory);
 
-                byte cv_part1 = !((GPR[reg1] >> 7) ^ (GPR[reg2] >> 7));
+                byte of_part1 = !((GPR[reg1] >> 7) ^ (GPR[reg2] >> 7));
 
                 word sum = GPR[reg1] + GPR[reg2] + CF;
                 GPR[reg1] = (sum & 0xFF);
                 
 
-                byte cv_part2 = (GPR[reg1] >> 7) ^ (GPR[reg2] >> 7);
+                byte of_part2 = (GPR[reg1] >> 7) ^ (GPR[reg2] >> 7);
 
                 Set_CF (sum);
                 Set_SF (reg1);
                 Set_ZF (reg1);
-                Set_OF (cv_part1 & cv_part2);
+                Set_OF (of_part1 & of_part2);
             } break;
 
             case INS_SUB: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
 
+                byte of_part1 = !((GPR[reg1] >> 7) ^ ((~GPR[reg2]) >> 7));
+
+                word diff = GPR[reg1] + (~GPR[reg2]) + (~CF);
+                GPR[reg1] = (diff & 0xFF);
+
+                byte of_part2 = (GPR[reg1] >> 7) ^ ((~GPR[reg2]) >> 7);
+
+                Set_CF (diff);
+                Set_SF (reg1);
+                Set_ZF (reg1);
+                Set_OF (of_part1 & of_part2);
+            } break;
+
+            case INS_CMPR: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+
+                CF = GPR[reg1] >= GPR[reg2];
+                ZF = GPR[reg1] == GPR[reg2];
+
+                Set_SF (reg1);
+            } break;
+
+            case INS_CMPM: {
+                byte reg = FetchByte (memory);
+                word address = FetchWord (memory);
+                byte value = ReadByte (address, memory);
+
+                CF = GPR[reg] >= value;
+                ZF = GPR[reg] == value;
+
+                Set_SF (reg);                
+            } break;
+
+            case INS_CMPI: {
+                byte reg = FetchByte (memory);
+                byte imm = FetchByte (memory);
+
+                CF = GPR[reg] >= imm;
+                ZF = GPR[reg] == imm;
+
+                Set_SF (reg);
+            } break;
+
+            case INS_INCR: {
+                byte reg = FetchByte (memory);
+
+                GPR[reg] += 1;
+
+                Set_SF (reg);
+                Set_ZF (reg);
+            } break;
+
+            case INS_INCM: {
+                word address = FetchWord (memory);
+                byte value = ReadByte (address, memory);
+
+                memory.WriteByte (value + 1, address);
+            } break;
+
+            case INS_DECR: {
+                byte reg = FetchByte (memory);
+
+                GPR[reg] -= 1;
+
+                Set_SF (reg);
+                Set_ZF (reg);
+            } break;
+
+            case INS_DECM: {
+                word address = FetchWord (memory);
+                byte value = ReadByte (address, memory);
+
+                memory.WriteByte (value - 1, address);
+            } break;
+
+            case INS_SHLR: {
+                byte reg = FetchByte (memory);
+
+                CF = (GPR[reg] >> 7);
+
+                GPR[reg] *= 2;
+
+                Set_SF (reg);
+                Set_ZF (reg);
+            } break;
+
+            case INS_SHRR: {
+                byte reg = FetchByte (memory);
+
+                CF = (GPR[reg] & 0x01);
+
+                GPR[reg] /= 2;
+
+                Set_SF (reg);
+                Set_ZF (reg);
+            } break;
+
+            case INS_SHLM: {
+                word address = FetchWord (memory);
+                byte value = ReadByte (address, memory);
+
+                memory.WriteByte (value * 2, address);
+            } break;
+
+            case INS_SHRM: {
+                word address = FetchWord (memory);
+                byte value = ReadByte (address, memory);
+
+                memory.WriteByte (value / 2, address);
             } break;
 
             case INS_JMP: {
                 word address = FetchWord (memory);
                 PC = address;
+            } break;
+
+            case INS_JSR: {
+                PushStack ((PC - 1) & 0xFF, memory);
+                PushStack (PC >> 8, memory);
+
+                word address = FetchWord (memory);
+                PC = address;
+            } break;
+
+            case INS_RSR: {
+                PC = (word) (PullStack (memory)) | ((word) (PullStack (memory)) << 8);
+            } break;
+
+            case INS_JSC: {
+                if (!SF) {
+                    word address = FetchWord (memory);
+                    PC = address;
+                }
+            } break;
+
+            case INS_JSS: {
+                if (SF) {
+                    word address = FetchWord (memory);
+                    PC = address;
+                }
+            } break; 
+
+            case INS_JCC: {
+                if (!CF) {
+                    word address = FetchWord (memory);
+                    PC = address;
+                }
+            } break;
+
+            case INS_JCS: {
+                if (CF) {
+                    word address = FetchWord (memory);
+                    PC = address;
+                }
+            } break;
+
+            case INS_JOC: {
+                if (!OF) {
+                    word address = FetchWord (memory);
+                    PC = address;
+                }
+            } break;
+
+            case INS_JOS: {
+                if (OF) {
+                    word address = FetchWord (memory);
+                    PC = address;
+                }
+            } break;
+
+            case INS_JZC: {
+                if (!ZF) {
+                    word address = FetchWord (memory);
+                    PC = address;
+                }
+            } break;
+
+            case INS_JZS: {
+                if (ZF) {
+                    word address = FetchWord (memory);
+                    PC = address;
+                }
+            } break;
+
+            case INS_CCF: {
+                CF = 0;
+            } break;
+
+            case INS_SCF: {
+                CF = 1;
+            } break;
+
+            case INS_CSF: {
+                SF = 0;
+            } break;
+
+            case INS_SSF: {
+                SF = 1;
+            } break;
+
+            case INS_COF: {
+                OF = 0;
+            } break;
+
+            case INS_SOF: {
+                OF = 1;
+            } break;
+
+            case INS_CZF: {
+                ZF = 0;
+            } break;
+
+            case INS_SZF: {
+                ZF = 1;
+            } break;
+
+            case INS_NOP: {} break;
+
+            case INS_HALT: {
+                break;
             } break;
 
             default : {
