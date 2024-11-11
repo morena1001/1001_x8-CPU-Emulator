@@ -39,14 +39,14 @@ INSTRUCTIONS
 
     OPCODE	KEYWORD     OPERAND 1	OPERAND 2 	AFFECTED FLAGS	BYTES	OPERATION
     `0x01	LDFM	    Reg	        Mem	        SF, ZF	        4	    Load data to reg from mem
-    0x02	LDFI	    Reg	        Imm	        SF, ZF	        3	    Load to reg imm
-    0x03	LDFR	    Reg1	    Reg2		                3	    Load to reg1 from reg2
-    0x04	STOR	    Mem	        Reg		                    4	    Store to mem from reg
-    0x05	SWPR	    Reg1	    Reg2		                3	    Swap reg1 and reg2 values
-    0x06	SWPM	    Mem1	    Mem2		                5   	Swap mem1 and mem2 values
-    0x07	PULR	    Reg		                SF, ZF	        2	    Pull to reg from SP - 1
-    0x08	PSHR	    Reg			                            2	    Push to SP from reg
-    0x09	PSHM	    Mem			                            3   	Push to SP from mem
+    `0x02	LDFI	    Reg	        Imm	        SF, ZF	        3	    Load to reg imm
+    `0x03	LDFR	    Reg1	    Reg2		                3	    Load to reg1 from reg2
+    `0x04	STOR	    Mem	        Reg		                    4	    Store to mem from reg
+    `0x05	SWPR	    Reg1	    Reg2		                3	    Swap reg1 and reg2 values. Will use register H to store a temporary value
+    `0x06	SWPM	    Mem1	    Mem2		                5   	Swap mem1 and mem2 values. Will use registers G and H to store temporary values
+    `0x07	PULR	    Reg		                SF, ZF	        2	    Pull to reg from SP - 1
+    `0x08	PSHR	    Reg			                            2	    Push to SP from reg
+    `0x09	PSHM	    Mem			                            3   	Push to SP from mem
     0x0A	PULC				                                1   	Pull to PC from SP - 1
     0x0B	PSHC				                                1   	Push to SP from PC
     0x0C	PULF				                                1   	Pull to PF from SP - 1
@@ -90,7 +90,7 @@ INSTRUCTIONS
     0x32	CZF			                        ZF	            1	    Clear ZF
     0x33	SZF			                        ZF	            1	    Set ZF
     0x34	NOP				                                    1	    No operation
-    0x35	HALT				                                1	    Stops CPU
+    `0x35	HALT				                                1	    Stops CPU
 
 
 UPDATES
@@ -105,6 +105,7 @@ UPDATES
     @ - register
     # - label
     . - section
+    ; - comment
 
 
 

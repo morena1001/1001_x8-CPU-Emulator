@@ -48,6 +48,9 @@ typedef struct CPU {
     byte ReadByte (u32 address, mem_t& memory); // Read a byte from address, does NOT update PC
     word ReadWord (u32 address, mem_t& memory); // Read 2 bytes from address, does NOT update PC
 
+    void PushStack (byte value, mem_t& memory); // Push a byte to the stack, updates SP
+    byte PullStack (mem_t& memory); // Pulls a byte from stack, updates SP
+
     void Execute (mem_t& memory); // Execute instructions
 
     void Assert_CF (byte reg); // Set or unset CF

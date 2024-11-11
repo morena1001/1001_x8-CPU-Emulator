@@ -53,6 +53,17 @@ word CPU::ReadWord (u32 address, mem_t& memory) {
     word data = (word) (ReadByte (address, memory)) | ((word) (ReadByte (address + 1, memory)) << 8);
 }
 
+void CPU::PushStack (byte value, mem_t& memory) {
+    memory.WriteByte (value, SP);
+    SP++;
+}
+
+byte CPU::PullStack (mem_t& memory) {
+    byte data = ReadByte (SP - 1, memory);
+    SP--;
+    return data;
+}
+
 void CPU::Execute (mem_t& memory) {
     byte ins = FetchByte (memory);
 
@@ -61,19 +72,78 @@ void CPU::Execute (mem_t& memory) {
             case INS_LDFM: {
                 byte reg = FetchByte (memory);
                 word address = FetchWord (memory);
-                GPR[reg] = ReadByte (address, memory);                
+                GPR[reg] = ReadByte (address, memory);         
+
+                Assert_SF (reg);
+                Assert_ZF (reg);
             } break;
+
             case INS_LDFI: {
                 byte reg = FetchByte (memory);
                 byte imm = FetchByte (memory);
                 GPR[reg] = imm;
+
+                Assert_SF (reg);
+                Assert_ZF (reg);
             } break;
+
+            case INS_LDFR: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+                GPR[reg1] = GPR[reg2];
+            } break;
+
+            case INS_STOR: {
+                word address = FetchWord (memory);
+                byte reg = FetchByte (memory);
+                memory.WriteByte (GPR[reg], address);
+            } break;
+
+            case INS_SWPR: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+
+                GPR[H] = GPR[reg1];
+                GPR[reg1] = GPR[reg2];
+                GPR[reg2] = GPR[H];
+            } break;
+
+            case INS_SWPM: {
+                word address1 = FetchWord (memory);
+                word address2 = FetchWord (memory);
+                
+                GPR[G] = ReadByte (address1, memory);
+                GPR[H] = ReadByte (address2, memory);
+                memory.WriteByte (GPR[H], address1);
+                memory.WriteByte (GPR[G], address2);
+            } break;
+
+            case INS_PULR: {
+                byte reg = FetchByte (memory);
+                GPR[reg] = PullStack (memory);
+    
+                Assert_SF (reg);
+                Assert_ZF (reg);
+            } break;
+
+            case INS_PSHR: {
+                byte reg = FetchByte (memory);
+                PushStack (GPR[reg], memory);
+            } break;
+
+            case INS_PSHM: {
+                word address = FetchWord (memory);
+                PushStack (ReadByte (address, memory), memory);
+            } break;
+
+
             case INS_JMP: {
-                word address = FetchByte (memory);
+                word address = FetchWord (memory);
                 PC = address;
             } break;
+
             default : {
-                printf ("Instruction %X not handled", ins);
+                // printf ("Instruction 0x%X not handled\r\n", ins);
             } break;
         }
 
@@ -81,18 +151,26 @@ void CPU::Execute (mem_t& memory) {
     }
 }
 
-void Assert_CF (byte reg) {
+void CPU::Assert_CF (byte reg) {
 
 }
 
-void Assert_ZF (byte reg) {
+void CPU::Assert_ZF (byte reg) {
+    if (GPR[reg] == 0) {
+        ZF = 1;
+    } else {
+        ZF = 0;
+    }
+}
+
+void CPU::Assert_OF (byte reg) {
 
 }
 
-void Assert_OF (byte reg) {
-
-}
-
-void Assert_SF (byte reg) {
-
+void CPU::Assert_SF (byte reg) {
+    if ((GPR[reg] >> 7) == 1) {
+        SF = 1;
+    } else {
+        SF = 0;
+    }
 }
