@@ -2,10 +2,13 @@ ARCHITECTURE
 
     This is an 8 bit CPU with 64Kb of memory, with data stored in little endian.
 
-    The memory is divided in two parts, stack memory, and usable memory. 
+    The memory is divided in four parts, stack memory, RAM, ROM, and variable memory. 
     Stack memory is only a byte long, from address 0x0000 to 0x00FF. 
-    The rest of memory is usable memory.
-    The reset location is immediately after the the stack memory, or address 0xFFFD.
+    RAM is reusable memory from 0x0100 to 0xDDFF.
+    Variable memory is 2 bytes long, from 0xDE00 to 0xDFFF.
+    ROM is 2 words long, from 0xE000 to 0xFFFF.
+    
+    The reset location is address 0xFFFD.
 
 REGISTERS
 
@@ -99,13 +102,6 @@ UPDATES
         separate section for character memory for output screen,
         separate section for variable memory for programs,
         separate section for video memory for color section per pixel
-
-    % - literal
-    $ - variable
-    @ - register
-    # - label
-    . - section
-    ; - comment
 
 
 

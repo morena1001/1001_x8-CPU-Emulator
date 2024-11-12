@@ -1,7 +1,8 @@
 .variables
-$a 2F
+$a 20
 
-.start
-    LOAD @A $a
-    HALT
+; start of program
+.main  
+    LDFM @A $a
+    HALT ; must always be present
     

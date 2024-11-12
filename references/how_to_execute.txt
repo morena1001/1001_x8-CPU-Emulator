@@ -3,3 +3,10 @@ command to execute from root directory:
 cd DIRECTORY ; ./EXE_NAME ; cd ..
 
 will execute program in another directory, but bring you back to the root directory
+
+IF ON WINDOWS
+
+create a variable in powershell to store command and use Invoke-Expression command on it
+
+$prog = "cd .. DIRECTORY ; ./EXE_NAME; cd .."
+Invoke-Expression $prog

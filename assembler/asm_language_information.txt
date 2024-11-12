@@ -1,0 +1,12 @@
+% - literal
+$ - variable
+@ - register
+# - label
+. - section
+; - comment
+
+There are only 2 sections, .variables and .main
+
+The syntax to create a variable is shown below
+$a 20
+
