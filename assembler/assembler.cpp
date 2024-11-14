@@ -5,8 +5,13 @@
 #include <string>
 #include <map>
 
+#define NEEDS_NO_OPERANDS(opcode)       ((opcode >= 0x0A && opcode <= 0x0D) || opcode == 0x23 || (opcode >= 0x2C && opcode <= 0x35)) 
+#define NEEDS_ONE_OPERAND(opcode)       ((opcode >= 0x07 && opcode <= 0x09) || opcode == 0x11 || (opcode >= 0x19 && opcode <= 0x22) || (opcode >= 0x24 && opcode <= 0x2B))
+#define NEEDS_TWO_OPERANDS(opcode)      ((opcode >= 0x01 && opcode <= 0x06) || (opcode >= 0x0E && opcode <= 0x10) || (opcode >= 0x12 && opcode <= 0x18))
+#define IS_A_JMP_OPERAND(opcode)        ((opcode >= 0x21 && opcode <= 0x24) || opcode == 0x2B)
+
 // Data types used in 1001_x8
-using byte = unsigned char;
+using byte = uint8_t;
 using word = unsigned short;
 using u32 = unsigned int;
 
@@ -14,20 +19,33 @@ using namespace std;
 
 int main (int argc, char** argv) {
     ifstream program;
+    string file_name;
 
     // Check if the prorgram was exectued with a given source file, else load a sample program
     if (argc == 2) {
         program.open (argv[1]);
+        file_name = argv[1];
+
+        if (file_name.substr (file_name.length () - 2, -1) != "lk") {
+            cout << "Incorrect file type. Should be .lk." << endl;
+            return 0;
+        }
+
+        file_name = file_name.substr (0, file_name.length () - 2);
     } else {
         program.open ("sample_program.lk");
     }
 
     // variables for instructions in .main section
     byte instructions[8192];
-    for (u32 i = 0; i < 8192; i++)  instructions[i] = 0x00;
     u32 ins_idx = 0;
     map<string, word> opcodes;
     map<char, word> registers;
+
+    word label_id = 0x0001;
+    map<string, word> labels;
+
+    // Possible opcodes
     opcodes["LDFM"] = 0x01;
     opcodes["LDFI"] = 0x02;
     opcodes["LDFR"] = 0x03;
@@ -82,6 +100,7 @@ int main (int argc, char** argv) {
     opcodes["NOP"] = 0x34;
     opcodes["HALT"] = 0x35;
 
+    // Possible registers
     registers['A'] = 0x00;
     registers['B'] = 0x01;
     registers['C'] = 0x02;
@@ -92,11 +111,10 @@ int main (int argc, char** argv) {
     registers['H'] = 0x07;
 
     // Variables for .variables section
-    word unique_ID = 0x0001;
+    word variable_id = 0x0001;
     byte variable_instructions[512 * 3];
-    for (u32 i = 0; i < 512 * 3; i++)      variable_instructions[i] = 0x00;
     byte var_idx = 0;
-    map<string, word> IDs;
+    map<string, word> variables;
 
     string line;
     u32 idx;
@@ -109,7 +127,7 @@ int main (int argc, char** argv) {
     if (program.is_open ()) {
         while (getline (program, line)) {
             
-            cout << line << endl;
+            // cout << line << endl;
             line_number++;
 
             // remove white space from front
@@ -165,16 +183,21 @@ int main (int argc, char** argv) {
                 byte value = (byte) stoi (line.substr (idx + 1, -1));
 
                 // Add the variables unique ID to the instructions, and pair name with ID in map
-                variable_instructions[var_idx++] = (unique_ID & 0xFF);
-                variable_instructions[var_idx++] = (unique_ID >> 8);
+                variable_instructions[var_idx++] = (variable_id & 0xFF);
+                variable_instructions[var_idx++] = (variable_id >> 8);
                 variable_instructions[var_idx++] = value;
-                IDs[var_name] = unique_ID++;
+                variables[var_name] = variable_id++;
             }
 
             // If in main section, process commands accordingly
             if (in_main_section) {
                 // Check if the line is a label to be able to perform JMP commands
                 if (line.at (0) == '#') {
+                    string label_name = line.substr (1, -1);
+                    instructions[ins_idx++] = 0x36;
+                    instructions[ins_idx++] = (label_id & 0xFF);
+                    instructions[ins_idx++] = (label_id >> 8);
+                    labels[label_name] = label_id++;
 
                     continue;
                 }
@@ -186,7 +209,7 @@ int main (int argc, char** argv) {
 
                 // Check that the opcode is valid, and it to the instructions
                 if (opcodes.count (opcode) == 0) {
-                    cout << line_number << " : Opcode " << opcode << "is undefined." << endl;
+                    cout << line_number << " : Opcode " << opcode << " is undefined." << endl;
                     return 0;
                 }
                 instructions[ins_idx++] = opcodes[opcode];
@@ -194,14 +217,6 @@ int main (int argc, char** argv) {
                 // The HALT command signifies the end of a program
                 if (!line.compare ("HALT")) {
                     halt_present = true;
-                    in_main_section = false;
-                }
-
-                // Check that the given opcode does or does not require any operands
-
-                // If there are operands present, continue with the next line
-                if (operands.length() == 0) {
-                    continue;
                 }
 
                 // Split the operands into operand 1 and 2
@@ -209,7 +224,37 @@ int main (int argc, char** argv) {
                 string op1 = operands.substr (0, idx == string::npos ? -1 : idx);
                 string op2 = idx == string::npos ? "" : operands.substr (idx + 1, -1);
 
-                // Switch for the first operand. They can either be a literal (%), variable ($), or register (@)
+                // If a no-operand opcode has at least 1 operand, throw error
+                if (NEEDS_NO_OPERANDS (opcodes[opcode]) && op1.length() != 0) {
+                    cout << line_number << " : Opcode " << opcode << " does not need 1 or more operands." << endl;
+                    return 0;
+                }
+
+                // If a one-operand opcode has no operands, throw error
+                if (NEEDS_ONE_OPERAND (opcodes[opcode]) && op1.length() == 0) {
+                    cout << line_number << " : Opcode " << opcode << " needs 1 operand." << endl;
+                    return 0;  
+                }
+
+                // If a one-operand opcode has more that 1 operand, throw error
+                if (NEEDS_ONE_OPERAND (opcodes[opcode]) && op2.length() != 0) {
+                    cout << line_number << " : Opcode " << opcode << " does not need 2 opcodes." << endl;
+                    return 0;
+                }
+
+                // If a two-operand opcode has less than 2 operands, throw error
+                if (NEEDS_TWO_OPERANDS (opcodes[opcode]) && (op2.length() == 0 || op1.length() == 0)) {
+                    cout << line_number << " : Opcode " << opcode << " needs 2 opcodes." << endl;\
+                    return 0;
+                }
+
+                // If an opcode needs no operands, continue with the next line
+                if (operands.length() == 0) {
+                    continue;
+                }
+
+
+                // Switch for the first operand. They can either be a literal (%), variable ($), register (@), or a label (#)
                 switch (op1[0]) {
                     case '%': {
                         word num = stoi (op1.substr (1, -1));
@@ -219,13 +264,13 @@ int main (int argc, char** argv) {
 
                     case '$': {
                         string var_name = op1.substr (1, -1);
-                        if (IDs.count (var_name) == 0) {
+                        if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
                             return 0;
                         }
 
-                        instructions[ins_idx++] = (IDs[var_name] & 0xFF);
-                        instructions[ins_idx++] = (IDs[var_name] >> 8);
+                        instructions[ins_idx++] = (variables[var_name] & 0xFF);
+                        instructions[ins_idx++] = (variables[var_name] >> 8);
                     } break;
 
                     case '@': {
@@ -238,10 +283,30 @@ int main (int argc, char** argv) {
                         instructions[ins_idx++] = registers[reg];
                     } break;
 
+                    case '#': {
+                        string label = op1.substr (1, -1);
+                        // Check if the opcode with the label operand is a jump
+                        if (!IS_A_JMP_OPERAND(opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " is not a jump instruction." << endl;
+                            return 0;
+                        }
+
+                        // Check if the label is defined
+                        if (labels.count (label) == 0) {
+                            cout << line_number << " : Label " << label << " is undefined." << endl;
+                            return 0;  
+                        }
+                    } break;
+
                     default: {
                         cout << line_number << " : Symbol " << op1[0] << " is undefined." << endl;
                         return 0;
                     } break;
+                }
+
+                // Go to next line if there is only one operand
+                if (op2.length() == 0) {
+                    continue;
                 }
 
                 // Switch for the first operand. They can either be a literal (%), variable ($), or register (@)
@@ -255,13 +320,13 @@ int main (int argc, char** argv) {
                     case '$': {
                         string var_name = op2.substr (1, -1);
 
-                        if (IDs.count (var_name) == 0) {
+                        if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
                             return 0;
                         }
 
-                        instructions[ins_idx++] = (IDs[var_name] & 0xFF);
-                        instructions[ins_idx++] = (IDs[var_name] >> 8);
+                        instructions[ins_idx++] = (variables[var_name] & 0xFF);
+                        instructions[ins_idx++] = (variables[var_name] >> 8);
                     } break;
 
                     case '@': {
@@ -290,8 +355,31 @@ int main (int argc, char** argv) {
         // Close the source file and convert processed information into .bin file
         program.close ();
 
-        
+        ofstream output_file (file_name + "output");
+               
+        u32 i = 0;
+        byte single_instruction = instructions[i++];
+        char machine_code_instruction[4];
+        while (single_instruction != 0x35) {
+            sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+            output_file << machine_code_instruction;
+            
+            single_instruction = instructions[i++];
+        } 
+        sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+        output_file << machine_code_instruction;
 
+        i = 0;
+        single_instruction = variable_instructions[i++];
+
+        while (i < var_idx + 1) {
+            sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+            output_file << machine_code_instruction;
+            
+            single_instruction = variable_instructions[i++];
+        }
+
+        cout << "Output file " << file_name << "output created." << endl; 
     } else {
         cout << "Unable to open file" << endl;
     }
