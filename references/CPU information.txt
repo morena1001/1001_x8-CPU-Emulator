@@ -74,7 +74,7 @@ INSTRUCTIONS
     0x1F	SHLM	    Mem		                        	    3   	Shift contents in memory left by 1 bit.
     0x20	SHRM	    Mem		                        	    3   	Shift contents in memory right by 1 bit.
     0x21	JMP	        Imm			                            2	    Set PC to imm. 
-    0x22	JSR	        Mem			                            3	    Set PC to address stored in mem
+    0x22	JSR	        Imm			                            3	    Set PC to address stored in mem
     0x23	RSR				                                    1	    Return to previously stored address in stack
     0x24	JSC	        Imm			                            2	    Set PC to imm if SF is not set
     0x25	JSS	        Imm			                            2	    Set PC to imm if SF is set

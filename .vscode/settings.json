@@ -1,7 +1,10 @@
 {
     "files.associations": {
         "ostream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "array": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp"
     },
     "zenMode.fullScreen": false
 }

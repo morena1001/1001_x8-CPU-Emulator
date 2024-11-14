@@ -60,6 +60,7 @@ void CPU::PushStack (byte value, mem_t& memory) {
 
 byte CPU::PullStack (mem_t& memory) {
     byte data = ReadByte (SP - 1, memory);
+    memory.WriteByte (0x00, SP - 1);
     SP--;
     return data;
 }

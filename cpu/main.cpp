@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <iostream>
+
 #include "1001_x8.h"
+#include "loader.h"
+
+using namespace std;
 
 void test1 (mem_t& mem, cpu_t& cpu);
 void test2 (mem_t& mem, cpu_t& cpu);
@@ -9,7 +14,32 @@ void test3 (mem_t& mem, cpu_t& cpu);
 void test4 (mem_t& mem, cpu_t& cpu);
 
 
-int main () {
+int main (int argc, char** argv) {
+    if (argc < 2) {
+        cout << "ERROR : A .output file is needed to be loaded onto the cpu." << endl;
+        return 0;
+    }
+
+    bool output_registers = false;
+    bool output_memory = false;
+
+    string argument;
+    for (int i = 1; i < argc; i++) {
+        argument = argv[i];
+
+        if (argument[0] == '-') {
+            output_registers = argument[1] == 'r';
+            output_memory = argument[1] == 'm';
+        } else {
+            if (argument.length () > 7 && argument.substr (argument.length () - 6, -1) == "output") {
+                // RUN LOADER WITH THE GIVEN FILE
+                Load_Program (argument);
+            } else {
+                cout << "ERROR : " << argument << " is not a valid file type for the loader" << endl;
+                return 0;
+            }
+        }
+    }
 
     mem_t mem;
     cpu_t cpu;
@@ -23,8 +53,23 @@ int main () {
 
     cpu.Execute (mem);
 
-    printf("%X %X %X\r\n", cpu.GPR[A], cpu.GPR[B], cpu.SP);
-    // printf ("%X %X\r\n", mem[0xAAAA], mem[0xBBBB]);
+    if (output_registers) {
+        printf("A : %s%d\n", cpu.GPR[A] < 0x10 ? "0" : "", cpu.GPR[A]);
+        printf("B : %s%d\n", cpu.GPR[B] < 0x10 ? "0" : "", cpu.GPR[B]);
+        printf("C : %s%d\n", cpu.GPR[C] < 0x10 ? "0" : "", cpu.GPR[C]);
+        printf("D : %s%d\n", cpu.GPR[D] < 0x10 ? "0" : "", cpu.GPR[D]);
+        printf("E : %s%d\n", cpu.GPR[E] < 0x10 ? "0" : "", cpu.GPR[E]);
+        printf("F : %s%d\n", cpu.GPR[F] < 0x10 ? "0" : "", cpu.GPR[F]);
+        printf("G : %s%d\n", cpu.GPR[G] < 0x10 ? "0" : "", cpu.GPR[G]);
+        printf("H : %s%d\n", cpu.GPR[H] < 0x10 ? "0" : "", cpu.GPR[H]);
+    }
+
+    if (output_memory) {
+        for (int i = 0; i < mem.MAX_MEM; i++) {
+            byte value = mem.data[i];
+            printf("%s%X ", value < 0x10 ? "0" : "", value);
+        }
+    }
 
     return 0;
 }

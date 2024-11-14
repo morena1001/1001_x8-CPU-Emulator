@@ -1,8 +1,8 @@
-command to execute from root directory:
+command to execute assembler from root directory:
 
 cd DIRECTORY ; ./EXE_NAME ; cd ..
 
-will execute program in another directory, but bring you back to the root directory
+will execute assembler in another directory, but bring you back to the root directory
 
 IF ON WINDOWS
 
@@ -10,3 +10,16 @@ create a variable in powershell to store command and use Invoke-Expression comma
 
 $prog = "cd .. DIRECTORY ; ./EXE_NAME; cd .."
 Invoke-Expression $prog
+
+
+
+To execute CPU, a .output file is needed, which is created by the assembler. 
+There are also two flags that may be set for the CPU, -r and -m.
+
+-r output the contents of the registers at the end of the program.
+-m output the contents of memory at the end of the program.
+
+If all flags are specified, the command to run CPU given the file sample_program.output is : 
+./emulator sample_program.output -r -main
+
+The position of the flags and the file do not matter, so long as they are behind the ./emulator.

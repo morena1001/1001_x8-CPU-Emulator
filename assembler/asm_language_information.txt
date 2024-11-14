@@ -10,3 +10,4 @@ There are only 2 sections, .variables and .main
 The syntax to create a variable is shown below
 $a 20
 
+Subroutines must ALWAYS appear before the main code. The loader will keep track of the main code by storing the address to the first instruction that comes after a subroutine.
