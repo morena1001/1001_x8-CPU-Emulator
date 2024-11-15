@@ -10,12 +10,26 @@
 #define NEEDS_TWO_OPERANDS(opcode)      ((opcode >= 0x01 && opcode <= 0x06) || (opcode >= 0x0E && opcode <= 0x10) || (opcode >= 0x12 && opcode <= 0x18))
 #define IS_A_JMP_OPERAND(opcode)        ((opcode >= 0x21 && opcode <= 0x22) || (opcode >= 0x24 && opcode <= 0x2B))
 
+#define REG_AS_OPERAND1(opcode)         ((opcode >= 0x01 && opcode <= 0x03) || opcode == 0x05 || opcode == 0x07 || opcode == 0x08 || (opcode >= 0x0E && opcode <= 0x19) || opcode == 0x1B || opcode == 0x1D || opcode == 0x1E)
+#define MEM_AS_OPERAND1(opcode)         (opcode == 0x04 || opcode == 0x06 || opcode == 0x09 || opcode == 0x1A || opcode == 0x1C || opcode == 0x1F || opcode == 0x20)
+#define LAB_AS_OPERAND1(opcode)         (opcode == 0x21 || opcode == 0x22 || (opcode <= 0x24 && opcode >= 0x2B))
+
+#define REG_AS_OPERAND2(opcode)         (opcode == 0x03 || opcode == 0x05 || opcode == 0x0E || opcode == 0x0F || opcode == 0x10 || (opcode >= 0x12 && opcode <= 0x16))
+#define MEM_AS_OPERAND2(opcode)         (opcode == 0x01 || opcode == 0x17)
+#define IMM_AS_OPERAND2(opcode)         (opcode == 0x02 || opcode == 0x18) 
+
 // Data types used in 1001_x8
 using byte = uint8_t;
 using word = unsigned short;
 using u32 = unsigned int;
 
 using namespace std;
+
+void Opcodes_Init (map<string, word>& opcodes);
+void Registers_Init (map<char, word>& registers);
+void Remove_Space_and_Comments (u32& idx, string& line);
+
+bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_number);
 
 int main (int argc, char** argv) {
     ifstream program;
@@ -42,73 +56,11 @@ int main (int argc, char** argv) {
     map<string, word> opcodes;
     map<char, word> registers;
 
+    Opcodes_Init (opcodes);
+    Registers_Init (registers);
+
     word label_id = 0x0001;
     map<string, word> labels;
-
-    // Possible opcodes
-    opcodes["LDFM"] = 0x01;
-    opcodes["LDFI"] = 0x02;
-    opcodes["LDFR"] = 0x03;
-    opcodes["STOR"] = 0x04;
-    opcodes["SWPR"] = 0x05;
-    opcodes["SWPM"] = 0x06;
-    opcodes["PULR"] = 0x07;
-    opcodes["PSHR"] = 0x08;
-    opcodes["PSHM"] = 0x09;
-    opcodes["PULC"] = 0x0A;
-    opcodes["PSHC"] = 0x0B;
-    opcodes["PULF"] = 0x0C;
-    opcodes["PSHF"] = 0x0D;
-    opcodes["AND"] = 0x0E;
-    opcodes["EOR"] = 0x0F;
-    opcodes["ORA"] = 0x10;
-    opcodes["NOT"] = 0x11;
-    opcodes["ADD"] = 0x12;
-    opcodes["SUB"] = 0x13;
-    opcodes["MULT"] = 0x14;
-    opcodes["DIV"] = 0x15;
-    opcodes["CMPR"] = 0x16;
-    opcodes["CMPM"] = 0x17;
-    opcodes["CMPI"] = 0x18;
-    opcodes["INCR"] = 0x19;
-    opcodes["INCM"] = 0x1A;
-    opcodes["DECR"] = 0x1B;
-    opcodes["DECM"] = 0x1C;
-    opcodes["SHLR"] = 0x1D;
-    opcodes["SHRR"] = 0x1E;
-    opcodes["SHLM"] = 0x1F;
-    opcodes["SHRM"] = 0x20;
-    opcodes["JMP"] = 0x21;
-    opcodes["JSR"] = 0x22;
-    opcodes["RSR"] = 0x23;
-    opcodes["JSC"] = 0x24;
-    opcodes["JSS"] = 0x25;
-    opcodes["JCC"] = 0x26;
-    opcodes["JCS"] = 0x27;
-    opcodes["JOC"] = 0x28;
-    opcodes["JOS"] = 0x29;
-    opcodes["JZC"] = 0x2A;
-    opcodes["JZS"] = 0x2B;
-    opcodes["CCF"] = 0x2C;
-    opcodes["SCF"] = 0x2D;
-    opcodes["CSF"] = 0x2E;
-    opcodes["SSF"] = 0x2F;
-    opcodes["COF"] = 0x30;
-    opcodes["SOF"] = 0x31;
-    opcodes["CZF"] = 0x32;
-    opcodes["SZF"] = 0x33;
-    opcodes["NOP"] = 0x34;
-    opcodes["HALT"] = 0x35;
-
-    // Possible registers
-    registers['A'] = 0x00;
-    registers['B'] = 0x01;
-    registers['C'] = 0x02;
-    registers['D'] = 0x03;
-    registers['E'] = 0x04;
-    registers['F'] = 0x05;
-    registers['G'] = 0x06;
-    registers['H'] = 0x07;
 
     // Variables for .variables section
     word variable_id = 0x0001;
@@ -127,24 +79,10 @@ int main (int argc, char** argv) {
     if (program.is_open ()) {
         while (getline (program, line)) {
             
-            // cout << line << endl;
+            // Increment line number for error throwing
             line_number++;
 
-            // remove white space from front
-            idx = line.find_first_not_of (" ");
-            line.erase (line.begin (), line.begin () + idx);
-
-            // remove comments 
-            idx = line.find_first_of (";");
-            if (idx != string::npos) {
-                line.erase (line.begin () + idx, line.end ());
-            }
-
-            // remove white space from back
-            idx = line.find_last_not_of (" ");
-            if (idx != string::npos) {
-                line.erase (line.begin() + idx + 1, line.end ());
-            }
+            Remove_Space_and_Comments (idx, line);
 
             // skip empty lines
             if (line.length () < 2) {
@@ -169,16 +107,26 @@ int main (int argc, char** argv) {
                 }
             }
 
+
+
             // If in variables section, process variables accordingly
             if (in_variables_section) {
                 // Check that variables are in the correct format. i.e. "$a"
                 if (line.at (0) != '$') {
                     cout << line_number << " : Wrong variable format" << endl;
+                    return 0;
                 }
 
-                // Remove $ from string, and split in two for name and value
+                // Remove $ from string, and check if there is a value after the variable name
                 line = line.substr (1, -1);
                 idx = line.find_first_of (" ");
+
+                if (idx == string::npos) {
+                    cout << line_number << " : Variables must be initialized where declared." << endl;
+                    return 0;
+                }
+
+                // Split line in two, for name and value
                 string var_name = line.substr (0, idx);
                 byte value = (byte) stoi (line.substr (idx + 1, -1));
 
@@ -188,6 +136,8 @@ int main (int argc, char** argv) {
                 variable_instructions[var_idx++] = value;
                 variables[var_name] = variable_id++;
             }
+
+
 
             // If in main section, process commands accordingly
             if (in_main_section) {
@@ -207,7 +157,7 @@ int main (int argc, char** argv) {
                 string opcode = line.substr (0, idx == string::npos ? -1 : idx);
                 string operands = idx == string::npos ? "" : line.substr (idx + 1, -1);
 
-                // Check that the opcode is valid, and it to the instructions
+                // Check that the opcode is valid, and add it to the instructions
                 if (opcodes.count (opcode) == 0) {
                     cout << line_number << " : Opcode " << opcode << " is undefined." << endl;
                     return 0;
@@ -224,27 +174,7 @@ int main (int argc, char** argv) {
                 string op1 = operands.substr (0, idx == string::npos ? -1 : idx);
                 string op2 = idx == string::npos ? "" : operands.substr (idx + 1, -1);
 
-                // If a no-operand opcode has at least 1 operand, throw error
-                if (NEEDS_NO_OPERANDS (opcodes[opcode]) && op1.length() != 0) {
-                    cout << line_number << " : Opcode " << opcode << " does not need 1 or more operands." << endl;
-                    return 0;
-                }
-
-                // If a one-operand opcode has no operands, throw error
-                if (NEEDS_ONE_OPERAND (opcodes[opcode]) && op1.length() == 0) {
-                    cout << line_number << " : Opcode " << opcode << " needs 1 operand." << endl;
-                    return 0;  
-                }
-
-                // If a one-operand opcode has more that 1 operand, throw error
-                if (NEEDS_ONE_OPERAND (opcodes[opcode]) && op2.length() != 0) {
-                    cout << line_number << " : Opcode " << opcode << " does not need 2 opcodes." << endl;
-                    return 0;
-                }
-
-                // If a two-operand opcode has less than 2 operands, throw error
-                if (NEEDS_TWO_OPERANDS (opcodes[opcode]) && (op2.length() == 0 || op1.length() == 0)) {
-                    cout << line_number << " : Opcode " << opcode << " needs 2 opcodes." << endl;\
+                if (!Opcode_and_Operands_Match (opcodes[opcode], op1, op2, line_number)) {
                     return 0;
                 }
 
@@ -253,16 +183,14 @@ int main (int argc, char** argv) {
                     continue;
                 }
 
-
-                // Switch for the first operand. They can either be a literal (%), variable ($), register (@), or a label (#)
+                // Switch for the first operand. They can either be a variable ($), register (@), or a label (#)
                 switch (op1[0]) {
-                    case '%': {
-                        word num = stoi (op1.substr (1, -1));
+                    case '$': { // variable
+                        if (!MEM_AS_OPERAND1 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have a variable as its 1st operand." << endl;
+                            return 0;
+                        }
 
-                        instructions[ins_idx++] = (byte) num;
-                    } break;
-
-                    case '$': {
                         string var_name = op1.substr (1, -1);
                         if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
@@ -273,7 +201,12 @@ int main (int argc, char** argv) {
                         instructions[ins_idx++] = (variables[var_name] >> 8);
                     } break;
 
-                    case '@': {
+                    case '@': { // register
+                        if (!REG_AS_OPERAND1 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have a register as its 1st operand." << endl;
+                            return 0;
+                        }
+
                         char reg = op1[1];
                         if (registers.count (reg) == 0) {
                             cout << line_number << " : Register " << opcode << " is undefined." << endl;
@@ -283,7 +216,12 @@ int main (int argc, char** argv) {
                         instructions[ins_idx++] = registers[reg];
                     } break;
 
-                    case '#': {
+                    case '#': { // label
+                        if (!LAB_AS_OPERAND1 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have a label as its 1st operand." << endl;
+                            return 0;
+                        }
+
                         string label = op1.substr (1, -1);
                         // Check if the opcode with the label operand is a jump
                         if (!IS_A_JMP_OPERAND(opcodes[opcode])) {
@@ -296,6 +234,9 @@ int main (int argc, char** argv) {
                             cout << line_number << " : Label " << label << " is undefined." << endl;
                             return 0;  
                         }
+
+                        instructions[ins_idx++] = (labels[label] & 0xFF);
+                        instructions[ins_idx++] = (labels[label] >> 8);
                     } break;
 
                     default: {
@@ -311,13 +252,23 @@ int main (int argc, char** argv) {
 
                 // Switch for the first operand. They can either be a literal (%), variable ($), or register (@)
                 switch (op2[0]) {
-                    case '%': {
+                    case '%': { // literal
+                        if (!IMM_AS_OPERAND2 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have an immediate as its 2nd operand." << endl;
+                            return 0;
+                        }
+
                         word num = stoi (op2.substr (1, -1));
 
                         instructions[ins_idx++] = (byte) num;
                     } break;
 
-                    case '$': {
+                    case '$': { // variable
+                        if (!MEM_AS_OPERAND2 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have a variable as its 2nd operand." << endl;
+                            return 0;
+                        }
+
                         string var_name = op2.substr (1, -1);
 
                         if (variables.count (var_name) == 0) {
@@ -329,7 +280,12 @@ int main (int argc, char** argv) {
                         instructions[ins_idx++] = (variables[var_name] >> 8);
                     } break;
 
-                    case '@': {
+                    case '@': { // register
+                        if (!REG_AS_OPERAND2 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have a register as its 2nd operand." << endl;
+                            return 0;
+                        }
+
                         char reg = op2[1];
                         if (registers.count (reg) == 0) {
                             cout << line_number << " : Register " << opcode << " is undefined." << endl;
@@ -385,4 +341,117 @@ int main (int argc, char** argv) {
     }
 
     return 0;
+}
+
+void Opcodes_Init (map<string, word>& opcodes) {
+    opcodes.insert (pair<string, word> ("LDFM", 0x01));
+    opcodes.insert (pair<string, word> ("LDFI", 0x02));
+    opcodes.insert (pair<string, word> ("LDFR", 0x03));
+    opcodes.insert (pair<string, word> ("STOR", 0x04));
+    opcodes.insert (pair<string, word> ("SWPR", 0x05));
+    opcodes.insert (pair<string, word> ("SWPM", 0x06));
+    opcodes.insert (pair<string, word> ("PULR", 0x07));
+    opcodes.insert (pair<string, word> ("PSHR", 0x08));
+    opcodes.insert (pair<string, word> ("PSHM", 0x09));
+    opcodes.insert (pair<string, word> ("PULC", 0x0A));
+    opcodes.insert (pair<string, word> ("PSHC", 0x0B));
+    opcodes.insert (pair<string, word> ("PULF", 0x0C));
+    opcodes.insert (pair<string, word> ("PSHF", 0x0D));
+    opcodes.insert (pair<string, word> ("AND", 0x0E));
+    opcodes.insert (pair<string, word> ("EOR", 0x0F));
+    opcodes.insert (pair<string, word> ("ORA", 0x10));
+    opcodes.insert (pair<string, word> ("NOT", 0x11));
+    opcodes.insert (pair<string, word> ("ADD", 0x12));
+    opcodes.insert (pair<string, word> ("SUB", 0x13));
+    // opcodes.insert (pair<string, word> ("MULT", 0x14));
+    // opcodes.insert (pair<string, word> ("DIV", 0x15));
+    opcodes.insert (pair<string, word> ("CMPR", 0x16));
+    opcodes.insert (pair<string, word> ("CMPM", 0x17));
+    opcodes.insert (pair<string, word> ("CMPI", 0x18));
+    opcodes.insert (pair<string, word> ("INCR", 0x19));
+    opcodes.insert (pair<string, word> ("INCM", 0x1A));
+    opcodes.insert (pair<string, word> ("DECR", 0x1B));
+    opcodes.insert (pair<string, word> ("DECM", 0x1C));
+    opcodes.insert (pair<string, word> ("SHLR", 0x1D));
+    opcodes.insert (pair<string, word> ("SHRR", 0x1E));
+    opcodes.insert (pair<string, word> ("SHLM", 0x1F));
+    opcodes.insert (pair<string, word> ("SHRM", 0x20));
+    opcodes.insert (pair<string, word> ("JMP", 0x21));
+    opcodes.insert (pair<string, word> ("JSR", 0x22));
+    opcodes.insert (pair<string, word> ("RSR", 0x23));
+    opcodes.insert (pair<string, word> ("JSC", 0x24));
+    opcodes.insert (pair<string, word> ("JSS", 0x25));
+    opcodes.insert (pair<string, word> ("JCC", 0x26));
+    opcodes.insert (pair<string, word> ("JCS", 0x27));
+    opcodes.insert (pair<string, word> ("JOC", 0x28));
+    opcodes.insert (pair<string, word> ("JOS", 0x29));
+    opcodes.insert (pair<string, word> ("JZC", 0x2A));
+    opcodes.insert (pair<string, word> ("JZS", 0x2B));
+    opcodes.insert (pair<string, word> ("CCF", 0x2C));
+    opcodes.insert (pair<string, word> ("SCF", 0x2D));
+    opcodes.insert (pair<string, word> ("CSF", 0x2E));
+    opcodes.insert (pair<string, word> ("SSF", 0x2F));
+    opcodes.insert (pair<string, word> ("COF", 0x30));
+    opcodes.insert (pair<string, word> ("SOF", 0x31));
+    opcodes.insert (pair<string, word> ("CZF", 0x32));
+    opcodes.insert (pair<string, word> ("SZF", 0x33));
+    opcodes.insert (pair<string, word> ("NOP", 0x34));
+    opcodes.insert (pair<string, word> ("HALT", 0x35));
+}
+
+void Registers_Init (map<char, word>& registers) {
+    registers.insert (pair<char, word> ('A', 0x00));
+    registers.insert (pair<char, word> ('B', 0x01));
+    registers.insert (pair<char, word> ('C', 0x02));
+    registers.insert (pair<char, word> ('D', 0x03));
+    registers.insert (pair<char, word> ('E', 0x04));
+    registers.insert (pair<char, word> ('F', 0x05));
+    registers.insert (pair<char, word> ('G', 0x06));
+    registers.insert (pair<char, word> ('H', 0x07));
+}
+
+void Remove_Space_and_Comments (u32& idx, string& line) {
+    // remove white space from front
+    idx = line.find_first_not_of (" ");
+    line.erase (line.begin (), line.begin () + idx);
+
+    // remove comments 
+    idx = line.find_first_of (";");
+    if (idx != string::npos) {
+        line.erase (line.begin () + idx, line.end ());
+    }
+
+    // remove white space from back
+    idx = line.find_last_not_of (" ");
+    if (idx != string::npos) {
+        line.erase (line.begin() + idx + 1, line.end ());
+    }
+}
+
+bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_number) {
+    // If a no-operand opcode has at least 1 operand, throw error
+    if (NEEDS_NO_OPERANDS (opcode) && op1.length() != 0) {
+        cout << line_number << " : Opcode " << opcode << " does not need 1 or more operands." << endl;
+        return false;
+    }
+
+    // If a one-operand opcode has no operands, throw error
+    if (NEEDS_ONE_OPERAND (opcode) && op1.length() == 0) {
+        cout << line_number << " : Opcode " << opcode << " needs 1 operand." << endl;
+        return false;  
+    }
+
+    // If a one-operand opcode has more that 1 operand, throw error
+    if (NEEDS_ONE_OPERAND (opcode) && op2.length() != 0) {
+        cout << line_number << " : Opcode " << opcode << " does not need 2 opcodes." << endl;
+        return false;
+    }
+
+    // If a two-operand opcode has less than 2 operands, throw error
+    if (NEEDS_TWO_OPERANDS (opcode) && (op2.length() == 0 || op1.length() == 0)) {
+        cout << line_number << " : Opcode " << opcode << " needs 2 opcodes." << endl;\
+        return false;
+    }
+
+    return true;
 }
