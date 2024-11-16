@@ -3,8 +3,7 @@
 
 #include <iostream>
 
-#include "1001_x8.h"
-#include "loader.h"
+#include "loader.h" // Includes 1001_x8.h file
 
 using namespace std;
 
@@ -20,6 +19,10 @@ int main (int argc, char** argv) {
         return 0;
     }
 
+    mem_t mem;
+    cpu_t cpu;
+    cpu.Reset (mem);
+
     bool output_registers = false;
     bool output_memory = false;
 
@@ -33,18 +36,13 @@ int main (int argc, char** argv) {
         } else {
             if (argument.length () > 7 && argument.substr (argument.length () - 6, -1) == "output") {
                 // RUN LOADER WITH THE GIVEN FILE
-                Load_Program (argument);
+                Load_Program (argument, cpu, mem);
             } else {
                 cout << "ERROR : " << argument << " is not a valid file type for the loader" << endl;
                 return 0;
             }
         }
     }
-
-    mem_t mem;
-    cpu_t cpu;
-
-    cpu.Reset (mem);
 
     // test1 (mem, cpu);
     // test2 (mem, cpu);
