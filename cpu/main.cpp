@@ -47,7 +47,7 @@ int main (int argc, char** argv) {
     // test1 (mem, cpu);
     // test2 (mem, cpu);
     // test3 (mem, cpu);
-    test4 (mem, cpu);
+    // test4 (mem, cpu);
 
     cpu.Execute (mem);
 
@@ -80,7 +80,7 @@ void test1 (mem_t& mem, cpu_t& cpu) {
 
     // JMP %4096 ; 0x1000
     mem.WriteByte (0x21, 0xFFFD);
-    mem.WriteWord (0x1000, 0xFFFE);
+    mem.WriteWord (0x1002, 0xFFFE);
 
     // LOAD @A $a
     mem.WriteByte (0x01, 0x1000);

@@ -24,6 +24,7 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
         while (getline (output_file, program)) {
             string value;
             word instruction;
+            word opcode;
 
             value = program.substr (0, 3);
             value.pop_back ();
@@ -39,10 +40,11 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                             
                             PC_set = true;
                         }
+                        end_of_program = true;
                         mem.WriteByte (instruction, address++);
-                    }
 
-                    if (instruction == 0x36) {
+                    }
+                    else if (instruction == 0x36) {
                         word id;
 
                         program.erase (0, 3);
@@ -69,16 +71,19 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
 
                         address += 3;
                         headers[id] = address;
+
+                        cpu.PC = address;
+                        PC_set = true;
                     } else {
                         // Load opcode to memory
                         if (!PC_set) {
                             cpu.PC = address;
-                            
                             PC_set = true;
                         }
                         mem.WriteByte (instruction, address++);
+                        opcode = instruction;
 
-                        if (REG_AS_OPERAND1 (instruction)) {
+                        if (REG_AS_OPERAND1 (opcode)) {
                             program.erase (0, 3);
 
                             if (program == "") {
@@ -89,24 +94,37 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                             instruction = stoh (value);
 
                             mem.WriteByte (instruction, address++);
-                        } else if (MEM_AS_OPERAND1 (instruction)) {
+                        } else if (MEM_AS_OPERAND1 (opcode)) {
+                            word id;
 
-                            // mem.WriteWord (var_address, address);
-                            
+                            program.erase (0, 3);
 
-                            // for (int i = 0; i < 2; i++) {
-                            //     program.erase (0, 3);
+                            if (program == "") {
+                                break;
+                            }
+                            value = program.substr (0, 3);
+                            value.pop_back ();
+                            instruction = stoh (value);
 
-                            //     if (program == "") {
-                            //         break;
-                            //     }
-                            //     value = program.substr (0, 3);
-                            //     value.pop_back ();
-                            //     instruction = stoh (value);
+                            id = instruction;
 
-                            //     mem.WriteByte (instruction, address++);
-                            // }
-                        } else if (LAB_AS_OPERAND1 (instruction)) {
+                            program.erase (0, 3);
+
+                            if (program == "") {
+                                break;
+                            }
+                            value = program.substr (0, 3);
+                            value.pop_back ();
+                            instruction = stoh (value);
+
+                            id |= (instruction << 8);
+
+                            if (variables.count (id) == 0) {
+                                variables[id] = var_address++;
+                            }
+                            mem.WriteWord (variables[id], address);
+                            address += 2;
+                        } else if (LAB_AS_OPERAND1 (opcode)) {
                             word id;
 
                             program.erase (0, 3);
@@ -137,7 +155,7 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                         
 
 
-                        if (REG_AS_OPERAND2 (instruction)) {
+                        if (REG_AS_OPERAND2 (opcode)) {
                             program.erase (0, 3);
 
                             if (program == "") {
@@ -148,20 +166,37 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                             instruction = stoh (value);
 
                             mem.WriteByte (instruction, address++);
-                        } else if (MEM_AS_OPERAND2 (instruction)) {
-                            for (int i = 0; i < 2; i++) {
-                                // program.erase (0, 3);
+                        } else if (MEM_AS_OPERAND2 (opcode)) {
+                            word id;
 
-                                // if (program == "") {
-                                //     break;
-                                // }
-                                // value = program.substr (0, 3);
-                                // value.pop_back ();
-                                // instruction = stoh (value);
+                            program.erase (0, 3);
 
-                                // mem.WriteByte (instruction, address++);
+                            if (program == "") {
+                                break;
                             }
-                        } else if (IMM_AS_OPERAND2 (instruction)) {
+                            value = program.substr (0, 3);
+                            value.pop_back ();
+                            instruction = stoh (value);
+
+                            id = instruction;
+
+                            program.erase (0, 3);
+
+                            if (program == "") {
+                                break;
+                            }
+                            value = program.substr (0, 3);
+                            value.pop_back ();
+                            instruction = stoh (value);
+
+                            id |= (instruction << 8);
+
+                            if (variables.count (id) == 0) {
+                                variables[id] = var_address++;
+                            }
+                            mem.WriteWord (variables[id], address);
+                            address += 2;
+                        } else if (IMM_AS_OPERAND2 (opcode)) {
                             program.erase (0, 3);
 
                             if (program == "") {
@@ -175,7 +210,39 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                         }
                     }
                 } else {
-                    
+                    word id;
+
+                    if (program == "") {
+                        break;
+                    }
+                    value = program.substr (0, 3);
+                    value.pop_back ();
+                    instruction = stoh (value);
+
+                    id = instruction;
+
+                    program.erase (0, 3);
+
+                    if (program == "") {
+                        break;
+                    }
+                    value = program.substr (0, 3);
+                    value.pop_back ();
+                    instruction = stoh (value);
+
+                    id |= (instruction << 8);
+
+                    program.erase (0, 3);
+
+                    if (program == "") {
+                        break;
+                    }
+
+                    value = program.substr (0, 3);
+                    value.pop_back ();
+                    instruction = stoh (value);
+
+                    mem.WriteByte (instruction, variables[id]);
                 }
 
                    
@@ -189,7 +256,6 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 value = program.substr (0, 3);
                 value.pop_back ();
             }
-            // cout << program << endl;
         }
 
     }  else {
