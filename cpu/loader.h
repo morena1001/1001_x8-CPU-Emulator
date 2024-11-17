@@ -9,9 +9,10 @@ using namespace std;
 #define IS_OP1_VAR_OPCODE(opcode)       (opcode == 0x04 || opcode == 0x06 || opcode == 0x09 || opcode == 0x1A || opcode == 0x1C || opcode == 0x1F || opcode == 0x20)
 #define IS_OP2_VAR_OPCODE(opcode)       (opcode == 0x01 || opcode == 0x06 || opcode == 0x17)
 #define IS_JUMP_OPCODE(opcode)          (opcode == 0x21 || opcode == 0x22 || (opcode >= 0x24 && opcode <= 0x2B))
+#define IS_HALT_OPCODE(opcode)          (opcode == 0x35)
+#define IS_LABEL_ENCODING(opcode)       (opcode == 0x36)
 
 #define IS_NUMBER(value)                (value == '0' || value == '1' || value == '2' || value == '3' || value == '4' || value == '5' || value == '6' || value == '7' || value == '8' || value == '9')
-#define IS_HEX_LETTER(value)            (value == 'A' || value == 'B' || value == 'C' || value == 'D' || value == 'E' || value == 'F')
 #define INT_REPRESENTATION_OF_HEX(hex_value)    (IS_NUMBER (hex_value) ? ((u32) hex_value) - 48 : (hex_value == 'A' ? 10 : (hex_value == 'B' ? 11 : (hex_value == 'C' ? 12 : (hex_value == 'D' ? 13 : (hex_value == 'E' ? 14 : (hex_value == 'F' ? 15 : 0)))))))
 
 
