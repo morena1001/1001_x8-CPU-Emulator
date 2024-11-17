@@ -1,0 +1,6 @@
+.variables
+$a 47
+
+.main
+    LDFM @A $a
+    HALT

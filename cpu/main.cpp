@@ -44,22 +44,17 @@ int main (int argc, char** argv) {
         }
     }
 
-    // test1 (mem, cpu);
-    // test2 (mem, cpu);
-    // test3 (mem, cpu);
-    // test4 (mem, cpu);
-
     cpu.Execute (mem);
 
     if (output_registers) {
-        printf("A : %s%d\n", cpu.GPR[A] < 0x10 ? "0" : "", cpu.GPR[A]);
-        printf("B : %s%d\n", cpu.GPR[B] < 0x10 ? "0" : "", cpu.GPR[B]);
-        printf("C : %s%d\n", cpu.GPR[C] < 0x10 ? "0" : "", cpu.GPR[C]);
-        printf("D : %s%d\n", cpu.GPR[D] < 0x10 ? "0" : "", cpu.GPR[D]);
-        printf("E : %s%d\n", cpu.GPR[E] < 0x10 ? "0" : "", cpu.GPR[E]);
-        printf("F : %s%d\n", cpu.GPR[F] < 0x10 ? "0" : "", cpu.GPR[F]);
-        printf("G : %s%d\n", cpu.GPR[G] < 0x10 ? "0" : "", cpu.GPR[G]);
-        printf("H : %s%d\n", cpu.GPR[H] < 0x10 ? "0" : "", cpu.GPR[H]);
+        cout << "A : " << htos (cpu.GPR[A]) << endl;
+        cout << "B : " << htos (cpu.GPR[B]) << endl;
+        cout << "C : " << htos (cpu.GPR[C]) << endl;
+        cout << "D : " << htos (cpu.GPR[D]) << endl;
+        cout << "E : " << htos (cpu.GPR[E]) << endl;
+        cout << "F : " << htos (cpu.GPR[F]) << endl;
+        cout << "G : " << htos (cpu.GPR[G]) << endl;
+        cout << "H : " << htos (cpu.GPR[H]) << endl;
     }
 
     if (output_memory) {

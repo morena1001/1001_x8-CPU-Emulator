@@ -157,6 +157,15 @@ word stoh (string value) {
     return hex_val;
 }
 
+string htos (byte value) {
+    string hex_val;
+
+    hex_val = STRING_FROM_HEX ((int) (value) % 16);
+    hex_val = to_string ((int) (value) / 16) + hex_val;
+
+    return hex_val;
+}
+
 bool Pop_Next_Ins (string& value, string& program, word& instruction) {
     value = program.substr (0, 3);
     value.pop_back ();
