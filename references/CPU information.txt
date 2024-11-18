@@ -94,6 +94,7 @@ INSTRUCTIONS
     0x33	SZF			                        ZF	            1	    Set ZF
     0x34	NOP				                                    1	    No operation
     0x35	HALT				                                1	    Stops CPU
+    0x37    STRT                                                        Marks entry option of program (optional for procedural programs)
 
 
 UPDATES

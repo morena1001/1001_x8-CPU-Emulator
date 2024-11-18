@@ -1,0 +1,13 @@
+.main
+    LDFI @A %5
+    LDFI @B %10
+    LDFI @H %2
+
+    #loop
+    CCF
+    ADD  @A @B
+    CZF
+    DECR @H
+    CMPI @H %0
+    JZC  #loop
+    HALT

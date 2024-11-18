@@ -5,18 +5,20 @@
 #include <string>
 #include <map>
 
-#define NEEDS_NO_OPERANDS(opcode)       ((opcode >= 0x0A && opcode <= 0x0D) || opcode == 0x23 || (opcode >= 0x2C && opcode <= 0x35)) 
+#define NEEDS_NO_OPERANDS(opcode)       ((opcode >= 0x0A && opcode <= 0x0D) || opcode == 0x23 || (opcode >= 0x2C && opcode <= 0x35) || opcode == 0x37) 
 #define NEEDS_ONE_OPERAND(opcode)       ((opcode >= 0x07 && opcode <= 0x09) || opcode == 0x11 || (opcode >= 0x19 && opcode <= 0x22) || (opcode >= 0x24 && opcode <= 0x2B))
 #define NEEDS_TWO_OPERANDS(opcode)      ((opcode >= 0x01 && opcode <= 0x06) || (opcode >= 0x0E && opcode <= 0x10) || (opcode >= 0x12 && opcode <= 0x18))
 #define IS_A_JMP_OPERAND(opcode)        ((opcode >= 0x21 && opcode <= 0x22) || (opcode >= 0x24 && opcode <= 0x2B))
 
 #define REG_AS_OPERAND1(opcode)         ((opcode >= 0x01 && opcode <= 0x03) || opcode == 0x05 || opcode == 0x07 || opcode == 0x08 || (opcode >= 0x0E && opcode <= 0x19) || opcode == 0x1B || opcode == 0x1D || opcode == 0x1E)
 #define MEM_AS_OPERAND1(opcode)         (opcode == 0x04 || opcode == 0x06 || opcode == 0x09 || opcode == 0x1A || opcode == 0x1C || opcode == 0x1F || opcode == 0x20)
-#define LAB_AS_OPERAND1(opcode)         (opcode == 0x21 || opcode == 0x22 || (opcode <= 0x24 && opcode >= 0x2B))
+#define LAB_AS_OPERAND1(opcode)         (opcode == 0x21 || opcode == 0x22 || (opcode >= 0x24 && opcode <= 0x2B))
 
-#define REG_AS_OPERAND2(opcode)         (opcode == 0x03 || opcode == 0x05 || opcode == 0x0E || opcode == 0x0F || opcode == 0x10 || (opcode >= 0x12 && opcode <= 0x16))
-#define MEM_AS_OPERAND2(opcode)         (opcode == 0x01 || opcode == 0x17)
+#define REG_AS_OPERAND2(opcode)         (opcode == 0x03 || opcode == 0x04 || opcode == 0x05 || opcode == 0x0E || opcode == 0x0F || opcode == 0x10 || (opcode >= 0x12 && opcode <= 0x16))
+#define MEM_AS_OPERAND2(opcode)         (opcode == 0x01 || opcode == 0x06 || opcode == 0x17)
 #define IMM_AS_OPERAND2(opcode)         (opcode == 0x02 || opcode == 0x18) 
+
+#define STRING_FROM_HEX(value)          (value == 10 ? "A" : (value == 11 ? "B" : (value == 12 ? "C" : (value == 13 ? "D" : (value == 14 ? "E" : (value == 15 ? "F" : to_string (value)))))))
 
 // Data types used in 1001_x8
 using byte = uint8_t;
@@ -30,6 +32,7 @@ void Registers_Init (map<char, word>& registers);
 void Remove_Space_and_Comments (u32& idx, string& line);
 
 bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_number);
+string htos (byte value);
 
 int main (int argc, char** argv) {
     ifstream program;
@@ -169,17 +172,24 @@ int main (int argc, char** argv) {
                     halt_present = true;
                 }
 
-                // Split the operands into operand 1 and 2
-                idx = operands.find_first_of (" ");
-                string op1 = operands.substr (0, idx == string::npos ? -1 : idx);
-                string op2 = idx == string::npos ? "" : operands.substr (idx + 1, -1);
+                // Remove extra white space
+                idx = operands.find_first_not_of (" ");
+                operands.erase (operands.begin (), operands.begin () + idx);
+
+                // Split the operands into operand 1 and 2 if operands are needed
+                string op1 = "", op2 = "";
+                if (!NEEDS_NO_OPERANDS (opcodes[opcode])) {
+                    idx = operands.find_first_of (" ");
+                    op1 = operands.substr (0, idx == string::npos ? -1 : idx);
+                    op2 = idx == string::npos ? "" : operands.substr (idx + 1, -1);
+                } 
 
                 if (!Opcode_and_Operands_Match (opcodes[opcode], op1, op2, line_number)) {
                     return 0;
                 }
 
                 // If an opcode needs no operands, continue with the next line
-                if (operands.length() == 0) {
+                if (NEEDS_NO_OPERANDS (opcodes[opcode])) {
                     continue;
                 }
 
@@ -397,6 +407,7 @@ void Opcodes_Init (map<string, word>& opcodes) {
     opcodes.insert (pair<string, word> ("SZF", 0x33));
     opcodes.insert (pair<string, word> ("NOP", 0x34));
     opcodes.insert (pair<string, word> ("HALT", 0x35));
+    opcodes.insert (pair<string, word> ("STRT", 0x37));
 }
 
 void Registers_Init (map<char, word>& registers) {
@@ -431,27 +442,36 @@ void Remove_Space_and_Comments (u32& idx, string& line) {
 bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_number) {
     // If a no-operand opcode has at least 1 operand, throw error
     if (NEEDS_NO_OPERANDS (opcode) && op1.length() != 0) {
-        cout << line_number << " : Opcode " << opcode << " does not need 1 or more operands." << endl;
+        cout << line_number << " : Opcode " << htos(opcode) << " does not need 1 or more operands." << endl;
         return false;
     }
 
     // If a one-operand opcode has no operands, throw error
     if (NEEDS_ONE_OPERAND (opcode) && op1.length() == 0) {
-        cout << line_number << " : Opcode " << opcode << " needs 1 operand." << endl;
+        cout << line_number << " : Opcode " << htos(opcode) << " needs 1 operand." << endl;
         return false;  
     }
 
     // If a one-operand opcode has more that 1 operand, throw error
     if (NEEDS_ONE_OPERAND (opcode) && op2.length() != 0) {
-        cout << line_number << " : Opcode " << opcode << " does not need 2 opcodes." << endl;
+        cout << line_number << " : Opcode " << htos(opcode) << " does not need 2 opcodes." << endl;
         return false;
     }
 
     // If a two-operand opcode has less than 2 operands, throw error
     if (NEEDS_TWO_OPERANDS (opcode) && (op2.length() == 0 || op1.length() == 0)) {
-        cout << line_number << " : Opcode " << opcode << " needs 2 opcodes." << endl;\
+        cout << line_number << " : Opcode " << htos(opcode) << " needs 2 opcodes." << endl;\
         return false;
     }
 
     return true;
+}
+
+string htos (byte value) {
+    string hex_val;
+
+    hex_val = STRING_FROM_HEX ((int) (value) % 16);
+    hex_val = to_string ((int) (value) / 16) + hex_val;
+
+    return hex_val;
 }

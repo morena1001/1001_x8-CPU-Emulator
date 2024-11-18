@@ -9,7 +9,7 @@ using namespace std;
 
 bool Pop_Next_Ins (string& value, string& program, word& instruction);
 
-word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
+void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
     ifstream output_file;
     output_file.open (file_path);
 
@@ -26,30 +26,29 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
 
     if (!output_file.is_open ()) {
         cout << "Could not open " << file_path << "." << endl; 
-        return 0;
+        return;
     }
 
     if (getline (output_file, program)) {
         string value;
         word instruction, opcode;
 
-        if (!Pop_Next_Ins (value, program, instruction))      return 0;
+        if (!Pop_Next_Ins (value, program, instruction))      return;
 
         while (1) {
             // Any code after the HALT instruction is variable declaration
             if (end_of_program) {
                 word var_id;
-
-                if (!Pop_Next_Ins (value, program, instruction))      break;
+                if (!Pop_Next_Ins (value, program, instruction))      return;
                 var_id = instruction;
 
-                if (!Pop_Next_Ins (value, program, instruction))      break;
+                if (!Pop_Next_Ins (value, program, instruction))      return;
                 var_id |= (instruction << 8);
 
                 if (!Pop_Next_Ins (value, program, instruction));
                 mem.WriteByte (instruction, variables[var_id]);
 
-                if (program.empty ())       break;
+                if (program.empty ())       return;
 
                 continue;
             } 
@@ -67,15 +66,18 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
             if (IS_LABEL_ENCODING (instruction)) {
                 word label_id;
 
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 label_id = instruction;
 
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 label_id |= (instruction << 8);
-
-                address += 3;
                 headers[label_id] = address;
 
+                if (!Pop_Next_Ins (value, program, instruction))    return;
+            }
+
+            // The START instruction denotes a non linear entry point of the cpu 
+            if (IS_START_ENCODING (instruction)) {
                 cpu.PC = address;
                 PC_set = true;
             }
@@ -92,15 +94,15 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
 
             // Check the first operand and upload correct instruction to memory
             if (REG_AS_OPERAND1 (opcode)) {
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 mem.WriteByte (instruction, address++);
             } else if (MEM_AS_OPERAND1 (opcode)) {
                 word var_id;
 
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 var_id = instruction;
 
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 var_id |= (instruction << 8);
 
                 if (variables.count (var_id) == 0)  variables[var_id] = var_address++;
@@ -109,10 +111,10 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
             } else if (LAB_AS_OPERAND1 (opcode)) {
                 word label_id;
 
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 label_id = instruction;
 
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 label_id |= (instruction << 8);
 
                 mem.WriteWord (headers[label_id], address);
@@ -121,26 +123,26 @@ word Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
 
             // Check the second operand and upload correct instruction to memory
             if (REG_AS_OPERAND2 (opcode)) {
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 mem.WriteByte (instruction, address++);
             } else if (MEM_AS_OPERAND2 (opcode)) {
                 word var_id;
 
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 var_id = instruction;
 
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 var_id |= (instruction << 8);
 
                 if (variables.count (var_id) == 0)  variables[var_id] = var_address++;
                 mem.WriteWord (variables[var_id], address);
                 address += 2;
             } else if (IMM_AS_OPERAND2 (opcode)) {
-                if (!Pop_Next_Ins (value, program, instruction))    break;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
                 mem.WriteByte (instruction, address++);
             }
 
-            if (!Pop_Next_Ins (value, program, instruction))        break;
+            if (!Pop_Next_Ins (value, program, instruction));//        return;
         }
     }
 }
@@ -167,6 +169,8 @@ string htos (byte value) {
 }
 
 bool Pop_Next_Ins (string& value, string& program, word& instruction) {
+    if (program.empty ())   return false;
+
     value = program.substr (0, 3);
     value.pop_back ();
     instruction = stoh (value);

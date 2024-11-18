@@ -1,0 +1,8 @@
+.variables
+
+.main
+    LDFI @A %31
+    PSHR @A
+    PULR @B
+    HALT
+    

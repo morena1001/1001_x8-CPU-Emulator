@@ -1,0 +1,5 @@
+.main
+    LDFI @A %5
+    LDFI @B %10
+    ADD @A @B
+    HALT

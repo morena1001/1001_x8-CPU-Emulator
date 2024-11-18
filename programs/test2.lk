@@ -1,0 +1,9 @@
+.variables
+    $b 0
+
+.main
+    LDFI @A %41
+    LDFR @B @A
+    STOR $b @B
+    HALT
+    

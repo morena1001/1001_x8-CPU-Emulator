@@ -283,7 +283,6 @@ void CPU::Execute (mem_t& memory) {
 
             case INS_DECR: {
                 byte reg = FetchByte (memory);
-
                 GPR[reg] -= 1;
 
                 Set_SF (reg);
@@ -354,6 +353,8 @@ void CPU::Execute (mem_t& memory) {
                 if (!SF) {
                     word address = FetchWord (memory);
                     PC = address;
+                } else {
+                    PC +=2;
                 }
             } break;
 
@@ -361,6 +362,8 @@ void CPU::Execute (mem_t& memory) {
                 if (SF) {
                     word address = FetchWord (memory);
                     PC = address;
+                } else {
+                    PC +=2;
                 }
             } break; 
 
@@ -368,6 +371,8 @@ void CPU::Execute (mem_t& memory) {
                 if (!CF) {
                     word address = FetchWord (memory);
                     PC = address;
+                } else {
+                    PC +=2;
                 }
             } break;
 
@@ -375,6 +380,8 @@ void CPU::Execute (mem_t& memory) {
                 if (CF) {
                     word address = FetchWord (memory);
                     PC = address;
+                } else {
+                    PC +=2;
                 }
             } break;
 
@@ -382,6 +389,8 @@ void CPU::Execute (mem_t& memory) {
                 if (!OF) {
                     word address = FetchWord (memory);
                     PC = address;
+                } else {
+                    PC +=2;
                 }
             } break;
 
@@ -389,6 +398,8 @@ void CPU::Execute (mem_t& memory) {
                 if (OF) {
                     word address = FetchWord (memory);
                     PC = address;
+                } else {
+                    PC +=2;
                 }
             } break;
 
@@ -396,6 +407,8 @@ void CPU::Execute (mem_t& memory) {
                 if (!ZF) {
                     word address = FetchWord (memory);
                     PC = address;
+                } else {
+                    PC +=2;
                 }
             } break;
 
@@ -403,6 +416,8 @@ void CPU::Execute (mem_t& memory) {
                 if (ZF) {
                     word address = FetchWord (memory);
                     PC = address;
+                } else {
+                    PC +=2;
                 }
             } break;
 
@@ -441,11 +456,12 @@ void CPU::Execute (mem_t& memory) {
             case INS_NOP: {} break;
 
             case INS_HALT: {
-                break;
+                return;
             } break;
 
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
+                return;
             } break;
         }
 

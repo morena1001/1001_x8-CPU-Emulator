@@ -18,6 +18,7 @@ There are also two flags that may be set for the CPU, -r and -m.
 
 -r output the contents of the registers at the end of the program.
 -m output the contents of memory at the end of the program.
+-o output the contents of memory into a .txt file instead of the console
 
 If all flags are specified, the command to run CPU given the file sample_program.output is : 
 ./emulator sample_program.output -r -main
