@@ -1,6 +1,6 @@
 command to execute assembler from root directory:
 
-cd assembler ; ./asmcd  file_name ; cd ..
+cd assembler ; ./asm file_name ; cd ..
 
 will execute assembler in another directory, but bring you back to the root directory
 
