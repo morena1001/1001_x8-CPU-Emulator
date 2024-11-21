@@ -6,7 +6,7 @@ ARCHITECTURE
     Stack memory is only a byte long, from address 0x0000 to 0x00FF. 
     RAM is reusable memory from 0x0100 to 0xCD32.
     Variable memory is 2 bytes long, from 0xCD33 to 0xCF32.
-    Screen Pixel Memory is 3840 bits longs, from 0xCF33 to 0xDE31. (80 x 24 pixel screen)
+    Screen Pixel Memory is 3840 bits longs, from 0xCF33 to 0xDE31. (80 x 48 pixel screen)
     Character memory is 462 bits long, from 0xDE32 to 0xDFFF.
     ROM is 2 words long, from 0xE000 to 0xFFFF.
     
