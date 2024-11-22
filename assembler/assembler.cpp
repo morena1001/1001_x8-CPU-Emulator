@@ -12,6 +12,8 @@ using namespace std;
 void Opcodes_Init (map<string, word>& opcodes);
 void Registers_Init (map<char, word>& registers);
 void Remove_Space_and_Comments (u32& idx, string& line);
+void inline Remove_Space (u32& idx, string& line);
+void inline Remove_Comments (u32& idx, string& line);
 
 bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_number);
 string htos (byte value);
@@ -102,7 +104,7 @@ int main (int argc, char** argv) {
                     return 0;
                 }
 
-                // Remove $ from string, and check if there is a value after the variable name
+                // Remove $ from string
                 line = line.substr (1, -1);
                 idx = line.find_first_of (" ");
 
@@ -113,13 +115,69 @@ int main (int argc, char** argv) {
 
                 // Split line in two, for name and value
                 string var_name = line.substr (0, idx);
-                byte value = line[idx + 1] == '%' ? (byte) stoi (line.substr (idx + 2, -1)) : 0;
+                line = line.erase (0, 1);
+
+                Remove_Space (idx, line);
+                byte value;
+                switch (line[0]) {
+                    case '%': {
+                        value = (byte) stoi (line.substr (1, -1));
+                    } break;
+
+                    case '[': {
+                        idx = line.find_first_of ("]");
+                        if (idx == string::npos) {
+                            cout << line_number << " : Size of array needs to be enclosed in square brackets." << endl;
+                            return 0;
+                        }
+
+                        byte number = (byte) stoi (line.substr (1, idx));
+                        byte element_val = var_idx + 2;
+                        for (byte i = 0; i < number; i++) {
+                            variable_instructions[var_idx++] = (variable_id & 0xFF);
+                            variable_instructions[var_idx++] = (variable_id >> 8);
+                            variable_instructions[var_idx++] = 0x00;
+                            // if (i == 0)     variables[var_name] = variable_id++;
+                            variables[var_name + " " + to_string (i)] = variable_id++;
+                        }
+
+                        idx = line.find_first_of ("{");
+                        if (idx == string::npos)        continue;
+
+                        line.erase (0, idx + 1);
+                        line.erase (line.length () - 1, -1);
+                        
+                         for (byte i = number; i > 0; i--) {
+                            idx = line.find_first_of (",");
+                            value = (byte) stoi (line.substr (0, idx));
+                            variable_instructions[element_val] = value;
+                            element_val += 3;
+
+                            line.erase (0, idx == string::npos ? line.length () : idx + 1);
+                            if (line.empty ())      break;
+                            Remove_Space (idx, line);
+                         }
+                        continue;
+                    } break;
+
+                    case '\'': {
+                        value = (byte) stoi (line.substr (1, -1));
+                    } break;
+
+                    default: {
+                        cout << line_number << " : Data type symbol \'" << line[0] << "\' undefined." << endl;
+                        return 0;
+                    } break;
+                }
+                // byte value = line[idx + 1] == '%' ? (byte) stoi (line.substr (idx + 2, -1)) : 0;
 
                 // Add the variables unique ID to the instructions, and pair name with ID in map
                 variable_instructions[var_idx++] = (variable_id & 0xFF);
                 variable_instructions[var_idx++] = (variable_id >> 8);
                 variable_instructions[var_idx++] = value;
                 variables[var_name] = variable_id++;
+
+                continue;
             }
 
 
@@ -184,6 +242,12 @@ int main (int argc, char** argv) {
                         }
 
                         string var_name = op1.substr (1, -1);
+
+                        idx = var_name.find_first_of ("[");
+                        if (idx != string::npos) {
+                            var_name = var_name.substr (0, idx) + " " + var_name.substr (idx + 1, var_name.length () - 3);
+                        }
+
                         if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
                             return 0;
@@ -237,6 +301,8 @@ int main (int argc, char** argv) {
                     } break;
                 }
 
+
+
                 // Go to next line if there is only one operand
                 if (op2.length() == 0) {
                     continue;
@@ -262,6 +328,11 @@ int main (int argc, char** argv) {
                         }
 
                         string var_name = op2.substr (1, -1);
+
+                        idx = var_name.find_first_of ("[");
+                        if (idx != string::npos) {
+                            var_name = var_name.substr (0, idx) + " " + var_name.substr (idx + 1, var_name.length () - 3);
+                        }
 
                         if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
@@ -304,21 +375,21 @@ int main (int argc, char** argv) {
         program.close ();
 
         ofstream output_file (file_name + "output");
-               
-        u32 i = 0;
-        byte single_instruction = instructions[i++];
-        char machine_code_instruction[4];
-        while (single_instruction != 0x35) {
-            sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
-            output_file << machine_code_instruction;
-            
-            single_instruction = instructions[i++];
-        } 
-        sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
-        output_file << machine_code_instruction;
 
-        i = 0;
-        single_instruction = variable_instructions[i++];
+
+
+        u32 i = 0;
+        byte single_instruction = variable_instructions[i++];
+        char machine_code_instruction[4];
+
+        word var_count = variable_id - 1;
+        byte single_byte = var_count & 0xFF;
+        sprintf (machine_code_instruction, "%s%X ", single_byte < 0x10 ? "0" : "", single_byte);
+        output_file  << machine_code_instruction;
+
+        single_byte = var_count >> 8;
+        sprintf (machine_code_instruction, "%s%X ", single_byte < 0x10 ? "0" : "", single_byte);
+        output_file  << machine_code_instruction;
 
         while (i < var_idx + 1) {
             sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
@@ -327,7 +398,44 @@ int main (int argc, char** argv) {
             single_instruction = variable_instructions[i++];
         }
 
+        i = 0;
+        single_instruction = instructions[i++];
+
+        while (single_instruction != 0x35) {
+            sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+            output_file << machine_code_instruction;
+            
+            single_instruction = instructions[i++];
+        } 
+        sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+        output_file << machine_code_instruction;
         cout << "Output file " << file_name << "output created." << endl; 
+
+
+               
+        // u32 i = 0;
+        // byte single_instruction = instructions[i++];
+        // char machine_code_instruction[4];
+        // while (single_instruction != 0x35) {
+        //     sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+        //     output_file << machine_code_instruction;
+            
+        //     single_instruction = instructions[i++];
+        // } 
+        // sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+        // output_file << machine_code_instruction;
+
+        // i = 0;
+        // single_instruction = variable_instructions[i++];
+
+        // while (i < var_idx + 1) {
+        //     sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+        //     output_file << machine_code_instruction;
+            
+        //     single_instruction = variable_instructions[i++];
+        // }
+
+        // cout << "Output file " << file_name << "output created." << endl; 
     } else {
         cout << "Unable to open file" << endl;
     }
@@ -409,16 +517,27 @@ void Remove_Space_and_Comments (u32& idx, string& line) {
     line.erase (line.begin (), line.begin () + idx);
 
     // remove comments 
-    idx = line.find_first_of (";");
-    if (idx != string::npos) {
-        line.erase (line.begin () + idx, line.end ());
-    }
+    Remove_Comments (idx, line);
 
     // remove white space from back
     idx = line.find_last_not_of (" ");
-    if (idx != string::npos) {
-        line.erase (line.begin() + idx + 1, line.end ());
-    }
+    if (idx != string::npos)        line.erase (line.begin() + idx + 1, line.end ());
+    
+}
+
+void inline Remove_Space (u32& idx, string& line) {
+    // remove white space from front
+    idx = line.find_first_not_of (" ");
+    line.erase (line.begin (), line.begin () + idx);
+
+    // remove white space from back
+    idx = line.find_last_not_of (" ");
+    if (idx != string::npos)        line.erase (line.begin() + idx + 1, line.end ());
+}
+
+void inline Remove_Comments (u32& idx, string& line) {
+    idx = line.find_first_of (";");
+    if (idx != string::npos)        line.erase (line.begin () + idx, line.end ());
 }
 
 bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_number) {

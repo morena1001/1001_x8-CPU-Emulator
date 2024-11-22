@@ -1,5 +1,5 @@
 .variables
-$a 47
+$a %47
 
 .data
     LDFM @A $a

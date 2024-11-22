@@ -1,6 +1,6 @@
 .variables
-    $a 31
-    $b 100
+    $a %31
+    $b %100
 
 .data
     LDFI @A %31
