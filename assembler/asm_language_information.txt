@@ -4,8 +4,8 @@ $  - variable
 #  - label
 .  - section
 ;  - comment
-//[] - access array element
-//{} - initialize array elements
+[] - access array element
+{} - initialize array elements
 //'  - character
 
 There are only 2 sections, .variables and .data

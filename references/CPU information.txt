@@ -97,6 +97,15 @@ INSTRUCTIONS
     0x34	NOP				                                    1	    No operation
     0x35	HALT				                                1	    Stops CPU
     0x37    STRT                                                        Marks entry option of program (optional for procedural programs)
+    0x38    LDFMN       Reg         Mem         SF, ZF	        5	    Load data to reg from mem, nested array
+    0x39    STORN       Mem         Reg                         5       Store to mem, nested arrays, from reg
+    0x3A    SWPMN       Mem1        Mem2                        6   	Swap mem1 and mem2 values, both nested arrays. Will use registers G and H to store temporary values
+    0x3B    PSHMN       Mem			                            4   	Push to SP from mem, nested array                                  
+    0x3C    CMPMN       Reg	        Mem	        CF, SF, ZF	    5	    Compare contents of reg with mem, nested array. CF is set if reg >= mem ZF is set if reg = mem
+    0x3D    INCMN       Mem		                    	        4	    Increment value held in memory, nested array
+    0x3E    DECMN       Mem		                    	        4	    Decrement value held in memory, nested array
+    0x3F    SHLMN       Mem		                        	    4   	Shift contents in memory, nested array left by 1 bit.
+    0x40    SHRMN       Mem		                        	    4   	Shift contents in memory, nested array right by 1 bit.
 
 
 UPDATES
