@@ -124,4 +124,5 @@ typedef struct CPU {
         INS_SZF  = 0x33,
         INS_NOP  = 0x34,
         INS_HALT = 0x35;
+        // INS_STRT = 0x37;
 } cpu_t;

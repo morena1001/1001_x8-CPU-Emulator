@@ -1,6 +1,6 @@
 .variables
 $a 47
 
-.main
+.data
     LDFM @A $a
     HALT

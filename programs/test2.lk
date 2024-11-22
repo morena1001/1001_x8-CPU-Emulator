@@ -1,7 +1,7 @@
 .variables
     $b 0
 
-.main
+.data
     LDFI @A %41
     LDFR @B @A
     STOR $b @B

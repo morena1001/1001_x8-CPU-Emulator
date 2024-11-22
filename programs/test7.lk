@@ -1,0 +1,11 @@
+.variables
+$a %20
+
+.data
+    #func
+    LDFM @A $a
+    RSR
+
+    STRT
+    JSR #func
+    HALT

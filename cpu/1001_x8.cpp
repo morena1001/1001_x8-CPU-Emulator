@@ -338,15 +338,17 @@ void CPU::Execute (mem_t& memory) {
             } break;
 
             case INS_JSR: {
-                PushStack ((PC - 1) & 0xFF, memory);
-                PushStack (PC >> 8, memory);
+                PushStack ((PC + 2) & 0xFF, memory);
+                PushStack ((PC + 2) >> 8, memory);
 
                 word address = FetchWord (memory);
                 PC = address;
             } break;
 
             case INS_RSR: {
-                PC = (word) (PullStack (memory)) | ((word) (PullStack (memory)) << 8);
+                word msb = (PullStack (memory) << 8);
+                word lsb = PullStack (memory);
+                PC = msb | lsb;
             } break;
 
             case INS_JSC: {

@@ -80,6 +80,9 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
             if (IS_START_ENCODING (instruction)) {
                 cpu.PC = address;
                 PC_set = true;
+                if (!Pop_Next_Ins (value, program, instruction))    return;
+                
+                continue;
             }
 
             // Update the start of the program. Any subroutines appear the main program of code.

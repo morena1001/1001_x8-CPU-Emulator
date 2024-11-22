@@ -1,6 +1,6 @@
 .variables
 
-.main
+.data
     LDFI @A %31
     PSHR @A
     PULR @B

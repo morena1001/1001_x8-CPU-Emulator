@@ -2,7 +2,7 @@
     $a 31
     $b 100
 
-.main
+.data
     LDFI @A %31
     LDFI @B %100
     SWPR @A @B

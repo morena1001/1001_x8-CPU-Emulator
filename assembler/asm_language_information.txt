@@ -1,13 +1,24 @@
-% - literal
-$ - variable
-@ - register
-# - label
-. - section
-; - comment
+%  - literal
+$  - variable
+@  - register
+#  - label
+.  - section
+;  - comment
+//[] - access array element
+//{} - initialize array elements
+//'  - character
 
-There are only 2 sections, .variables and .main
+There are only 2 sections, .variables and .data
 
 The syntax to create a variable is shown below
 $a 20
 
+The syntax to create an array is show below
+$a [10] {0, 1, ...}
+{0, 1, ...} is optional
+
+Accessing an array element is show below
+$a[5]
+
 Subroutines must ALWAYS appear before the main code. The loader will keep track of the main code by storing the address to the first instruction that comes after a subroutine.
+The programmer is responsible of making sure the correct address is read from the stack when returning from a subroutine.
