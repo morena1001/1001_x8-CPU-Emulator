@@ -10,54 +10,98 @@ int main (int argc, char** argv) {
     SDL_Window* window;
     SDL_Renderer* renderer;
     
-    SDL_CreateWindowAndRenderer (WIDTH, HEIGHT, 0, &window, &renderer);
+    SDL_CreateWindowAndRenderer (WIDTH_3_POINT_4024, HEIGHT_3_POINT_4024, 0, &window, &renderer);
 
     SDL_SetRenderDrawColor (renderer, 50, 48, 47, 255);
     SDL_RenderClear (renderer);
-    SDL_SetRenderDrawColor (renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor (renderer, 224, 158, 42, 255);
 
-    uint8_t char_pos_y = 1, char_pos_x = 1;
+    uint16_t char_pos_y = 1, char_pos_x = 1;
+    int window_width, window_height;
+    SDL_GetWindowSizeInPixels (window, &window_width, &window_height);
+    uint8_t point_size = POINT_SIZE_4024 (window_height);
+    uint8_t total_char_width  = (CHARACTER_WIDTH + 1) * point_size;
+    uint8_t total_char_height = (CHARACTER_HEIGHT + 1) * point_size;
 
-    for (int i = 0; i < 69; i++) {
-        for (int j = 0; j < 7; j++) {
-            for (int k = 0; k < 5; k++) {
-                if ((characters[i][j] >> k) & 1) 
+    // for (int i = 0; i < 69; i++) {
+    //     for (int j = 0; j < CHARACTER_HEIGHT * point_size; j++) {
+    //         for (int k = 0; k < CHARACTER_WIDTH * point_size; k++) {
+    //             if ((characters[i][j / point_size] >> (k / point_size)) & 1) {
+    //                 SDL_RenderDrawPoint (renderer, k + char_pos_x, j + char_pos_y);
+    //             }
+    //         }
+    //     }
+
+    //     char_pos_x += total_char_width - 1;
+    //     if (char_pos_x >= (window_width - 1)) {
+    //         char_pos_x = 1;
+    //         char_pos_y += total_char_height - 1;
+    //     }
+        
+    //     SDL_RenderPresent (renderer);
+    // }
+
+
+
+    for (int i = 0; i < 40 * 29; i++) {
+        for (int j = 0; j < CHARACTER_HEIGHT * point_size; j++) {
+            for (int k = 0; k < CHARACTER_WIDTH * point_size; k++) {
+                if ((characters[i % 69][j / point_size] >> (k / point_size)) & 1) {
                     SDL_RenderDrawPoint (renderer, k + char_pos_x, j + char_pos_y);
+                }
             }
         }
-        char_pos_x += 7;
+
+        char_pos_x += total_char_width - 1;
+        if (char_pos_x >= (window_width - 1)) {
+            char_pos_x = 1;
+            char_pos_y += total_char_height - 1;
+        }
+        
         SDL_RenderPresent (renderer);
     }
-    
-    SDL_RenderPresent (renderer);
 
-    // for (int i = 0; i < 7; i++) {
-    //     for (int j = 0; j < 5; j++) {
-    //         if ((characters[char_A_idx][i] >> j) & 1)
-    //             SDL_RenderDrawPoint (renderer, j + char_pos_x, i + char_pos_y);
-    //     }
-    // }
-    // char_pos_x += 6;
-    // SDL_RenderPresent (renderer);
 
-    // for (int i = 0; i < 7; i++) {
-    //     for (int j = 0; j < 5; j++) {
-    //         if ((characters[char_B_idx][i] >> j) & 1)
-    //             SDL_RenderDrawPoint (renderer, j + char_pos_x, i + char_pos_y);
-    //     }
-    // }
-    // char_pos_x +=6;
-    // SDL_RenderPresent (renderer);
 
-    // for (int i = 0; i < 7; i++) {
-    //     for (int j = 0; j < 5; j++) {
-    //         if ((characters[char_C_idx][i] >> j) & 1)
-    //             SDL_RenderDrawPoint (renderer, j + char_pos_x, i + char_pos_y);
+    // for (int i = 0; i < 69; i++) {
+    //     for (int j = 0; j < CHARACTER_HEIGHT * point_size; j++) {
+    //         for (int k = 0; k < CHARACTER_WIDTH * point_size; k++) {
+    //             if ((characters[i][j / point_size] >> (k / point_size)) & 1) {
+    //                 SDL_RenderDrawPoint (renderer, k + char_pos_x, j + char_pos_y);
+    //             }
+    //         }
     //     }
+
+    //     char_pos_y += total_char_height - 1;
+    //     if (char_pos_y >= (window_height - 1)) {
+    //         char_pos_y = 1;
+    //         char_pos_x += total_char_width - 1;
+    //     }
+        
+    //     SDL_RenderPresent (renderer);
     // }
-    // char_pos_x +=6;
-    // SDL_RenderPresent (renderer);
-    
+
+
+
+    // for (int i = 0; i < 40 * 29; i++) {
+    //     for (int j = 0; j < CHARACTER_HEIGHT * point_size; j++) {
+    //         for (int k = 0; k < CHARACTER_WIDTH * point_size; k++) {
+    //             if ((characters[i % 69][j / point_size] >> (k / point_size)) & 1) {
+    //                 SDL_RenderDrawPoint (renderer, k + char_pos_x, j + char_pos_y);
+    //             }
+    //         }
+    //     }
+
+    //     char_pos_y += total_char_height - 1;
+    //     if (char_pos_y >= (window_height - 1)) {
+    //         char_pos_y = 1;
+    //         char_pos_x += total_char_width - 1;
+    //     }
+        
+    //     SDL_RenderPresent (renderer);
+    // }
+
+
 
 
     SDL_Event windowEvent;
