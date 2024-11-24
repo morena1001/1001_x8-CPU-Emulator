@@ -2,6 +2,31 @@
 
 using namespace std;
 
+enum pixel_size {
+    _40x24,
+    _80x48
+};
+
+typedef struct screen_info {
+    int16_t pos_x = 1, pos_y = 1;
+    uint16_t cursor_x = 0, cursor_y = 0;
+    int window_width = 0, window_height = 0;
+    uint8_t total_char_width, total_char_height;
+    uint8_t point_size = 1;
+    enum pixel_size size = _40x24;
+} screen_info_t;
+
+uint8_t Character_Index (char character);
+
+void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, char character);
+void Move_Cursor_Left (screen_info_t& info);
+void Move_Cursor_Right (screen_info_t& info);
+void Move_Cursor_Up (screen_info_t& info);
+void Move_Cursor_Down (screen_info_t& info);
+
+
+
+
 // Screen size of 40 * 24 pixels
 #define WIDTH_1_POINT_4024          281
 #define HEIGHT_1_POINT_4024         217
@@ -25,6 +50,9 @@ using namespace std;
 #define HEIGHT_3_POINT_8048         1105
 
 #define POINT_SIZE_8048(height)     (((height / 48) - 2) / 7)
+
+#define WIDTH(pixels, point)        (pixels == _40x24 ? (point == 1 ? WIDTH_1_POINT_4024 : (point == 2 ? WIDTH_2_POINT_4024 : (point == 3 ? WIDTH_3_POINT_4024 : WIDTH_1_POINT_4024))) : ((point == 1 ? WIDTH_1_POINT_8048 : (point == 2 ? WIDTH_2_POINT_8048 : (point == 3 ? WIDTH_3_POINT_8048 : WIDTH_3_POINT_8048)))))
+#define HEIGHT(pixels, point)       (pixels == _40x24 ? (point == 1 ? HEIGHT_1_POINT_4024 : (point == 2 ? HEIGHT_2_POINT_4024 : (point == 3 ? HEIGHT_3_POINT_4024 : HEIGHT_1_POINT_4024))) : ((point == 1 ? HEIGHT_1_POINT_8048 : (point == 2 ? HEIGHT_2_POINT_8048 : (point == 3 ? HEIGHT_3_POINT_8048 : HEIGHT_3_POINT_8048)))))
 
 
 
@@ -657,4 +685,10 @@ uint8_t characters[69][7] = {
         0b00000,
         0b00000
     }
+};
+
+// Helper array for mapping character to its position in characters array
+char characters_helper[70] = {
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "!@#$%^&*()-_+={[}]\\|:;\"\'<,>.?/~` "
 };
