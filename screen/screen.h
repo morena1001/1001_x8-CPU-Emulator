@@ -7,6 +7,21 @@ enum pixel_size {
     _80x48
 };
 
+enum control_sequence {
+    None,
+    Delete,
+    Backspace,
+    Return,
+    Tab,
+    Left_Shift,
+    Right_Shift,
+    Left_Ctrl,
+    Right_Ctrl,
+    Escape,
+    Both_Shift,
+    Both_Ctrl
+};
+
 typedef struct screen_info {
     int16_t pos_x = 1, pos_y = 1;
     uint16_t cursor_x = 0, cursor_y = 0;
@@ -16,13 +31,21 @@ typedef struct screen_info {
     enum pixel_size size = _40x24;
 } screen_info_t;
 
-uint8_t Character_Index (char character);
+typedef struct input_info {
+    char character;
+    enum control_sequence control = None;
+} input_info_t;
 
-void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, char character);
+uint8_t Character_Index (input_info_t& input_char);
+
+void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
 void Move_Cursor_Left (screen_info_t& info);
 void Move_Cursor_Right (screen_info_t& info);
 void Move_Cursor_Up (screen_info_t& info);
 void Move_Cursor_Down (screen_info_t& info);
+
+enum control_sequence String_To_Control (string keyname, uint16_t mod);
+void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
 
 
 
@@ -128,6 +151,23 @@ void Move_Cursor_Down (screen_info_t& info);
 #define char_tilde_idx      66
 #define char_apostL_idx     67
 #define char_space_idx      68
+
+#define IS_CONTROL_KEYNAME(keyname)         (keyname == control_keynames[0] || keyname == control_keynames[1] || keyname == control_keynames[2] || keyname == control_keynames[3] || keyname == control_keynames[4] || keyname == control_keynames[5] || keyname == control_keynames[6] || keyname == control_keynames[7] || keyname == control_keynames[8])
+#define IS_SHIFT_CONTROL(control)           (control == Left_Shift || control == Right_Shift || control == Both_Shift)
+#define IS_CTRL_CONTROL(control)            (control == Left_Ctrl || control == Left_Ctrl || control == Both_Ctrl)
+
+// Control keynames
+string control_keynames[9] = {
+    "Delete",
+    "Backspace",
+    "Return",
+    "Tab",
+    "Left Shift",
+    "Right Shift",
+    "Left Ctrl",
+    "Right Ctrl",
+    "Escape"
+};
 
 
 // Initialization of all character bitmaps

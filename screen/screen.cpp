@@ -10,6 +10,8 @@ int main (int argc, char** argv) {
     SDL_Window* window;
     SDL_Renderer* renderer;
     screen_info_t info;
+    input_info_t input_char;
+    input_info_t curr_pos_char;
 
     // Set Point Size and Pixel Size;
     info.point_size = 3;
@@ -28,7 +30,12 @@ int main (int argc, char** argv) {
 
     int time = INT32_MAX / 1750;
     bool cursor_blink = true;
-    Draw_Character (renderer, info, '_');
+    curr_pos_char.character = '_';
+    curr_pos_char.control = None;
+    Draw_Character (renderer, info, curr_pos_char);
+
+    string keyname;
+    uint16_t mod;
 
 
     // for (int i = 0; i < 69; i++) {
@@ -46,7 +53,7 @@ int main (int argc, char** argv) {
     //     Move_Cursor_Right (info);
     // }
 
-    SDL_Event windowEvent;
+    SDL_Event event;
     while (1) {
         time--;
         if (time == 0) {
@@ -54,30 +61,98 @@ int main (int argc, char** argv) {
             cursor_blink ^= 1;
 
             if (cursor_blink) {
-                Draw_Character (renderer, info, '_');
+                curr_pos_char.character = '_';
+                Draw_Character (renderer, info, curr_pos_char);
             } else {
-                Draw_Character (renderer, info, ' ');
+                curr_pos_char.character = ' ';
+                Draw_Character (renderer, info, curr_pos_char);
             }
         }
 
-        if (SDL_PollEvent (&windowEvent)) {
-            if (windowEvent.type == SDL_QUIT)       break;
-                
-
+        if (SDL_PollEvent (&event)) {                
+            switch (event.type) {
+                case SDL_KEYDOWN : {
+                    keyname = SDL_GetKeyName (event.key.keysym.sym);
+                    mod = event.key.keysym.mod;
+                    
+                    input_char.character = keyname == "Space" ? ' ' : keyname[0];
+                    input_char.control = String_To_Control (keyname, mod);
+                    
+                    if (!IS_CONTROL_KEYNAME (keyname)) {
+                        Draw_Character (renderer, info, input_char);
+                        Move_Cursor_Right (info);
+                    } else {
+                        Execute_Control (renderer, info, input_char);
+                    }
+                } break;
+                case SDL_KEYUP : {
+                    keyname = SDL_GetKeyName (event.key.keysym.sym);
+                    if (IS_CONTROL_KEYNAME (keyname))       input_char.control = None;
+                } break;
+                case SDL_QUIT : {
+                    cout << "DONE" << endl;
+                    goto endloop;
+                } break;
+                default : {} break;
+            }
         }
     }
 
+    endloop:
     SDL_DestroyWindow (window);
     SDL_Quit ();
 
 }
 
-uint8_t Character_Index (char character) {
-    int ascii = (int) character;
+void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+    input_char.character = ' ';
+    Draw_Character (renderer, info, input_char);
+    
+    if (input_char.control == Delete) {
+
+    } else if (input_char.control == Backspace) {
+        Move_Cursor_Left (info);
+        Draw_Character (renderer, info, input_char);
+    } else if (input_char.control == Return) {
+        Move_Cursor_Down (info);
+
+        info.pos_x = 1;
+        info.cursor_x = 0;
+    } else if (input_char.control == Tab) {
+        for (int i = 0; i < 5; i++) {
+            Move_Cursor_Left (info);
+        }
+    } else if (input_char.control == Escape) {
+        
+    }
+}
+
+enum control_sequence String_To_Control (string keyname, uint16_t mod) {
+    if (mod == 1)           return Left_Shift;
+    if (mod == 2)           return Right_Shift;
+    if (mod == 3)           return Both_Shift;
+
+    if (mod == 64)          return Left_Ctrl;
+    if (mod == 128)         return Right_Ctrl;
+    if (mod == 192)         return Both_Ctrl;
+    
+    if (keyname == control_keynames[0])     return Delete;
+    if (keyname == control_keynames[1])     return Backspace;
+    if (keyname == control_keynames[2])     return Return;
+    if (keyname == control_keynames[3])     return Tab;
+    if (keyname == control_keynames[4])     return Left_Shift;
+    if (keyname == control_keynames[5])     return Right_Shift;
+    if (keyname == control_keynames[6])     return Left_Ctrl;
+    if (keyname == control_keynames[7])     return Right_Ctrl;
+    if (keyname == control_keynames[8])     return Escape;
+}
+
+uint8_t Character_Index (input_info_t& input_char) {
+    int ascii = (int)  input_char.character;
 
     // NUMBERS
     if (ascii >= 48 && ascii <= 57) {
-        return ascii - 48;
+        return ascii - (IS_SHIFT_CONTROL(input_char.control) ? (ascii == 48 ? 3 : 13) : 48);
     }
 
     // CAPITALIZED LETTERS
@@ -98,41 +173,42 @@ uint8_t Character_Index (char character) {
         case 36 : return char_dollar_idx;
         case 37 : return char_percent_idx;
         case 38 : return char_amp_idx;
-        case 39 : return char_apostR_idx;
+        case 39 : return char_apostR_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
         case 40 : return char_brcL_idx;
         case 41 : return char_brcR_idx;
         case 42 : return char_ast_idx;
         case 43 : return char_plus_idx;
-        case 44 : return char_comma_idx;
-        case 45 : return char_dash_idx;
-        case 46 : return char_period_idx;
-        case 47 : return char_fwdslsh_idx;
+        case 44 : return char_comma_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
+        case 45 : return char_dash_idx + (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
+        case 46 : return char_period_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
+        case 47 : return char_fwdslsh_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
         // CASES 48 TO 57 ARE NUMBERS
         case 58 : return char_colon_idx;
-        case 59 : return char_smcol_idx;
+        case 59 : return char_smcol_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
         case 60 : return char_angleL_idx;
-        case 61 : return char_equal_idx;
+        case 61 : return char_equal_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
         case 62 : return char_angleR_idx;
         case 63 : return char_quest_idx;
         case 64 : return char_at_idx;
         // CASES 65 TO 90 ARE UPPERCASE LETTERS
-        case 91 : return char_brkL_idx;
-        case 92 : return char_bkslsh_idx;
-        case 93 : return char_brkR_idx;
+        case 91 : return char_brkL_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
+        case 92 : return char_bkslsh_idx + (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
+        case 93 : return char_brkR_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
         case 94 : return char_caret_idx;
         case 95 : return char_under_idx;
-        case 96 : return char_apostL_idx;
+        case 96 : return char_apostL_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
         // CASES 97 TO 122 ARE LOWERCASE LETTERS
         case 123 : char_curL_idx;
         case 124 : char_vert_idx;
         case 125 : char_curR_idx;
         case 126 : char_tilde_idx;
-        default  : return ascii;
+
+        default  : return UINT8_MAX;
     }
 }
 
-void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, char character) {
-    int i = Character_Index (character);
+void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+    int i = Character_Index (input_char);
 
     for (int j = 0; j < CHARACTER_HEIGHT * info.point_size; j++) {
         for (int k = 0; k < CHARACTER_WIDTH * info.point_size; k++) {
@@ -149,7 +225,7 @@ void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, char character
     SDL_RenderPresent (renderer);
 }
 
-void Move_Cursor_Left (screen_info_t& info) {
+void Move_Cursor_Right (screen_info_t& info) {
     // If cursor is not at left edge, move cursor
     if (info.cursor_x < (info.size == _40x24 ? 39 : 79)) {
         info.cursor_x++;
@@ -163,7 +239,7 @@ void Move_Cursor_Left (screen_info_t& info) {
     }
 }
 
-void Move_Cursor_Right (screen_info_t& info) {
+void Move_Cursor_Left (screen_info_t& info) {
     // If cursor is not at the right edge, move cursor
     if (info.cursor_x > 0) {
         info.cursor_x--;
