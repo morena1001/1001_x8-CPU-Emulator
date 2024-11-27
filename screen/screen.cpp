@@ -37,22 +37,6 @@ int main (int argc, char** argv) {
     string keyname;
     uint16_t mod;
 
-
-    // for (int i = 0; i < 69; i++) {
-    //     Draw_Character (renderer, info, characters_helper[i]);
-    //     // Move_Cursor_Down (info);
-    //     Move_Cursor_Left (info);
-    // }
-
-    // info.pos_x = info.window_width - info.total_char_width + 1;
-    // info.pos_y = info.window_height - info.total_char_height + 1;
-    // info.cursor_x = 39;
-    // info.cursor_y = 23;
-    // for (int i = 0; i < 69; i++) {
-    //     Draw_Character (renderer, info, characters_helper[i]);
-    //     Move_Cursor_Right (info);
-    // }
-
     SDL_Event event;
     while (1) {
         time--;
@@ -116,7 +100,7 @@ void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t&
 
     } else if (input_char.control == Backspace) {
         Move_Cursor_Left (info);
-        info.column_of_line[info.cursor_x] -= 2;
+        info.column_of_line[info.cursor_y]--;
         Draw_Character (renderer, info, input_char);
     } else if (input_char.control == Return) {
         Move_Cursor_Down (info);
@@ -301,6 +285,11 @@ void Move_Cursor_Up (screen_info_t& info) {
     if (info.cursor_y > 0) {
         info.cursor_y--;
         info.pos_y -= info.total_char_height - 1;
+
+        if (info.column_of_line[info.cursor_y] < info.column_of_line[info.cursor_y + 1]) {
+            info.cursor_x = info.column_of_line[info.cursor_y];
+            info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y]); 
+        } 
     }
 }
 
@@ -309,8 +298,45 @@ void Move_Cursor_Down (screen_info_t& info) {
     if (info.cursor_y < (info.size == _40x24 ? 23 : 47)) {
         info.cursor_y++;
         info.pos_y += info.total_char_height - 1;
+
+        if (info.column_of_line[info.cursor_y] < info.column_of_line[info.cursor_y - 1]) {
+            info.cursor_x = info.column_of_line[info.cursor_y];
+            info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y]); 
+        }
     }
 }
+
+void Shift_Characters_Left (screen_info_t& info) {
+
+}
+
+void Shift_Characters_Right (screen_info_t& info) {
+
+}
+
+void Shift_Characters_Up (screen_info_t& info) {
+
+}
+
+void Shift_Characters_Down (screen_info_t& info) {
+    
+}
+
+
+    // for (int i = 0; i < 69; i++) {
+    //     Draw_Character (renderer, info, characters_helper[i]);
+    //     // Move_Cursor_Down (info);
+    //     Move_Cursor_Left (info);
+    // }
+
+    // info.pos_x = info.window_width - info.total_char_width + 1;
+    // info.pos_y = info.window_height - info.total_char_height + 1;
+    // info.cursor_x = 39;
+    // info.cursor_y = 23;
+    // for (int i = 0; i < 69; i++) {
+    //     Draw_Character (renderer, info, characters_helper[i]);
+    //     Move_Cursor_Right (info);
+    // }
 
 
 

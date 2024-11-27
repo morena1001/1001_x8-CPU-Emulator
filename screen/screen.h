@@ -2,11 +2,18 @@
 
 using namespace std;
 
+/*
+ * ENUM DEFINITIONS
+ */
+
+// Width x Height. Describes how many characters can fit in a screen's width and height. 
 enum pixel_size {
     _40x24,
     _80x48
 };
 
+
+// All possible control sequences to perform things like cursor movement, deletion of characters, newlines, etc.
 enum control_sequence {
     None,
     Delete,
@@ -35,6 +42,12 @@ enum control_sequence {
     Both_Shift_and_Both_Ctrl
 };
 
+/*
+ * STRUCT DEFINITIONS
+ */
+
+// Defines information on the position of the actual pixel cursor to draw characters based on a bit map, cursor position, the size of a screen, (in actual pixels and characters),
+// the pixel size of characters, the point size, the amount of characters in a column, and the actual characters printed on the screen.   
 typedef struct screen_info {
     int16_t pos_x = 1, pos_y = 1;
     uint16_t cursor_x = 0, cursor_y = 0;
@@ -43,30 +56,54 @@ typedef struct screen_info {
     uint8_t point_size = 1;
     enum pixel_size size = _40x24;
     uint8_t column_of_line [80] = {0};
-    // char character_in_cursor = ' ';
     char characters_in_screen[80][48] = {'\0'};
 } screen_info_t;
 
+// Defines the most recently pressed characters and control sequence.
 typedef struct input_info {
     char character;
     enum control_sequence control = None;
 } input_info_t;
 
+/*
+ * FUNCTION PROTOTYPE DEFINITIONS
+ */
+
+// Returns the tranposed code of a character from its ASCII code.
 uint8_t Character_Index (input_info_t& input_char);
 
+// Draws the charactes based on its acutal pixel cursor (pos_x and pox_y) in screen_info given the characters from input_info.
 void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
+
+// Shifts all characters to the right of the cursor left by one character.
+void Shift_Characters_Left (screen_info_t& info);
+// Shifts all characters to the right of the cursor right by one character.
+void Shift_Characters_Right (screen_info_t& info);
+// Shifts all characters to the right of the cursor up by one line. (DOES NOT CURRENTLY WORK)
+void Shift_Characters_Up (screen_info_t& info);
+// Shifts all characters to the right of the cursor down by one line.
+void Shift_Characters_Down (screen_info_t& info);
+
+// Move the cursor left by one character.
 void Move_Cursor_Left (screen_info_t& info);
+// Move the cursor right by one character.
 void Move_Cursor_Right (screen_info_t& info);
+// Move the cursor up by one character.
 void Move_Cursor_Up (screen_info_t& info);
+// Move the cursor down by one character.
 void Move_Cursor_Down (screen_info_t& info);
 
+// Returns the control sequence based on the keyboard input.
 enum control_sequence String_To_Control (string keyname, uint16_t mod);
+// Executes a control sequence.
 void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
 
+/*
+ * DEFINE DEFITIONS
+ */
 
+// Screen size of 40 * 24 pixels.
 
-
-// Screen size of 40 * 24 pixels
 #define WIDTH_1_POINT_4024          281
 #define HEIGHT_1_POINT_4024         217
 
@@ -78,7 +115,8 @@ void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t&
 
 #define POINT_SIZE_4024(height)     (((height / 24) - 2) / 7)
 
-// Screen size of 80 * 48 pixels
+// Screen size of 80 * 48 pixels.
+
 #define WIDTH_1_POINT_8048          561
 #define HEIGHT_1_POINT_8048         433
 
@@ -94,9 +132,12 @@ void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t&
 #define HEIGHT(pixels, point)       (pixels == _40x24 ? (point == 1 ? HEIGHT_1_POINT_4024 : (point == 2 ? HEIGHT_2_POINT_4024 : (point == 3 ? HEIGHT_3_POINT_4024 : HEIGHT_1_POINT_4024))) : ((point == 1 ? HEIGHT_1_POINT_8048 : (point == 2 ? HEIGHT_2_POINT_8048 : (point == 3 ? HEIGHT_3_POINT_8048 : HEIGHT_3_POINT_8048)))))
 
 
+// Max character height and width.
 
 #define CHARACTER_HEIGHT    7
 #define CHARACTER_WIDTH     5
+
+// Indexes of characters based on the 2d array named "characters" below.
 
 #define char_0_idx          0
 #define char_1_idx          1
@@ -168,12 +209,16 @@ void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t&
 #define char_apostL_idx     67
 #define char_space_idx      68
 
+// Function macros to discern whether a keyname from the keyboard input is a control character.
 #define IS_CONTROL_KEYNAME(keyname)         (keyname == control_keynames[0] || keyname == control_keynames[1] || keyname == control_keynames[2] || keyname == control_keynames[3] || keyname == control_keynames[4] || keyname == control_keynames[5] || keyname == control_keynames[6] || keyname == control_keynames[7] || keyname == control_keynames[8])
+// Function macro to discern whether a given control sequence is any shift input.
 #define IS_SHIFT_CONTROL(control)           (control == Left_Shift || control == Right_Shift || control == Both_Shift)
+// Function macro to discern whether a given control sequence is any control input.
 #define IS_CTRL_CONTROL(control)            (control == Left_Ctrl || control == Right_Ctrl || control == Both_Ctrl)
+// Function macro to discern whether a given control sequence is both any shift and any control input.
 #define IS_SHIFT_AND_CONTROL(control)       (control == Left_Shift_and_Left_Ctrl || control == Left_Shift_and_Right_Ctrl || control == Left_Shift_and_Both_Ctrl || control == Right_Shift_and_Left_Ctrl || control == Right_Shift_and_Right_Ctrl || control == Right_Shift_and_Both_Ctrl || control == Both_Shift_and_Left_Ctrl || control == Both_Shift_and_Right_Ctrl || control == Both_Shift_and_Both_Ctrl)
 
-// Control keynames
+// Control keynames.
 string control_keynames[9] = {
     "Delete",
     "Backspace",
@@ -187,7 +232,7 @@ string control_keynames[9] = {
 };
 
 
-// Initialization of all character bitmaps
+// Initialization of all character bitmaps.
 uint8_t characters[69][7] = {
     { // 0
         0b01110,
@@ -744,8 +789,8 @@ uint8_t characters[69][7] = {
     }
 };
 
-// Helper array for mapping character to its position in characters array
-char characters_helper[70] = {
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "!@#$%^&*()-_+={[}]\\|:;\"\'<,>.?/~` "
-};
+// Helper array for mapping character to its position in characters array. DEPRACATED.
+// char characters_helper[70] = {
+//     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+//     "!@#$%^&*()-_+={[}]\\|:;\"\'<,>.?/~` "
+// };
