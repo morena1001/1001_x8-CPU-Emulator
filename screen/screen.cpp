@@ -64,7 +64,7 @@ int main (int argc, char** argv) {
                 curr_pos_char.character = '_';
                 Draw_Character (renderer, info, curr_pos_char);
             } else {
-                curr_pos_char.character = ' ';
+                curr_pos_char.character = info.characters_in_screen[info.cursor_x][info.cursor_y];
                 Draw_Character (renderer, info, curr_pos_char);
             }
         }
@@ -75,11 +75,13 @@ int main (int argc, char** argv) {
                     keyname = SDL_GetKeyName (event.key.keysym.sym);
                     mod = event.key.keysym.mod;
                     
-                    input_char.character = keyname == "Space" ? ' ' : keyname[0];
+                    input_char.character = !IS_CONTROL_KEYNAME (keyname) ? (keyname == "Space" ? ' ' : keyname[0]) : '\0';
                     input_char.control = String_To_Control (keyname, mod);
                     
-                    if (!IS_CONTROL_KEYNAME (keyname)) {
+                    if (!IS_CONTROL_KEYNAME (keyname) && (IS_SHIFT_CONTROL (input_char.control) || input_char.control == None)) {
                         Draw_Character (renderer, info, input_char);
+                        info.characters_in_screen[info.cursor_x][info.cursor_y] = input_char.character;
+                        info.column_of_line[info.cursor_y]++;
                         Move_Cursor_Right (info);
                     } else {
                         Execute_Control (renderer, info, input_char);
@@ -88,6 +90,7 @@ int main (int argc, char** argv) {
                 case SDL_KEYUP : {
                     keyname = SDL_GetKeyName (event.key.keysym.sym);
                     if (IS_CONTROL_KEYNAME (keyname))       input_char.control = None;
+                    else                                    input_char.character = '\0';
                 } break;
                 case SDL_QUIT : {
                     cout << "DONE" << endl;
@@ -105,6 +108,7 @@ int main (int argc, char** argv) {
 }
 
 void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+    char temp = input_char.character;
     input_char.character = ' ';
     Draw_Character (renderer, info, input_char);
     
@@ -112,6 +116,7 @@ void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t&
 
     } else if (input_char.control == Backspace) {
         Move_Cursor_Left (info);
+        info.column_of_line[info.cursor_x] -= 2;
         Draw_Character (renderer, info, input_char);
     } else if (input_char.control == Return) {
         Move_Cursor_Down (info);
@@ -124,6 +129,28 @@ void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t&
         }
     } else if (input_char.control == Escape) {
         
+    } else if (IS_CTRL_CONTROL (input_char.control) && input_char.character != '\0') {
+        input_char.character = info.characters_in_screen[info.cursor_x][info.cursor_y];
+        Draw_Character (renderer, info, input_char);
+        input_char.character = temp;
+
+        if      (input_char.character == 'W')       Move_Cursor_Up (info);
+        else if (input_char.character == 'A')       Move_Cursor_Left (info);
+        else if (input_char.character == 'S')       Move_Cursor_Down (info);
+        else if (input_char.character == 'D')       Move_Cursor_Right (info);
+    } else if (IS_SHIFT_AND_CONTROL (input_char.control) && input_char.character != '\0') {
+        input_char.character = temp;
+        // input_char.character = info.characters_in_screen[info.cursor_x][info.cursor_y];
+        if (input_char.character == 'A') {
+            while (info.cursor_x != 0) {
+                Move_Cursor_Left (info);
+            }
+        }
+        if (input_char.character == 'D') {
+            while (info.cursor_x != (info.size == _40x24 ? 39 : 79)) {
+                Move_Cursor_Right (info);
+            }
+        }
     }
 }
 
@@ -135,6 +162,18 @@ enum control_sequence String_To_Control (string keyname, uint16_t mod) {
     if (mod == 64)          return Left_Ctrl;
     if (mod == 128)         return Right_Ctrl;
     if (mod == 192)         return Both_Ctrl;
+
+    if (mod == 65)          return Left_Shift_and_Left_Ctrl;
+    if (mod == 66)          return Right_Shift_and_Left_Ctrl;
+    if (mod == 67)          return Both_Shift_and_Left_Ctrl;
+
+    if (mod == 129)         return Left_Shift_and_Right_Ctrl;
+    if (mod == 130)         return Right_Shift_and_Right_Ctrl;
+    if (mod == 131)         return Both_Shift_and_Right_Ctrl;
+    
+    if (mod == 193)         return Left_Shift_and_Both_Ctrl;
+    if (mod == 194)         return Right_Shift_and_Both_Ctrl;
+    if (mod == 195)         return Both_Shift_and_Both_Ctrl;
     
     if (keyname == control_keynames[0])     return Delete;
     if (keyname == control_keynames[1])     return Backspace;
@@ -148,6 +187,8 @@ enum control_sequence String_To_Control (string keyname, uint16_t mod) {
 }
 
 uint8_t Character_Index (input_info_t& input_char) {
+    if (input_char.character == '\0')     return char_space_idx;
+
     int ascii = (int)  input_char.character;
 
     // NUMBERS
@@ -227,7 +268,7 @@ void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, input_info_t& 
 
 void Move_Cursor_Right (screen_info_t& info) {
     // If cursor is not at left edge, move cursor
-    if (info.cursor_x < (info.size == _40x24 ? 39 : 79)) {
+    if (info.cursor_x < (info.size == _40x24 ? 39 : 79) && info.cursor_x < info.column_of_line[info.cursor_y]) {
         info.cursor_x++;
         info.pos_x += info.total_char_width - 1;
     } 
@@ -247,8 +288,10 @@ void Move_Cursor_Left (screen_info_t& info) {
     }
     // Else move cursor up 1 if not at the top edge
     else if (info.cursor_y > 0) {
-        info.cursor_x = (info.size == _40x24 ? 39 : 79);
-        info.pos_x = info.window_width - info.total_char_width + 1;
+        uint8_t max_width = info.size == _40x24 ? 39 : 79;
+        info.cursor_x = (info.column_of_line[info.cursor_y - 1] < max_width ? info.column_of_line[info.cursor_y - 1] : max_width);
+        info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y - 1]);
+        // info.pos_x = info.window_width - info.total_char_width + 1;
         Move_Cursor_Up (info);
     }
 }

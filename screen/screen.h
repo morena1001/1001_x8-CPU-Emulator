@@ -18,8 +18,21 @@ enum control_sequence {
     Left_Ctrl,
     Right_Ctrl,
     Escape,
+    
     Both_Shift,
-    Both_Ctrl
+    Both_Ctrl,
+    
+    Left_Shift_and_Left_Ctrl,
+    Left_Shift_and_Right_Ctrl,
+    Left_Shift_and_Both_Ctrl,
+
+    Right_Shift_and_Left_Ctrl,
+    Right_Shift_and_Right_Ctrl,
+    Right_Shift_and_Both_Ctrl,
+    
+    Both_Shift_and_Left_Ctrl,
+    Both_Shift_and_Right_Ctrl,
+    Both_Shift_and_Both_Ctrl
 };
 
 typedef struct screen_info {
@@ -29,6 +42,9 @@ typedef struct screen_info {
     uint8_t total_char_width, total_char_height;
     uint8_t point_size = 1;
     enum pixel_size size = _40x24;
+    uint8_t column_of_line [80] = {0};
+    // char character_in_cursor = ' ';
+    char characters_in_screen[80][48] = {'\0'};
 } screen_info_t;
 
 typedef struct input_info {
@@ -154,7 +170,8 @@ void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t&
 
 #define IS_CONTROL_KEYNAME(keyname)         (keyname == control_keynames[0] || keyname == control_keynames[1] || keyname == control_keynames[2] || keyname == control_keynames[3] || keyname == control_keynames[4] || keyname == control_keynames[5] || keyname == control_keynames[6] || keyname == control_keynames[7] || keyname == control_keynames[8])
 #define IS_SHIFT_CONTROL(control)           (control == Left_Shift || control == Right_Shift || control == Both_Shift)
-#define IS_CTRL_CONTROL(control)            (control == Left_Ctrl || control == Left_Ctrl || control == Both_Ctrl)
+#define IS_CTRL_CONTROL(control)            (control == Left_Ctrl || control == Right_Ctrl || control == Both_Ctrl)
+#define IS_SHIFT_AND_CONTROL(control)       (control == Left_Shift_and_Left_Ctrl || control == Left_Shift_and_Right_Ctrl || control == Left_Shift_and_Both_Ctrl || control == Right_Shift_and_Left_Ctrl || control == Right_Shift_and_Right_Ctrl || control == Right_Shift_and_Both_Ctrl || control == Both_Shift_and_Left_Ctrl || control == Both_Shift_and_Right_Ctrl || control == Both_Shift_and_Both_Ctrl)
 
 // Control keynames
 string control_keynames[9] = {
