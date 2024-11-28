@@ -76,13 +76,13 @@ uint8_t Character_Index (input_info_t& input_char);
 void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
 
 // Shifts all characters to the right of the cursor left by one character.
-void Shift_Characters_Left (screen_info_t& info);
+void Shift_Characters_Left (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
 // Shifts all characters to the right of the cursor right by one character.
-void Shift_Characters_Right (screen_info_t& info);
+void Shift_Characters_Right (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
 // Shifts all characters to the right of the cursor up by one line. (DOES NOT CURRENTLY WORK)
-void Shift_Characters_Up (screen_info_t& info);
+void Shift_Characters_Up (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
 // Shifts all characters to the right of the cursor down by one line.
-void Shift_Characters_Down (screen_info_t& info);
+void Shift_Characters_Down (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char);
 
 // Move the cursor left by one character.
 void Move_Cursor_Left (screen_info_t& info);

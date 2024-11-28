@@ -6,6 +6,8 @@
 using namespace std;
 
 int main (int argc, char** argv) {
+    // Initialize window, renderer, screen info and input struct.
+
     SDL_Init (SDL_INIT_EVERYTHING);
     SDL_Window* window;
     SDL_Renderer* renderer;
@@ -13,33 +15,39 @@ int main (int argc, char** argv) {
     input_info_t input_char;
     input_info_t curr_pos_char;
 
-    // Set Point Size and Pixel Size;
+    // Set Point Size and Pixel Size.
     info.point_size = 3;
     info.size = _40x24;
     
+    // Set window and renderer.
     SDL_CreateWindowAndRenderer (WIDTH (info.size, info.point_size), HEIGHT (info.size, info.point_size), 0, &window, &renderer);
 
+    // Set the background color.
     SDL_SetRenderDrawColor (renderer, 50, 48, 47, 255);
     SDL_RenderClear (renderer);
+    // Set the color for the characters being drawn.
     SDL_SetRenderDrawColor (renderer, 224, 158, 42, 255);
 
-
+    // Set window and screen height and width.
     SDL_GetWindowSizeInPixels (window, &info.window_width, &info.window_height);
     info.total_char_width = (CHARACTER_WIDTH + 1) * info.point_size;
     info.total_char_height = (CHARACTER_HEIGHT + 1) * info.point_size;
 
+    // Set up the blinking cursor.
     int time = INT32_MAX / 1750;
     bool cursor_blink = true;
     curr_pos_char.character = '_';
     curr_pos_char.control = None;
     Draw_Character (renderer, info, curr_pos_char);
 
+    // store the keyboard input.
     string keyname;
     uint16_t mod;
 
     SDL_Event event;
     while (1) {
         time--;
+        // Blink the cursor from the underscore characters and the current character the cursor is at.
         if (time == 0) {
             time = INT32_MAX / 1750;
             cursor_blink ^= 1;
@@ -92,27 +100,30 @@ int main (int argc, char** argv) {
 }
 
 void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+    // Don't know why it works, but it does.
     char temp = input_char.character;
     input_char.character = ' ';
     Draw_Character (renderer, info, input_char);
     
     if (input_char.control == Delete) {
-
-    } else if (input_char.control == Backspace) {
+        Shift_Characters_Left (renderer, info, input_char);
+        info.column_of_line[info.cursor_y]--;
+    } else if (input_char.control == Backspace) {      
+        Shift_Characters_Left (renderer, info, input_char);
         Move_Cursor_Left (info);
         info.column_of_line[info.cursor_y]--;
-        Draw_Character (renderer, info, input_char);
     } else if (input_char.control == Return) {
         Move_Cursor_Down (info);
-
         info.pos_x = 1;
         info.cursor_x = 0;
+        // Shift all characters down.
     } else if (input_char.control == Tab) {
         for (int i = 0; i < 5; i++) {
             Move_Cursor_Left (info);
+            // Shift all characters right.
         }
     } else if (input_char.control == Escape) {
-        
+        // DOES NOTHING YET
     } else if (IS_CTRL_CONTROL (input_char.control) && input_char.character != '\0') {
         input_char.character = info.characters_in_screen[info.cursor_x][info.cursor_y];
         Draw_Character (renderer, info, input_char);
@@ -123,19 +134,127 @@ void Execute_Control (SDL_Renderer* renderer, screen_info_t& info, input_info_t&
         else if (input_char.character == 'S')       Move_Cursor_Down (info);
         else if (input_char.character == 'D')       Move_Cursor_Right (info);
     } else if (IS_SHIFT_AND_CONTROL (input_char.control) && input_char.character != '\0') {
+        input_char.character = info.characters_in_screen[info.cursor_x][info.cursor_y];
+        Draw_Character (renderer, info, input_char);
         input_char.character = temp;
-        // input_char.character = info.characters_in_screen[info.cursor_x][info.cursor_y];
         if (input_char.character == 'A') {
             while (info.cursor_x != 0) {
                 Move_Cursor_Left (info);
             }
         }
         if (input_char.character == 'D') {
-            while (info.cursor_x != (info.size == _40x24 ? 39 : 79)) {
+            for (int i = 0; i < info.column_of_line[info.cursor_y]; i++) {
                 Move_Cursor_Right (info);
             }
         }
     }
+}
+
+void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+    int i = Character_Index (input_char);
+
+    for (int j = 0; j < CHARACTER_HEIGHT * info.point_size; j++) {
+        for (int k = 0; k < CHARACTER_WIDTH * info.point_size; k++) {
+            if ((characters[i % 69][j / info.point_size] >> (k / info.point_size)) & 1) {
+                SDL_SetRenderDrawColor (renderer, 224, 158, 42, 255);
+                SDL_RenderDrawPoint (renderer, k + info.pos_x, j + info.pos_y);
+            } else {
+                SDL_SetRenderDrawColor (renderer, 50, 48, 47, 255);
+                SDL_RenderDrawPoint (renderer, k + info.pos_x, j + info.pos_y);
+            }
+        }
+    }
+
+    SDL_RenderPresent (renderer);
+}
+
+void Move_Cursor_Right (screen_info_t& info) {
+    // If cursor is not at left edge, move cursor
+    if (info.cursor_x < (info.size == _40x24 ? 39 : 79) && info.cursor_x < info.column_of_line[info.cursor_y]) {
+        info.cursor_x++;
+        info.pos_x += info.total_char_width - 1;
+    } 
+    // Else move cursor down 1 if not at bottom edge
+    else if (info.cursor_y < (info.size == _40x24 ? 23 : 47)) {
+        info.cursor_x = 0;
+        info.pos_x = 1;
+        Move_Cursor_Down (info);
+    }
+}
+
+void Move_Cursor_Left (screen_info_t& info) {
+    // If cursor is not at the right edge, move cursor
+    if (info.cursor_x > 0) {
+        info.cursor_x--;
+        info.pos_x -= info.total_char_width - 1;
+    }
+    // Else move cursor up 1 if not at the top edge
+    else if (info.cursor_y > 0) {
+        uint8_t max_width = info.size == _40x24 ? 39 : 79;
+        info.cursor_x = (info.column_of_line[info.cursor_y - 1] < max_width ? info.column_of_line[info.cursor_y - 1] : max_width);
+        info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y - 1]);
+        // info.pos_x = info.window_width - info.total_char_width + 1;
+        Move_Cursor_Up (info);
+    }
+}
+
+void Move_Cursor_Up (screen_info_t& info) {
+    // If cursor is not at the top edge, move cursor
+    if (info.cursor_y > 0) {
+        info.cursor_y--;
+        info.pos_y -= info.total_char_height - 1;
+
+        if (info.column_of_line[info.cursor_y] < info.column_of_line[info.cursor_y + 1]) {
+            info.cursor_x = info.column_of_line[info.cursor_y];
+            info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y]); 
+        } 
+    }
+}
+
+void Move_Cursor_Down (screen_info_t& info) {
+    // If cursor is not at bottom edge, move cursor
+    if (info.cursor_y < (info.size == _40x24 ? 23 : 47)) {
+        info.cursor_y++;
+        info.pos_y += info.total_char_height - 1;
+
+        if (info.column_of_line[info.cursor_y] < info.column_of_line[info.cursor_y - 1]) {
+            info.cursor_x = info.column_of_line[info.cursor_y];
+            info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y]); 
+        }
+    }
+}
+
+void Shift_Characters_Left (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+    // temporary store the values of the pixel position and cursor, as well as the character
+    int16_t pos_x_temp = info.pos_x;
+    int16_t pos_y_temp = info.pos_y;
+    uint16_t cursor_x_temp = info.cursor_x;
+    uint16_t cursor_y_temp = info.cursor_y;
+    char temp_character = input_char.character;
+
+    for (info.cursor_x; info.cursor_x < info.column_of_line[info.cursor_y]; Move_Cursor_Right (info)) {
+        info.characters_in_screen[info.cursor_x][info.cursor_y] = info.characters_in_screen[info.cursor_x + 1][info.cursor_y];
+        input_char.character = info.characters_in_screen[info.cursor_x][info.cursor_y];
+        Draw_Character (renderer, info, input_char);
+    }
+
+    info.pos_x = pos_x_temp;
+    info.pos_y = pos_y_temp;
+    info.cursor_x = cursor_x_temp;
+    info.cursor_y = cursor_y_temp;
+    input_char.character = temp_character;
+}
+
+void Shift_Characters_Right (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+
+}
+
+void Shift_Characters_Up (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+
+}
+
+void Shift_Characters_Down (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
+    
 }
 
 enum control_sequence String_To_Control (string keyname, uint16_t mod) {
@@ -230,96 +349,6 @@ uint8_t Character_Index (input_info_t& input_char) {
 
         default  : return UINT8_MAX;
     }
-}
-
-void Draw_Character (SDL_Renderer* renderer, screen_info_t& info, input_info_t& input_char) {
-    int i = Character_Index (input_char);
-
-    for (int j = 0; j < CHARACTER_HEIGHT * info.point_size; j++) {
-        for (int k = 0; k < CHARACTER_WIDTH * info.point_size; k++) {
-            if ((characters[i % 69][j / info.point_size] >> (k / info.point_size)) & 1) {
-                SDL_SetRenderDrawColor (renderer, 224, 158, 42, 255);
-                SDL_RenderDrawPoint (renderer, k + info.pos_x, j + info.pos_y);
-            } else {
-                SDL_SetRenderDrawColor (renderer, 50, 48, 47, 255);
-                SDL_RenderDrawPoint (renderer, k + info.pos_x, j + info.pos_y);
-            }
-        }
-    }
-
-    SDL_RenderPresent (renderer);
-}
-
-void Move_Cursor_Right (screen_info_t& info) {
-    // If cursor is not at left edge, move cursor
-    if (info.cursor_x < (info.size == _40x24 ? 39 : 79) && info.cursor_x < info.column_of_line[info.cursor_y]) {
-        info.cursor_x++;
-        info.pos_x += info.total_char_width - 1;
-    } 
-    // Else move cursor down 1 if not at bottom edge
-    else if (info.cursor_y < (info.size == _40x24 ? 23 : 47)) {
-        info.cursor_x = 0;
-        info.pos_x = 1;
-        Move_Cursor_Down (info);
-    }
-}
-
-void Move_Cursor_Left (screen_info_t& info) {
-    // If cursor is not at the right edge, move cursor
-    if (info.cursor_x > 0) {
-        info.cursor_x--;
-        info.pos_x -= info.total_char_width - 1;
-    }
-    // Else move cursor up 1 if not at the top edge
-    else if (info.cursor_y > 0) {
-        uint8_t max_width = info.size == _40x24 ? 39 : 79;
-        info.cursor_x = (info.column_of_line[info.cursor_y - 1] < max_width ? info.column_of_line[info.cursor_y - 1] : max_width);
-        info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y - 1]);
-        // info.pos_x = info.window_width - info.total_char_width + 1;
-        Move_Cursor_Up (info);
-    }
-}
-
-void Move_Cursor_Up (screen_info_t& info) {
-    // If cursor is not at the top edge, move cursor
-    if (info.cursor_y > 0) {
-        info.cursor_y--;
-        info.pos_y -= info.total_char_height - 1;
-
-        if (info.column_of_line[info.cursor_y] < info.column_of_line[info.cursor_y + 1]) {
-            info.cursor_x = info.column_of_line[info.cursor_y];
-            info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y]); 
-        } 
-    }
-}
-
-void Move_Cursor_Down (screen_info_t& info) {
-    // If cursor is not at bottom edge, move cursor
-    if (info.cursor_y < (info.size == _40x24 ? 23 : 47)) {
-        info.cursor_y++;
-        info.pos_y += info.total_char_height - 1;
-
-        if (info.column_of_line[info.cursor_y] < info.column_of_line[info.cursor_y - 1]) {
-            info.cursor_x = info.column_of_line[info.cursor_y];
-            info.pos_x = 1 + ((info.total_char_width - 1) * info.column_of_line[info.cursor_y]); 
-        }
-    }
-}
-
-void Shift_Characters_Left (screen_info_t& info) {
-
-}
-
-void Shift_Characters_Right (screen_info_t& info) {
-
-}
-
-void Shift_Characters_Up (screen_info_t& info) {
-
-}
-
-void Shift_Characters_Down (screen_info_t& info) {
-    
 }
 
 
