@@ -1,0 +1,5 @@
+.variables 
+    $a '[11] {'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'} 
+
+.data
+    HALT

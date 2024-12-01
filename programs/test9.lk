@@ -1,0 +1,7 @@
+.variables
+    $a 'h'
+
+.data
+    LDFM @A $a
+    HALT
+    

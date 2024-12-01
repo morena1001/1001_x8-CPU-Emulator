@@ -342,10 +342,10 @@ uint8_t Character_Index (input_info_t& input_char) {
         case 95 : return char_under_idx;
         case 96 : return char_apostL_idx - (IS_SHIFT_CONTROL(input_char.control) ? 1 : 0);
         // CASES 97 TO 122 ARE LOWERCASE LETTERS
-        case 123 : char_curL_idx;
-        case 124 : char_vert_idx;
-        case 125 : char_curR_idx;
-        case 126 : char_tilde_idx;
+        case 123 : return char_curL_idx;
+        case 124 : return char_vert_idx;
+        case 125 : return char_curR_idx;
+        case 126 : return char_tilde_idx;
 
         default  : return UINT8_MAX;
     }

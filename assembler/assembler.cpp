@@ -17,6 +17,7 @@ void inline Remove_Comments (u32& idx, string& line);
 
 bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_number);
 string htos (byte value);
+byte char_to_index (char character);
 
 int main (int argc, char** argv) {
     ifstream program;
@@ -121,51 +122,107 @@ int main (int argc, char** argv) {
                 byte value;
                 switch (line[0]) {
                     case '%': {
-                        value = (byte) stoi (line.substr (1, -1));
-                    } break;
+                        // If no square brackets for arrays is found, then it is a regular value
+                        if (line[1] != '[')     value = (byte) stoi (line.substr (1, -1));
+                        else {
+                            line = line.substr (1, -1);
+                            idx = line.find_first_of ("]");
+                            if (idx == string::npos) {
+                                cout << line_number << " : Size of array needs to be enclosed in square brackets." << endl;
+                                return 0;
+                            }
 
-                    case '[': {
-                        idx = line.find_first_of ("]");
-                        if (idx == string::npos) {
-                            cout << line_number << " : Size of array needs to be enclosed in square brackets." << endl;
-                            return 0;
-                        }
-
-                        byte number = (byte) stoi (line.substr (1, idx));
-                        byte element_val = var_idx + 2; // Grab the variable index for the value of the first element in the array 
-                        // For each value in the array initialize it a variable index and a value of 0 
-                        for (byte i = 0; i < number; i++) {
-                            variable_instructions[var_idx++] = (variable_id & 0xFF);
-                            variable_instructions[var_idx++] = (variable_id >> 8);
-                            variable_instructions[var_idx++] = 0x00;
+                            byte number = (byte) stoi (line.substr (1, idx));
+                            byte element_val = var_idx + 2; // Grab the variable index for the value of the first element in the array 
+                            // For each value in the array initialize it a variable index and a value of 0 
+                            for (byte i = 0; i < number; i++) {
+                                variable_instructions[var_idx++] = (variable_id & 0xFF);
+                                variable_instructions[var_idx++] = (variable_id >> 8);
+                                variable_instructions[var_idx++] = 0x00;
+                                
+                                if (i == 0)     variables[var_name] = variable_id++;
+                                else            variable_id++;
+                            }
                             
-                            if (i == 0)     variables[var_name] = variable_id++;
-                            else            variable_id++;
+                            // Check if any of the elements have been initialized with values
+                            idx = line.find_first_of ("{");
+                            if (idx == string::npos)        continue;
+
+                            line.erase (0, idx + 1);
+
+                            idx = line.find_first_of ("}");
+                            if (idx == string::npos) {
+                                cout << line_number << " : ELements of the array need to be enclosed in curly brackets." << endl;
+                                return 0;
+                            }
+
+                            line.erase (line.length () - 1, -1);
+                            
+                            // For each value found inside the curly brackets, initialize an element, in order, with that value
+                            for (byte i = number; i > 0; i--) {
+                                idx = line.find_first_of (",");
+                                value = (byte) stoi (line.substr (0, idx));
+                                variable_instructions[element_val] = value;
+                                element_val += 3;
+
+                                line.erase (0, idx == string::npos ? line.length () : idx + 1);
+                                if (line.empty ())      break;
+                                Remove_Space (idx, line);
+                            }
+                            continue;
                         }
-                        
-                        // Check if any of the elements have been initialized with values
-                        idx = line.find_first_of ("{");
-                        if (idx == string::npos)        continue;
-
-                        line.erase (0, idx + 1);
-                        line.erase (line.length () - 1, -1);
-                        
-                        // For each value found inside the curly brackets, initialize an element, in order, with that value
-                        for (byte i = number; i > 0; i--) {
-                            idx = line.find_first_of (",");
-                            value = (byte) stoi (line.substr (0, idx));
-                            variable_instructions[element_val] = value;
-                            element_val += 3;
-
-                            line.erase (0, idx == string::npos ? line.length () : idx + 1);
-                            if (line.empty ())      break;
-                            Remove_Space (idx, line);
-                         }
-                        continue;
                     } break;
 
                     case '\'': {
-                        value = (byte) stoi (line.substr (1, -1));
+                        // If no square brackets for arrays is found, then it is a regular value
+                        if (line[1] != '[')         value = char_to_index (line[1]);
+                        else {
+                            line = line.substr (1, -1);
+                            idx = line.find_first_of ("]");
+                            if (idx == string::npos) {
+                                cout << line_number << " : Size of array needs to be enclosed in sqaure brackets." << endl;
+                                return 0;
+                            }
+
+                            byte number = (byte) stoi (line.substr (1, idx));
+                            byte element_val = var_idx + 2; // Grab the variable index for the value of the first element in the array
+                            // For each value in the array, initialize it a variable index and a value of 0
+                            for (byte i = 0; i < number; i++) {
+                                variable_instructions[var_idx++] = (variable_id & 0xFF);
+                                variable_instructions[var_idx++] = (variable_id >> 8);
+                                variable_instructions[var_idx++] = 0x00;
+
+                                if (i == 0)     variables[var_name] = variable_id++;
+                                else            variable_id++;
+                            }
+
+                            // Check if any of the elements have been initilized with values
+                            idx = line.find_first_of ("{");
+                            if (idx == string::npos)        continue;
+                            
+                            line.erase (0, idx + 1);
+
+                            idx = line.find_first_of ("}");
+                            if (idx == string::npos) {
+                                cout << line_number << " : ELements of the array need to be enclosed in curly brackets." << endl;
+                                return 0;
+                            }
+                            
+                            line.erase (line.length() -1, -1);
+
+                            // For each value found inside the curly brackets, intialize an element, in order, with that value
+                            for (byte i = number; i > 0; i--) {
+                                idx = line.find_first_of (",");
+                                value = char_to_index (line[line.find_first_of("\'") + 1]);
+                                variable_instructions[element_val] = value;
+                                element_val += 3;
+
+                                line.erase (0, idx == string::npos ? line.length () : idx + 1);
+                                if (line.empty ())      break;
+                                Remove_Space (idx, line);
+                            }
+                            continue;
+                        }
                     } break;
 
                     default: {
@@ -245,11 +302,6 @@ int main (int argc, char** argv) {
                         }
 
                         string var_name = op1.substr (1, -1);
-
-                        // idx = var_name.find_first_of ("[");
-                        // if (idx != string::npos) {
-                        //     var_name = var_name.substr (0, idx) + " " + var_name.substr (idx + 1, var_name.length () - 3);
-                        // }
 
                         if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
@@ -332,11 +384,6 @@ int main (int argc, char** argv) {
 
                         string var_name = op2.substr (1, -1);
 
-                        // idx = var_name.find_first_of ("[");
-                        // if (idx != string::npos) {
-                        //     var_name = var_name.substr (0, idx) + " " + var_name.substr (idx + 1, var_name.length () - 3);
-                        // }
-
                         if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
                             return 0;
@@ -413,32 +460,6 @@ int main (int argc, char** argv) {
         sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
         output_file << machine_code_instruction;
         cout << "Output file " << file_name << "output created." << endl; 
-
-
-               
-        // u32 i = 0;
-        // byte single_instruction = instructions[i++];
-        // char machine_code_instruction[4];
-        // while (single_instruction != 0x35) {
-        //     sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
-        //     output_file << machine_code_instruction;
-            
-        //     single_instruction = instructions[i++];
-        // } 
-        // sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
-        // output_file << machine_code_instruction;
-
-        // i = 0;
-        // single_instruction = variable_instructions[i++];
-
-        // while (i < var_idx + 1) {
-        //     sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
-        //     output_file << machine_code_instruction;
-            
-        //     single_instruction = variable_instructions[i++];
-        // }
-
-        // cout << "Output file " << file_name << "output created." << endl; 
     } else {
         cout << "Unable to open file" << endl;
     }
@@ -587,4 +608,56 @@ string htos (byte value) {
     hex_val = to_string ((int) (value) / 16) + hex_val;
 
     return hex_val;
+}
+
+byte char_to_index (char character) {
+    int ascii = (int) character;
+
+    // Numbers
+    if (ascii >= 48 && ascii <= 57)     return ascii - 48;
+    // Capitalized letters
+    if (ascii >= 65 && ascii <= 90)     return ascii - 55;
+    // Lowercase letters
+    if (ascii >= 97 && ascii <= 122)     return ascii - 87;
+
+    // For other characters that are not in a particular group or order
+    switch (ascii) {
+        case 32 : return char_space_idx;
+        case 33 : return char_excl_idx;
+        case 34 : return char_quote_idx;
+        case 35 : return char_hash_idx;
+        case 36 : return char_dollar_idx;
+        case 37 : return char_percent_idx;
+        case 38 : return char_amp_idx;
+        case 39 : return char_apostR_idx;
+        case 40 : return char_brcL_idx;
+        case 41 : return char_brcR_idx;
+        case 42 : return char_ast_idx;
+        case 43 : return char_plus_idx;
+        case 44 : return char_comma_idx;
+        case 45 : return char_dash_idx;
+        case 46 : return char_period_idx;
+        case 47 : return char_fwdslsh_idx;
+        case 58 : return char_colon_idx;
+        case 59 : return char_smcol_idx;
+        case 60 : return char_angleL_idx;
+        case 61 : return char_equal_idx;
+        case 62 : return char_angleR_idx;
+        case 63 : return char_quest_idx;
+        case 64 : return char_at_idx;
+        case 91 : return char_brkL_idx;
+        case 92 : return char_bkslsh_idx;
+        case 93 : return char_brkR_idx;
+        case 94 : return char_caret_idx;
+        case 95 : return char_under_idx;
+        case 96 : return char_apostL_idx;
+        case 123: return char_curL_idx;
+        case 124: return char_vert_idx;
+        case 125: return char_curR_idx;
+        case 126: return char_tilde_idx;
+
+        default : return UINT8_MAX;
+    }
+
+    return 0;
 }

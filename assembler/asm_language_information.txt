@@ -1,4 +1,4 @@
-%  - literal
+%  - integer literal
 $  - variable
 @  - register
 #  - label
@@ -6,7 +6,7 @@ $  - variable
 ;  - comment
 [] - access array element
 {} - initialize array elements
-//'  - character
+//'  - character literal
 
 There are only 2 sections, .variables and .data
 
