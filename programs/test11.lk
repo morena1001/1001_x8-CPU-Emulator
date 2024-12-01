@@ -1,0 +1,9 @@
+.data
+    LDFI @A %2
+    CMPI @A %1
+    JCC #end
+    LDFI @A %3
+    HALT
+
+    #end
+    HALT

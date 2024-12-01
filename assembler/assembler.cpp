@@ -48,7 +48,7 @@ int main (int argc, char** argv) {
     Registers_Init (registers);
 
     word label_id = 0x0001;
-    map<string, word> labels;
+    map<string, label_t> labels;
 
     // Variables for .variables section
     word variable_id = 0x0001;
@@ -60,7 +60,7 @@ int main (int argc, char** argv) {
     u32 idx;
     u32 line_number = 0;
 
-    bool halt_present = false;
+    int halt_count = 0;
     bool in_variables_section = false;
     bool in_main_section = false;
 
@@ -247,10 +247,22 @@ int main (int argc, char** argv) {
                 // Check if the line is a label to be able to perform JMP commands
                 if (line.at (0) == '#') {
                     string label_name = line.substr (1, -1);
-                    instructions[ins_idx++] = LABEL_ENCODING;
-                    instructions[ins_idx++] = (label_id & 0xFF);
-                    instructions[ins_idx++] = (label_id >> 8);
-                    labels[label_name] = label_id++;
+
+                    if (labels.count (label_name) != 0 && labels[label_name].initialized) {
+                        cout << line_number << " : A label can only be initialized once." << endl;
+                        return 0;
+                    } else if (!labels[label_name].initialized) {
+                        instructions[ins_idx++] = LABEL_ENCODING;
+                        instructions[ins_idx++] = (labels[label_name].id & 0xFF);
+                        instructions[ins_idx++] = (labels[label_name].id >> 8);
+                        labels[label_name].initialized = true;
+                    } else {
+                        instructions[ins_idx++] = LABEL_ENCODING;
+                        instructions[ins_idx++] = (label_id & 0xFF);
+                        instructions[ins_idx++] = (label_id >> 8);
+                        label_t label = { label_id++, true };
+                        labels[label_name] = label;
+                    }
 
                     continue;
                 }
@@ -267,9 +279,9 @@ int main (int argc, char** argv) {
                 }
                 instructions[ins_idx++] = opcodes[opcode];
 
-                // The HALT command signifies the end of a program
+                // The HALT command signifies the end of a subroutine
                 if (!line.compare ("HALT")) {
-                    halt_present = true;
+                    halt_count++;
                 }
 
                 // Remove extra white space
@@ -342,12 +354,19 @@ int main (int argc, char** argv) {
 
                         // Check if the label is defined
                         if (labels.count (label) == 0) {
-                            cout << line_number << " : Label " << label << " is undefined." << endl;
-                            return 0;  
+                            // byte opcode_ins = instructions[ins_idx - 1];
+
+                            // instructions[ins_idx - 1] = LABEL_ENCODING;
+                            // instructions[ins_idx++] = (label_id & 0xFF);
+                            // instructions[ins_idx++] = (label_id >> 8);
+                            label_t n_label = { label_id++, false };
+                            labels[label] = n_label;
+
+                            // instructions[ins_idx++] = opcode_ins;
                         }
 
-                        instructions[ins_idx++] = (labels[label] & 0xFF);
-                        instructions[ins_idx++] = (labels[label] >> 8);
+                        instructions[ins_idx++] = (labels[label].id & 0xFF);
+                        instructions[ins_idx++] = (labels[label].id >> 8);
                     } break;
 
                     default: {
@@ -416,9 +435,18 @@ int main (int argc, char** argv) {
             }
         }
 
-        if (!halt_present) {
-            cout << "End of program not define. Missing HALT command" << endl;
+        // Check that a HALT instruction was written
+        if (halt_count == 0) {
+            cout << "End of program not defined. Missing HALT command" << endl;
             return 0;
+        }
+
+        // Check that all labels have been properly intialized
+        for (map<string, label_t>::iterator it = labels.begin (); it != labels.end (); it++) {
+            if (!it->second.initialized) {
+                cout << "Label " << it->first << " : Not intialized." << endl;
+                return 0;
+            }
         }
 
         // Close the source file and convert processed information into .bin file
@@ -451,14 +479,16 @@ int main (int argc, char** argv) {
         i = 0;
         single_instruction = instructions[i++];
 
-        while (single_instruction != 0x35) {
+        while (halt_count != 0) {
             sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
             output_file << machine_code_instruction;
+
+            if (single_instruction == 0x35)     halt_count--;
             
             single_instruction = instructions[i++];
         } 
-        sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
-        output_file << machine_code_instruction;
+        // sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
+        // output_file << machine_code_instruction;
         cout << "Output file " << file_name << "output created." << endl; 
     } else {
         cout << "Unable to open file" << endl;

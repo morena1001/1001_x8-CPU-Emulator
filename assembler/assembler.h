@@ -23,6 +23,11 @@ using byte = uint8_t;
 using word = unsigned short;
 using u32 = unsigned int;
 
+struct label_t {
+    word id;
+    bool initialized;
+};
+
 
 #define char_0_idx          0
 #define char_1_idx          1

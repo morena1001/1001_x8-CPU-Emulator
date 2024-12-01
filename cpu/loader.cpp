@@ -62,11 +62,11 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 continue;
             }
 
-            // HALT instruction signifies the end of a program
+            // HALT instruction signifies the end of a subroutine
             if (IS_HALT_OPCODE (instruction)) {
                 if (!PC_set)        cpu.PC = address;
                 mem.WriteByte (instruction, address);
-                return;
+                continue;
             }
 
             // Label ids have an extra instruction preceding it, 0x36, to signify that a label is present
