@@ -123,6 +123,15 @@ typedef struct CPU {
         INS_CZF  = 0x32,
         INS_SZF  = 0x33,
         INS_NOP  = 0x34,
-        INS_HALT = 0x35;
+        INS_HALT = 0x35,
         // INS_STRT = 0x37;
+        INS_LDFO = 0x38,
+        INS_STOO = 0x39,
+        INS_SWPO = 0x3A,
+        INS_PSHO = 0x3B,
+        INS_CMPO = 0x3C,
+        INS_INCO = 0x3D,
+        INS_DECO = 0x3E,
+        INS_SHLO = 0x3F,
+        INS_SHRO = 0x40;
 } cpu_t;

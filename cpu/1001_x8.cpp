@@ -234,6 +234,40 @@ void CPU::Execute (mem_t& memory) {
                 Set_OF (of_part1 & of_part2);
             } break;
 
+            case INS_MULT: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+
+                byte of_part1 = !((GPR[reg1] >> 7) ^ ((~GPR[reg2]) >> 7));
+
+                word mult = reg1 * reg2;
+                GPR[reg1] = (mult & 0xFF);
+
+                byte of_part2 = (GPR[reg1] >> 7) ^ ((~GPR[reg2]) >> 7);
+
+                Set_CF (mult);
+                Set_SF (reg1);
+                Set_ZF (reg1);
+                Set_OF (of_part1 & of_part2);
+            } break;
+
+            case INS_DIV: {
+                byte reg1 = FetchByte (memory);
+                byte reg2 = FetchByte (memory);
+
+                byte of_part1 = !((GPR[reg1] >> 7) ^ ((~GPR[reg2]) >> 7));
+
+                word div = reg1 / reg2;
+                GPR[reg1] = (div & 0xFF);
+
+                byte of_part2 = (GPR[reg1] >> 7) ^ ((~GPR[reg2]) >> 7);
+
+                Set_CF (div);
+                Set_SF (reg1);
+                Set_ZF (reg1);
+                Set_OF (of_part1 & of_part2);
+            } break;
+
             case INS_CMPR: {
                 byte reg1 = FetchByte (memory);
                 byte reg2 = FetchByte (memory);
@@ -459,6 +493,75 @@ void CPU::Execute (mem_t& memory) {
 
             case INS_HALT: {
                 return;
+            } break;
+
+            case INS_LDFO: {
+                byte reg = FetchByte (memory);
+                word address = FetchWord (memory);
+                GPR[reg] = ReadByte (address + GPR[F], memory);         
+
+                Set_SF (reg);
+                Set_ZF (reg);
+            } break;
+
+            case INS_STOO: {
+                word address = FetchWord (memory);
+                byte reg = FetchByte (memory);
+                memory.WriteByte (GPR[reg], address + GPR[F]);
+            } break;
+
+            case INS_SWPO: {
+                word address1 = FetchWord (memory);
+                word address2 = FetchWord (memory);
+                
+                GPR[G] = ReadByte (address1 + GPR[E], memory);
+                GPR[H] = ReadByte (address2 + GPR[F], memory);
+                memory.WriteByte (GPR[H], address1 + GPR[E]);
+                memory.WriteByte (GPR[G], address2 + GPR[F]);
+            } break;
+
+            case INS_PSHO: {
+                word address = FetchWord (memory);
+                PushStack (ReadByte (address + GPR[F], memory), memory);
+            } break;
+
+            case INS_CMPO: {
+                byte reg = FetchByte (memory);
+                word address = FetchWord (memory);
+                byte value = ReadByte (address + GPR[F], memory);
+
+                CF = GPR[reg] >= value;
+                ZF = GPR[reg] == value;
+
+                Set_SF (reg);
+            } break;
+
+            case INS_INCO: {
+                word address = FetchWord (memory);
+                byte value = ReadByte (address + GPR[F], memory);
+
+                memory.WriteByte (value + 1, address + GPR[F]);
+            } break;
+
+            case INS_DECO: {
+                word address = FetchWord (memory);
+                byte value = ReadByte (address + GPR[F], memory);
+
+                memory.WriteByte (value - 1, address + GPR[F]);
+            } break;
+
+            case INS_SHLO: {
+                word address = FetchWord (memory);
+                byte value = ReadByte (address + GPR[F], memory);
+
+                memory.WriteByte (value * 2, address + GPR[F]);
+            } break;
+
+            case INS_SHRO: {
+                word address = FetchWord (memory);
+                byte value = ReadByte (address + GPR[F], memory);
+
+                memory.WriteByte (value / 2, address + GPR[F]);
             } break;
 
             default : {

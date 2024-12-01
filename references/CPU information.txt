@@ -62,8 +62,8 @@ INSTRUCTIONS
     0x11	NOT	        Reg		                SF, ZF  	    2	    Not the contents of reg, storing result in reg
     0x12	ADD	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Add contents of reg1 with reg2, storing result in reg1
     0x13	SUB	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Subtract contents of reg1 with reg2, storing result in reg1
-    !0x14	MULT	    Reg1	    Reg2	    CF, SF, ZF, OF	3	    Multiply contents of reg1 with reg2, storing result in reg1
-    !0x15	DIV	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Divide contents of reg1 with reg2, storing result in reg1
+    0x14	MULT	    Reg1	    Reg2	    CF, SF, ZF, OF	3	    Multiply contents of reg1 with reg2, storing result in reg1
+    0x15	DIV	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Divide contents of reg1 with reg2, storing result in reg1
     0x16	CMPR	    Reg1	    Reg2	    CF, SF, ZF	    3	    Compare contents of reg1 with reg2. CF is set if reg1 >= reg2, ZF is set if reg1 = reg2
     0x17	CMPM	    Reg	        Mem	        CF, SF, ZF	    4	    Compare contents of reg with mem. CF is set if reg >= mem ZF is set if reg = mem
     0x18	CMPI	    Reg	        Imm	        CF, SF, ZF	    3	    Compare contents of reg with imm. CF is set if reg >= imm, ZF is set if reg = imm
@@ -97,15 +97,15 @@ INSTRUCTIONS
     0x34	NOP				                                    1	    No operation
     0x35	HALT				                                1	    Stops CPU
     0x37    STRT                                                        Marks entry option of program (optional for procedural programs)
-    0x38    LDFMN       Reg         Mem         SF, ZF	        5	    Load data to reg from mem, nested array
-    0x39    STORN       Mem         Reg                         5       Store to mem, nested arrays, from reg
-    0x3A    SWPMN       Mem1        Mem2                        6   	Swap mem1 and mem2 values, both nested arrays. Will use registers G and H to store temporary values
-    0x3B    PSHMN       Mem			                            4   	Push to SP from mem, nested array                                  
-    0x3C    CMPMN       Reg	        Mem	        CF, SF, ZF	    5	    Compare contents of reg with mem, nested array. CF is set if reg >= mem ZF is set if reg = mem
-    0x3D    INCMN       Mem		                    	        4	    Increment value held in memory, nested array
-    0x3E    DECMN       Mem		                    	        4	    Decrement value held in memory, nested array
-    0x3F    SHLMN       Mem		                        	    4   	Shift contents in memory, nested array left by 1 bit.
-    0x40    SHRMN       Mem		                        	    4   	Shift contents in memory, nested array right by 1 bit.
+    0x38    LDFO        Reg         Mem         SF, ZF	        4	    Load data to reg from memory given base address plus an offset in register F
+    0x39    STOO        Mem         Reg                         4       Store to mem given base address plus an offset in register F, from reg
+    0x3A    SWPO        Mem1        Mem2                        5   	Swap mem1 and mem2 values, both are base addresses with offsets in registers E and F, respectively. Will use registers G and H to store temporary values
+    0x3B    PSHO        Mem			                            3   	Push to SP from value in mem, as base address, plus an offset in register F                              
+    0x3C    CMPO        Reg	        Mem	        CF, SF, ZF	    4	    Compare contents of reg with mem, which is a base address plus an offset in register F. CF is set if reg >= mem ZF is set if reg = mem
+    0x3D    INCO        Mem		                    	        3	    Increment value held in memory plus offset stored in register F
+    0x3E    DECO        Mem		                    	        3	    Decrement value held in memory plus offset stored in register F
+    0x3F    SHLO        Mem		                        	    3   	Shift contents in memory plus offset stored in register F, left by 1 bit.
+    0x40    SHRO        Mem		                        	    3   	Shift contents in memory plus offset stored in register F, right by 1 bit.
 
 
 UPDATES

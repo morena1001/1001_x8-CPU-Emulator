@@ -132,22 +132,26 @@ int main (int argc, char** argv) {
                         }
 
                         byte number = (byte) stoi (line.substr (1, idx));
-                        byte element_val = var_idx + 2;
+                        byte element_val = var_idx + 2; // Grab the variable index for the value of the first element in the array 
+                        // For each value in the array initialize it a variable index and a value of 0 
                         for (byte i = 0; i < number; i++) {
                             variable_instructions[var_idx++] = (variable_id & 0xFF);
                             variable_instructions[var_idx++] = (variable_id >> 8);
                             variable_instructions[var_idx++] = 0x00;
-                            // if (i == 0)     variables[var_name] = variable_id++;
-                            variables[var_name + " " + to_string (i)] = variable_id++;
+                            
+                            if (i == 0)     variables[var_name] = variable_id++;
+                            else            variable_id++;
                         }
-
+                        
+                        // Check if any of the elements have been initialized with values
                         idx = line.find_first_of ("{");
                         if (idx == string::npos)        continue;
 
                         line.erase (0, idx + 1);
                         line.erase (line.length () - 1, -1);
                         
-                         for (byte i = number; i > 0; i--) {
+                        // For each value found inside the curly brackets, initialize an element, in order, with that value
+                        for (byte i = number; i > 0; i--) {
                             idx = line.find_first_of (",");
                             value = (byte) stoi (line.substr (0, idx));
                             variable_instructions[element_val] = value;
@@ -169,9 +173,8 @@ int main (int argc, char** argv) {
                         return 0;
                     } break;
                 }
-                // byte value = line[idx + 1] == '%' ? (byte) stoi (line.substr (idx + 2, -1)) : 0;
 
-                // Add the variables unique ID to the instructions, and pair name with ID in map
+                // Add the variables unique ID to the instructions, and pair name with ID in map (IF NOT ARRAY)
                 variable_instructions[var_idx++] = (variable_id & 0xFF);
                 variable_instructions[var_idx++] = (variable_id >> 8);
                 variable_instructions[var_idx++] = value;
@@ -243,10 +246,10 @@ int main (int argc, char** argv) {
 
                         string var_name = op1.substr (1, -1);
 
-                        idx = var_name.find_first_of ("[");
-                        if (idx != string::npos) {
-                            var_name = var_name.substr (0, idx) + " " + var_name.substr (idx + 1, var_name.length () - 3);
-                        }
+                        // idx = var_name.find_first_of ("[");
+                        // if (idx != string::npos) {
+                        //     var_name = var_name.substr (0, idx) + " " + var_name.substr (idx + 1, var_name.length () - 3);
+                        // }
 
                         if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
@@ -329,10 +332,10 @@ int main (int argc, char** argv) {
 
                         string var_name = op2.substr (1, -1);
 
-                        idx = var_name.find_first_of ("[");
-                        if (idx != string::npos) {
-                            var_name = var_name.substr (0, idx) + " " + var_name.substr (idx + 1, var_name.length () - 3);
-                        }
+                        // idx = var_name.find_first_of ("[");
+                        // if (idx != string::npos) {
+                        //     var_name = var_name.substr (0, idx) + " " + var_name.substr (idx + 1, var_name.length () - 3);
+                        // }
 
                         if (variables.count (var_name) == 0) {
                             cout << line_number << " : Variable " << var_name << " is undefined." << endl;
@@ -463,8 +466,8 @@ void Opcodes_Init (map<string, word>& opcodes) {
     opcodes.insert (pair<string, word> ("NOT", 0x11));
     opcodes.insert (pair<string, word> ("ADD", 0x12));
     opcodes.insert (pair<string, word> ("SUB", 0x13));
-    // opcodes.insert (pair<string, word> ("MULT", 0x14));
-    // opcodes.insert (pair<string, word> ("DIV", 0x15));
+    opcodes.insert (pair<string, word> ("MULT", 0x14));
+    opcodes.insert (pair<string, word> ("DIV", 0x15));
     opcodes.insert (pair<string, word> ("CMPR", 0x16));
     opcodes.insert (pair<string, word> ("CMPM", 0x17));
     opcodes.insert (pair<string, word> ("CMPI", 0x18));
@@ -498,6 +501,15 @@ void Opcodes_Init (map<string, word>& opcodes) {
     opcodes.insert (pair<string, word> ("NOP", 0x34));
     opcodes.insert (pair<string, word> ("HALT", 0x35));
     opcodes.insert (pair<string, word> ("STRT", 0x37));
+    opcodes.insert (pair<string, word> ("LDFO", 0x38));
+    opcodes.insert (pair<string, word> ("STOO", 0x39));
+    opcodes.insert (pair<string, word> ("SWPO", 0x3A));
+    opcodes.insert (pair<string, word> ("PSHO", 0x3B));
+    opcodes.insert (pair<string, word> ("CMPO", 0x3C));
+    opcodes.insert (pair<string, word> ("INCO", 0x3D));
+    opcodes.insert (pair<string, word> ("DECO", 0x3E));
+    opcodes.insert (pair<string, word> ("SHLO", 0x3F));
+    opcodes.insert (pair<string, word> ("SHRO", 0x40));
 }
 
 void Registers_Init (map<char, word>& registers) {
