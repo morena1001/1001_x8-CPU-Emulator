@@ -1,0 +1,69 @@
+.variables
+    $a %[5] {2, 8, 5, 1, 3}
+	$i %0
+	$j %0
+	$k %0
+	
+.data
+	; How many times the outerloop and innerloop will repeat
+	LDFI @A %4
+	LDFI @B %5
+	
+	#outerloopstart
+		; If $i >= 4, jump to #end label
+		CCF
+		CMPM @A $i
+		JCC #end
+		; $j always equals $i + 1 at the start of every outerloop
+		LDFM @C $i
+		INCR @C
+		STOR $j @C
+		
+		#innerloopstart
+			; If $j >= 5, jump to #outerloopend label
+			CCF
+			CMPM @B $j
+			JCC #outerloopend
+			; Push to stack $j to keep track of it at the end of an innerloop iteration
+			PSHM $j
+			; Compare a[i] to a[j]
+			LDFM @F $i
+			LDFO @C $a
+			LDFM @F $j
+			CCF
+			CMPO @C $a
+			; If a[i] < a[j], go to innerloopend
+			JCC #innerloopend
+			
+			#swaploop
+				; Swap the values in elements $j and $j - 1 (or k) and decrement $j
+				LDFM @C $j
+				DECR @C
+				STOR $k @C
+				LDFM @E $j
+				LDFM @F $k
+				SWPO $j $k
+				DECM $j
+				
+				; If a[i] >= a[j] jump to swaploop
+				LDFM @F $i
+				LDFO @C $a
+				LDFM @F $j
+				CCF
+				CMPO @C $a
+				JCS #swaploop
+				
+		#innerloopend
+			; Retrieve the original value of j from the stack, increment and go back to top of innerloop
+			PULR @C
+			STOR $j @C
+			INCM $j
+			JMP #innerloopstart
+	
+	#outerloopend
+		INCM $i
+		JMP #outerloopstart
+	
+	#end
+	HALT
+	

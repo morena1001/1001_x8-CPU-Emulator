@@ -251,7 +251,7 @@ int main (int argc, char** argv) {
                     if (labels.count (label_name) != 0 && labels[label_name].initialized) {
                         cout << line_number << " : A label can only be initialized once." << endl;
                         return 0;
-                    } else if (!labels[label_name].initialized) {
+                    } else if (labels.count (label_name) != 0 && !labels[label_name].initialized) {
                         instructions[ins_idx++] = LABEL_ENCODING;
                         instructions[ins_idx++] = (labels[label_name].id & 0xFF);
                         instructions[ins_idx++] = (labels[label_name].id >> 8);
@@ -576,25 +576,25 @@ void Registers_Init (map<char, word>& registers) {
 
 void Remove_Space_and_Comments (u32& idx, string& line) {
     // remove white space from front
-    idx = line.find_first_not_of (" ");
+    idx = line.find_first_not_of (" \t");
     line.erase (line.begin (), line.begin () + idx);
 
     // remove comments 
     Remove_Comments (idx, line);
 
     // remove white space from back
-    idx = line.find_last_not_of (" ");
+    idx = line.find_last_not_of (" \t");
     if (idx != string::npos)        line.erase (line.begin() + idx + 1, line.end ());
     
 }
 
 void inline Remove_Space (u32& idx, string& line) {
     // remove white space from front
-    idx = line.find_first_not_of (" ");
+    idx = line.find_first_not_of (" \t");
     line.erase (line.begin (), line.begin () + idx);
 
     // remove white space from back
-    idx = line.find_last_not_of (" ");
+    idx = line.find_last_not_of (" \t");
     if (idx != string::npos)        line.erase (line.begin() + idx + 1, line.end ());
 }
 

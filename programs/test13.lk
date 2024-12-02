@@ -1,0 +1,11 @@
+.variables 
+    $a %5
+
+.data
+    LDFI @A %8
+    CMPM @A $a
+    JCC #end
+    LDFM @B $a
+
+    #end 
+    HALT

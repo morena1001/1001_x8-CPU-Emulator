@@ -16,9 +16,10 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
     string program;
 
     map<word, word> headers;
+    map<word, word> unInit_headers;
     map<word, word> variables;
 
-    word address = 0x1000;
+    word address = 0x0100;
     word var_address = 0xCD33;
 
     bool PC_set = false;
@@ -80,6 +81,8 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 label_id |= (instruction << 8);
                 headers[label_id] = address;
 
+                if (unInit_headers.count (label_id) != 0)       mem.WriteWord (headers[label_id], unInit_headers[label_id]); 
+
                 if (!Pop_Next_Ins (value, program, instruction))    return;
             }
 
@@ -125,7 +128,9 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 label_id |= (instruction << 8);
 
-                mem.WriteWord (headers[label_id], address);
+                if (headers.count (label_id) == 0)      unInit_headers[label_id] = address;
+                else                                    mem.WriteWord (headers[label_id], address);
+                
                 address += 2;
             }
 
