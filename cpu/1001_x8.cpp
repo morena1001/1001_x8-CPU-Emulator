@@ -69,11 +69,17 @@ void CPU::Execute (mem_t& memory) {
     byte ins = FetchByte (memory);
 
     while (ins != INS_HALT) {
+        // printf ("%d\n", ins);
         switch (ins) {
             case INS_LDFM: {
                 byte reg = FetchByte (memory);
                 word address = FetchWord (memory);
-                GPR[reg] = ReadByte (address, memory);         
+                GPR[reg] = ReadByte (address, memory); 
+
+                if (reg == 5) {
+                    printf ("%d %d\n\n", reg, GPR[reg]);        
+                    system("pause");
+                }
 
                 Set_SF (reg);
                 Set_ZF (reg);
@@ -324,7 +330,6 @@ void CPU::Execute (mem_t& memory) {
             } break;
 
             case INS_DECM: {
-                printf ("WHY\n");
                 word address = FetchWord (memory);
                 byte value = ReadByte (address, memory);
 
@@ -414,7 +419,6 @@ void CPU::Execute (mem_t& memory) {
             } break;
 
             case INS_JCS: {
-                printf ("HELLO %d %d\n", CF, PC);
                 if (CF) {
                     word address = FetchWord (memory);
                     PC = address;
@@ -535,8 +539,8 @@ void CPU::Execute (mem_t& memory) {
                 CF = GPR[reg] >= value;
                 ZF = GPR[reg] == value;
 
-                printf ("%d %d | %d %d %X %X %X\n", CF, ZF, GPR[reg], value, address, GPR[F]);
-                system("pause");
+                // system("pause");
+                printf ("HELLO %d %d\n", GPR[reg], value);
 
                 Set_SF (reg);
             } break;

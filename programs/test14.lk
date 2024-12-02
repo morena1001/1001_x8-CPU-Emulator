@@ -1,0 +1,24 @@
+; Copying the elements of one array to another using a for loop 
+
+.variables
+    $a %[5] {2, 5, 1, 8, 3}
+    $b %[5]
+
+.data
+    LDFI @A %5
+    LDFI @F %0
+
+    #loop
+    CCF
+    CMPR @A @F
+    JZS #end
+
+    LDFO @B $a
+    STOO $b @B
+    INCR @F
+    JMP #loop
+    
+
+    #end
+    HALT
+    

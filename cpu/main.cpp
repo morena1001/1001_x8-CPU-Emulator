@@ -21,6 +21,7 @@ int main (int argc, char** argv) {
     bool output_registers = false;
     bool output_memory = false;
     bool txt_memory = false;
+    bool chunk_memory = false;
 
     string argument;
     for (int i = 1; i < argc; i++) {
@@ -30,6 +31,7 @@ int main (int argc, char** argv) {
             output_registers |= argument[1] == 'r';
             output_memory |= argument[1] == 'm';
             txt_memory |= argument[1] == 'o';
+            chunk_memory |= argument[1] == 'c';
         } else {
             if (argument.length () > 7 && argument.substr (argument.length () - 6, -1) == "output") {
                 // RUN LOADER WITH THE GIVEN FILE
@@ -58,17 +60,101 @@ int main (int argc, char** argv) {
         ofstream file ("memory.txt");
         char byte_info[4];
 
-        for (int i = 0; i < mem.MAX_MEM; i++) {
-            byte value = mem.data[i];
-            sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
-            file << byte_info;
+        if (!chunk_memory) {
+            for (int i = 0; i < mem.MAX_MEM; i++) {
+                byte value = mem.data[i];
+                sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+                file << byte_info;
+            }
+        } else {
+            int i = 0;
+            file << "STACK MEMORY : \n";
+            for (i; i < 0x00FF; i++) {
+                byte value = mem.data[i];
+                sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+                file << byte_info;
+            }
+            
+            file << "\n\nRAM : \n";
+            for (++i; i < 0xCD32; i++) {
+                byte value = mem.data[i];
+                sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+                file << byte_info;
+            }
+
+            file << "\n\nVARIABLE MEMORY : \n";
+            for (++i; i < 0xCF32; i++) {
+                byte value = mem.data[i];
+                sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+                file << byte_info;
+            }
+
+            file << "\n\nSCREEN PIXEL MEMORY : \n";
+            for (++i; i < 0xDE31; i++) {
+                byte value = mem.data[i];
+                sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+                file << byte_info;
+            }
+
+            file << "\n\nCHARACTER MEMORY : \n";
+            for (++i; i < 0xDFFF; i++) {
+                byte value = mem.data[i];
+                sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+                file << byte_info;
+            }
+
+            file << "\n\nROM : \n";
+            for (++i; i < 0xFFFF; i++) {
+                byte value = mem.data[i];
+                sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+                file << byte_info;
+            }
         }
     }
 
     else if (output_memory) {
-        for (int i = 0; i < mem.MAX_MEM; i++) {
-            byte value = mem.data[i];
-            printf("%s%X ", value < 0x10 ? "0" : "", value);
+        if (!chunk_memory) {
+            for (int i = 0; i < mem.MAX_MEM; i++) {
+                byte value = mem.data[i];
+                printf("%s%X ", value < 0x10 ? "0" : "", value);
+            }
+        } else {
+            int i = 0;
+            printf ("STACK MEMORY : \n");
+            for (i; i < 0x00FF; i++) {
+                byte value = mem.data[i];
+                printf("%s%X ", value < 0x10 ? "0" : "", value);
+            }
+
+            printf ("\n\nRAM: \n");
+            for (++i; i < 0xCD32; i++) {
+                byte value = mem.data[i];
+                printf("%s%X ", value < 0x10 ? "0" : "", value);
+            }
+
+            printf ("\n\nVARIABLE MEMORY : \n");
+            for (++i; i < 0xCF32; i++) {
+                byte value = mem.data[i];
+                printf("%s%X ", value < 0x10 ? "0" : "", value);
+            }
+
+            printf ("\n\nSCREEN PIXEL MEMORY : \n");
+            for (++i; i < 0xDE31; i++) {
+                byte value = mem.data[i];
+                printf("%s%X ", value < 0x10 ? "0" : "", value);
+            }
+
+            printf ("\n\nCHARACTER MEMORY : \n");
+            for (++i; i < 0xDFFF; i++) {
+                byte value = mem.data[i];
+                printf("%s%X ", value < 0x10 ? "0" : "", value);
+            }
+
+            printf ("\n\nROM : \n");
+            for (++i; i < 0xFFFF; i++) {
+                byte value = mem.data[i];
+                printf("%s%X ", value < 0x10 ? "0" : "", value);
+            }
         }
     }
 

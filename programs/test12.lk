@@ -10,29 +10,33 @@
 	LDFI @B %5
 	
 	#outerloopstart
-		; If $i >= 4, jump to #end label
-		CCF
+		; If $i == 4, jump to #end label
+		CZF
 		CMPM @A $i
-		JCC #end
+		JZS #end
+
 		; $j always equals $i + 1 at the start of every outerloop
 		LDFM @C $i
 		INCR @C
 		STOR $j @C
 		
 		#innerloopstart
-			; If $j >= 5, jump to #outerloopend label
-			CCF
+			; If $j == 5, jump to #outerloopend label
+			CZF
 			CMPM @B $j
-			JCC #outerloopend
+			JZS #outerloopend
+
 			; Push to stack $j to keep track of it at the end of an innerloop iteration
 			PSHM $j
+
 			; Compare a[i] to a[j]
 			LDFM @F $i
 			LDFO @C $a
 			LDFM @F $j
 			CCF
 			CMPO @C $a
-			; If a[i] < a[j], go to innerloopend
+
+			; If a[i] (@C) < a[j], go to innerloopend
 			JCC #innerloopend
 			
 			#swaploop
@@ -45,7 +49,7 @@
 				SWPO $j $k
 				DECM $j
 				
-				; If a[i] >= a[j] jump to swaploop
+				; If a[i](@C) >= a[j] jump to swaploop
 				LDFM @F $i
 				LDFO @C $a
 				LDFM @F $j
