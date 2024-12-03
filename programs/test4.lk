@@ -1,3 +1,4 @@
+; Testing Pushing to and Pulling from stack, as well as empty variables section
 .variables
 
 .data

@@ -1,3 +1,4 @@
+; Testing Load From Immediate and Register, as well as Store instructions
 .variables
     $b %0
 

@@ -1,3 +1,4 @@
+; Testing Compare from Memory
 .variables 
     $a %5
 

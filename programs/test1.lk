@@ -1,3 +1,4 @@
+; Testing Load From Memory instruction
 .variables
 $a %47
 

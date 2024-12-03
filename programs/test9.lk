@@ -1,7 +1,7 @@
+; Testing character variables
 .variables
     $a 'h'
 
 .data
     LDFM @A $a
     HALT
-    

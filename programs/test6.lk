@@ -1,3 +1,4 @@
+; Testing labels and trying out a loop
 .data
     LDFI @A %5
     LDFI @B %10

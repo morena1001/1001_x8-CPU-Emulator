@@ -1,3 +1,4 @@
+; Testing Swap Register and Memory instructions
 .variables
     $a %31
     $b %100

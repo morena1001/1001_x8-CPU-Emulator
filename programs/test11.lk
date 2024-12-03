@@ -1,3 +1,4 @@
+; Testing Compare from Immediate instruction, as well as using labels before they are first initialized 
 .data
     LDFI @A %2
     CMPI @A %1

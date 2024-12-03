@@ -77,8 +77,8 @@ void CPU::Execute (mem_t& memory) {
                 GPR[reg] = ReadByte (address, memory); 
 
                 if (reg == 5) {
-                    printf ("%d %d\n\n", reg, GPR[reg]);        
-                    system("pause");
+                    // printf ("%d %d\n\n", reg, GPR[reg]);        
+                    // system("pause");
                 }
 
                 Set_SF (reg);
@@ -540,7 +540,7 @@ void CPU::Execute (mem_t& memory) {
                 ZF = GPR[reg] == value;
 
                 // system("pause");
-                printf ("HELLO %d %d\n", GPR[reg], value);
+                // printf ("HELLO %d %d\n", GPR[reg], value);
 
                 Set_SF (reg);
             } break;

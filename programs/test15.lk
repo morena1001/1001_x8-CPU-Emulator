@@ -1,0 +1,53 @@
+; Copying each value and all the values to its right
+.variables
+    $a %[5] {2, 8, 5, 1, 3}
+    $b %[14]
+    $i %0
+    $j %0
+    $k %0
+
+.data
+    LDFI @A %4
+    LDFI @B %5
+
+    #outerloopstart
+    ; If @A == $i : Jump to end
+    CCF
+    CMPM @A $i
+    JZS #end
+
+    ; b[k] = a[i]
+    LDFM @F $i
+    LDFO @C $a
+    LDFM @F $k
+    STOO $b @C
+    INCM $k
+
+    ; At the beginning of each inner loop, j = i + 1
+    LDFM @C $i
+    INCR @C
+    STOR $j @C
+
+        #innerloop
+        ; If @B == $j : jump to outerloopend
+        CCF
+        CMPM @B $j
+        JZS #outerloopend
+
+        ; B[k] = a[j]
+        LDFM @F $j
+        LDFO @C $a
+        LDFM @F $k
+        STOO $b @C
+        INCM $k
+
+        INCM $j
+        JMP #innerloop
+    
+    #outerloopend
+    INCM $i
+    JMP #outerloopstart
+
+    #end 
+    HALT
+    

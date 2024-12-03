@@ -1,3 +1,4 @@
+; Testing arithmetic functions, as well as missing variables section
 .data
     LDFI @A %5
     LDFI @B %10
