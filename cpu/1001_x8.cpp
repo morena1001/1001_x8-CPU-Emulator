@@ -69,17 +69,11 @@ void CPU::Execute (mem_t& memory) {
     byte ins = FetchByte (memory);
 
     while (ins != INS_HALT) {
-        // printf ("%d\n", ins);
         switch (ins) {
             case INS_LDFM: {
                 byte reg = FetchByte (memory);
                 word address = FetchWord (memory);
                 GPR[reg] = ReadByte (address, memory); 
-
-                if (reg == 5) {
-                    // printf ("%d %d\n\n", reg, GPR[reg]);        
-                    // system("pause");
-                }
 
                 Set_SF (reg);
                 Set_ZF (reg);
@@ -539,9 +533,6 @@ void CPU::Execute (mem_t& memory) {
                 CF = GPR[reg] >= value;
                 ZF = GPR[reg] == value;
 
-                // system("pause");
-                // printf ("HELLO %d %d\n", GPR[reg], value);
-
                 Set_SF (reg);
             } break;
 
@@ -575,6 +566,7 @@ void CPU::Execute (mem_t& memory) {
 
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
+                printf ("%d\n", PC);
                 return;
             } break;
         }

@@ -6,69 +6,53 @@
 	$k %0
 	
 .data
-	; How many times the outerloop and innerloop will repeat
 	LDFI @A %4
 	LDFI @B %5
-	
+
 	#outerloopstart
-		; If $i == 4, jump to #end label
-		CZF
-		CMPM @A $i
-		JZS #end
+	; If @A (%4) == $i : jump to end
+	CMPM @A $i
+	JZS #end
 
-		; $j always equals $i + 1 at the start of every outerloop
-		LDFM @C $i
-		INCR @C
-		STOR $j @C
-		
+	; At the beginning of each inner loop, j = i + 1
+	LDFM @C $i
+	INCR @C
+	STOR $j @C
+
 		#innerloopstart
-			; If $j == 5, jump to #outerloopend label
-			CZF
-			CMPM @B $j
-			JZS #outerloopend
+		; If @B (%5) == $j : Jump to outerloopend
+		CMPM @B $j 
+		JZS #outerloopend
 
-			; Push to stack $j to keep track of it at the end of an innerloop iteration
-			PSHM $j
+		PSHM $j
 
-			; Compare a[i] to a[j]
+			#swaploop
+			; If a[i] < a[j], jump to innerloopend
 			LDFM @F $i
 			LDFO @C $a
 			LDFM @F $j
-			CCF
 			CMPO @C $a
-
-			; If a[i] (@C) < a[j], go to innerloopend
 			JCC #innerloopend
-			
-			#swaploop
-				; Swap the values in elements $j and $j - 1 (or k) and decrement $j
-				LDFM @C $j
-				DECR @C
-				STOR $k @C
-				LDFM @E $j
-				LDFM @F $k
-				SWPO $j $k
-				DECM $j
-				
-				; If a[i](@C) >= a[j] jump to swaploop
-				LDFM @F $i
-				LDFO @C $a
-				LDFM @F $j
-				CCF
-				CMPO @C $a
-				JCS #swaploop
-				
+			JZS #innerloopend
+
+			; Swap $a[j] and $a[j - 1], decrement $j
+			LDFM @E $j
+			LDFM @F $j
+			DECR @F
+			SWPO $a $a
+			DECM $j
+			JMP #swaploop
+
 		#innerloopend
-			; Retrieve the original value of j from the stack, increment and go back to top of innerloop
-			PULR @C
-			STOR $j @C
-			INCM $j
-			JMP #innerloopstart
-	
+		PULR @C
+		STOR $j @C
+		INCM $j
+		JMP #innerloopstart
+
 	#outerloopend
-		INCM $i
-		JMP #outerloopstart
-	
+	INCM $i
+	JMP #outerloopstart
+
 	#end
 	HALT
 	

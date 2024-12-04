@@ -16,7 +16,7 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
     string program;
 
     map<word, word> headers;
-    map<word, word> unInit_headers;
+    multimap<word, word> unInit_headers;
     map<word, word> variables;
 
     word address = 0x0100;
@@ -81,7 +81,11 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 label_id |= (instruction << 8);
                 headers[label_id] = address;
 
-                if (unInit_headers.count (label_id) != 0)       mem.WriteWord (headers[label_id], unInit_headers[label_id]); 
+                while (unInit_headers.count (label_id) != 0) {
+                    multimap<word, word>::iterator it = unInit_headers.find (label_id);
+                    mem.WriteWord (headers[label_id], it->second);
+                    unInit_headers.erase (it);
+                }
 
                 if (!Pop_Next_Ins (value, program, instruction))    return;
             }
@@ -128,7 +132,7 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 label_id |= (instruction << 8);
 
-                if (headers.count (label_id) == 0)      unInit_headers[label_id] = address;
+                if (headers.count (label_id) == 0)      unInit_headers.insert(pair<word, word> (label_id, address));
                 else                                    mem.WriteWord (headers[label_id], address);
                 
                 address += 2;
