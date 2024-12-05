@@ -76,21 +76,21 @@ int main (int argc, char** argv) {
             }
             
             file << "\n\nRAM : \n";
-            for (++i; i < 0xCD32; i++) {
+            for (++i; i < 0xD85C; i++) {
                 byte value = mem.data[i];
                 sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
                 file << byte_info;
             }
 
             file << "\n\nVARIABLE MEMORY : \n";
-            for (++i; i < 0xCF32; i++) {
+            for (++i; i < 0xDA5C; i++) {
                 byte value = mem.data[i];
                 sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
                 file << byte_info;
             }
 
             file << "\n\nSCREEN PIXEL MEMORY : \n";
-            for (++i; i < 0xDE31; i++) {
+            for (++i; i < 0xDE1C; i++) {
                 byte value = mem.data[i];
                 sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
                 file << byte_info;
@@ -127,19 +127,19 @@ int main (int argc, char** argv) {
             }
 
             printf ("\n\nRAM: \n");
-            for (++i; i < 0xCD32; i++) {
+            for (++i; i < 0xD85C; i++) {
                 byte value = mem.data[i];
                 printf("%s%X ", value < 0x10 ? "0" : "", value);
             }
 
             printf ("\n\nVARIABLE MEMORY : \n");
-            for (++i; i < 0xCF32; i++) {
+            for (++i; i < 0xDA5C; i++) {
                 byte value = mem.data[i];
                 printf("%s%X ", value < 0x10 ? "0" : "", value);
             }
 
             printf ("\n\nSCREEN PIXEL MEMORY : \n");
-            for (++i; i < 0xDE31; i++) {
+            for (++i; i < 0xDE1C; i++) {
                 byte value = mem.data[i];
                 printf("%s%X ", value < 0x10 ? "0" : "", value);
             }
