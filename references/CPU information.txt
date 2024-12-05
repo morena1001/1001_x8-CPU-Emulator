@@ -115,5 +115,4 @@ UPDATES
         separate section for variable memory for programs,
         separate section for video memory for color section per pixel
 
-
-
+				Initialize memory with character bitmaps, Introduce directives (for screen and keyboard IO), Introduce OS and Bootloader 
