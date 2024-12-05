@@ -16,6 +16,10 @@ void MEM::Init () {
         for (byte j = 0; j < 7; j++, i++) {
             data[i] = char_bitmaps[k][j];
     }
+    //     int a = 10;
+    // for (int i = 0; i < 7; i++) {
+    //   cout << (int) data[0xDE1D + (a * 7) + i] << endl;
+    // }
 }
 
 void MEM::WriteByte (byte value, u32 address) {
