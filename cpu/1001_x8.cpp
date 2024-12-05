@@ -12,7 +12,7 @@ using namespace std;
 void MEM::Init () {
     for (u32 i = 0; i < MAX_MEM; i++)       data[i] = 0;
 
-    for (u32 i = 0xDE32; i < 0xE000; i++) {
+    for (u32 i = 0xDE1D; i < 0xE000; i++) {
         // for (byte j = 0; )
     }
 }
