@@ -11,6 +11,10 @@ using namespace std;
 
 void MEM::Init () {
     for (u32 i = 0; i < MAX_MEM; i++)       data[i] = 0;
+
+    for (u32 i = 0xDE32; i < 0xE000; i++) {
+        // for (byte j = 0; )
+    }
 }
 
 void MEM::WriteByte (byte value, u32 address) {
