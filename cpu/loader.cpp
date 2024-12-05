@@ -20,7 +20,7 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
     map<word, word> variables;
 
     word address = 0x0100;
-    word var_address = 0xCD33;
+    word var_address = 0xD85D;
 
     bool PC_set = false;
     bool end_of_program = false;
