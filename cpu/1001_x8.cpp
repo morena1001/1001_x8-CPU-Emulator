@@ -12,8 +12,9 @@ using namespace std;
 void MEM::Init () {
     for (u32 i = 0; i < MAX_MEM; i++)       data[i] = 0;
 
-    for (u32 i = 0xDE1D; i < 0xE000; i++) {
-        // for (byte j = 0; )
+    for (u32 i = 0xDE1D, k = 0; i < 0xE000; k++) {
+        for (byte j = 0; j < 7; j++, i++) {
+            data[i] = char_bitmaps[k][j];
     }
 }
 
