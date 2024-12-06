@@ -1,0 +1,3 @@
+../programs/test1.output
+../programs/test2.output
+../programs/test3.output
