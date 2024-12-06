@@ -1,5 +1,5 @@
 all:
-	$(MAKE) -C cpu
+	$(MAKE) -C computer
 	$(MAKE) -C assembler
 #$(MAKE) -C screen
 	

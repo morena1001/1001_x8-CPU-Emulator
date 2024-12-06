@@ -1,0 +1,11 @@
+Initialize memory with character bitmaps, Introduce directives (for screen and keyboard IO), Introduce OS and Bootloader 
+Update to subroutines (or functions) to mean different subsections in the .data section. subroutines are named with an underscore, followed by the name, like "_subroutine1". Can only be called with JSR intruction, and must include an "RSR" or "HALT" instruction. 
+
+An OS manages processes and I/O devices.
+
+Our initial OS should be in charge of managing processes, or programs, that are loaded into the cpu. 
+Meaning, we can load multiple programs into memory at the same time, and the OS will make sure that all are executed, and handle any errors that occur. 
+After each program is ran, the OS will print all userful information (variable memory and register contents), 
+remove the program from main memory, reset variable memory, flags, and registers, then load the next program in its process stack.
+The OS's process stack will store two words per program, the first is the address storing the first byte of program, and the second is the address storing the last byte. 30 programs can be loaded at a time.
+A fake external hard drive will be coded to represent a virutal location where programs can be stored. 

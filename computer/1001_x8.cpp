@@ -15,6 +15,7 @@ void MEM::Init () {
     for (u32 i = 0xDE1D, k = 0; i < 0xE000; k++) {
         for (byte j = 0; j < 7; j++, i++) {
             data[i] = char_bitmaps[k][j];
+        }
     }
     //     int a = 10;
     // for (int i = 0; i < 7; i++) {
