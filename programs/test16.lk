@@ -1,0 +1,8 @@
+.data
+_load
+    LDFI @A %1
+    RSR
+
+_start
+    JSR _load
+    HALT

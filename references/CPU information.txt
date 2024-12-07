@@ -114,3 +114,10 @@ UPDATES
         separate section for character memory for output screen,
         separate section for variable memory for programs,
         separate section for video memory for color section per pixel
+
+
+    FILES THAT WERE UPDATED :
+
+    assembler.h { 10 - 11, 19, 33, 37, }
+    assembler.cpp { 53 - 54, 273 - 294, 315-318, 398 - 418, }
+    asm_language_information.txt { 23 - 25, }
