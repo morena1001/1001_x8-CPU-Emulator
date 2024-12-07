@@ -576,7 +576,6 @@ void CPU::Execute (mem_t& memory) {
 
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
-                printf ("%d\n", PC);
                 return;
             } break;
         }

@@ -20,5 +20,12 @@ $a [10] {0, 1, ...}
 To access an element in an array, an offset instruction has to be used. An offset intstruction is one grabs the base address from its operands, and adds to it by an offset stored
 in register F.
 
-Subroutines must ALWAYS appear before the main code. The loader will keep track of the main code by storing the address to the first instruction that comes after a subroutine.
+
+
+Subroutines now act as normal functions, and labels are simply different sections of code within a function.
+To create a function, a name must be given with an underscore preceding it, like "_subroutine1".
+To now declare the starting point of a program, the "_start" subroutine name must be defined. 
+For an exampole of this, look at "../programs/test16.lk".
+_start subroutines must end with a HALT instruction and NOT with a RSR instruction. 
+Every other subroutine can include HALT instructions, but need a RSR instruction.
 The programmer is responsible of making sure the correct address is read from the stack when returning from a subroutine.

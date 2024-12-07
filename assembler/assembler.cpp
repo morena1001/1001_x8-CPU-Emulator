@@ -50,6 +50,9 @@ int main (int argc, char** argv) {
     word label_id = 0x0001;
     map<string, label_t> labels;
 
+    word subr_id = 0x0001;
+    map<string, subr_t> subroutines;
+
     // Variables for .variables section
     word variable_id = 0x0001;
     byte variable_instructions[512 * 3];
@@ -61,6 +64,10 @@ int main (int argc, char** argv) {
     u32 line_number = 0;
 
     int halt_count = 0;
+    int rsr_count = 0;
+    bool subr_encountered = false;
+    bool rsr_encountered = false;
+    bool start_subroutine = false;
     bool in_variables_section = false;
     bool in_main_section = false;
 
@@ -267,6 +274,41 @@ int main (int argc, char** argv) {
                     continue;
                 }
 
+                // Check if the line is a subroutine declaration
+                if (line.at (0) == '_') {
+                    string subr_name = line.substr (1, -1);
+
+                    if (subr_name == "start") {
+                        start_subroutine = true;
+                        instructions[ins_idx++] = START_ENCODING;
+                    }
+
+                    if (subr_encountered && !rsr_encountered) {
+                        cout << line_number << " : A subroutine cannot be declared inside another subroutine." << endl;
+                        return 0;
+                    }
+
+                    if (subroutines.count (subr_name) != 0 && subroutines[subr_name].initialized) {
+                        cout << line_number << " : A subroutine can only be initiliazed once." << endl;
+                        return 0;
+                    } else if (subroutines.count (subr_name) != 0 && !subroutines[subr_name].initialized) {
+                        instructions[ins_idx++] = SBR_ENCODING;
+                        instructions[ins_idx++] = (subroutines[subr_name].id & 0xFF);
+                        instructions[ins_idx++] = (subroutines[subr_name].id >> 8);
+                        subroutines[subr_name].initialized = true;
+                    } else {
+                        instructions[ins_idx++] = SBR_ENCODING;
+                        instructions[ins_idx++] = (subr_id & 0xFF);
+                        instructions[ins_idx++] = (subr_id >> 8);
+                        subr_t subr = { subr_id++, true };
+                        subroutines[subr_name] = subr;
+                    }
+
+                    subr_encountered = true;
+
+                    continue;
+                }
+
                 // All commands are split into opcode and operands
                 idx = line.find_first_of (" ");
                 string opcode = line.substr (0, idx == string::npos ? -1 : idx);
@@ -279,9 +321,20 @@ int main (int argc, char** argv) {
                 }
                 instructions[ins_idx++] = opcodes[opcode];
 
-                // The HALT command signifies the end of a subroutine
+                // The HALT command signifies the end of the _start subroutine
                 if (!line.compare ("HALT")) {
                     halt_count++;
+                }
+
+                // The RSR instruction signifies the end of a subroutine
+                if (!line.compare ("RSR")) {
+                    if (!subr_encountered) {
+                        cout << line_number << " : RSR instruction cannot be called if a subroutine has not been declared yet." << endl;
+                        return 0;
+                    }
+
+                    rsr_count++;
+                    rsr_encountered = true;
                 }
 
                 // Remove extra white space
@@ -305,7 +358,7 @@ int main (int argc, char** argv) {
                     continue;
                 }
 
-                // Switch for the first operand. They can either be a variable ($), register (@), or a label (#)
+                // Switch for the first operand. They can either be a variable ($), register (@), a label (#), or a subroutine (_)
                 switch (op1[0]) {
                     case '$': { // variable
                         if (!MEM_AS_OPERAND1 (opcodes[opcode])) {
@@ -367,6 +420,28 @@ int main (int argc, char** argv) {
 
                         instructions[ins_idx++] = (labels[label].id & 0xFF);
                         instructions[ins_idx++] = (labels[label].id >> 8);
+                    } break;
+
+                    case '_': { // subroutine
+                         if (!SBR_AS_OPERAND1 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have a subroutine as its 1st operand." << endl;
+                            return 0;
+                        }
+
+                        string subroutine = op1.substr (1, -1);
+                        // Check if the opcode with the label operand is a jump
+                        if (!IS_A_JMP_OPERAND(opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " is not a jump instruction." << endl;
+                            return 0;
+                        }
+
+                        if (subroutines.count (subroutine) == 0) {
+                            subr_t n_subr = { subr_id++, false };
+                            subroutines[subroutine] = n_subr;
+                        }
+
+                        instructions[ins_idx++] = (subroutines[subroutine].id & 0xFF);
+                        instructions[ins_idx++] = (subroutines[subroutine].id >> 8);
                     } break;
 
                     default: {
@@ -449,6 +524,12 @@ int main (int argc, char** argv) {
             }
         }
 
+        // Check that the program has a start subroutine
+        if (!start_subroutine) {
+            cout << "A program must include a \"_start\" subroutine to run." << endl;
+            return 0;
+        }
+
         // Close the source file and convert processed information into .bin file
         program.close ();
 
@@ -479,11 +560,12 @@ int main (int argc, char** argv) {
         i = 0;
         single_instruction = instructions[i++];
 
-        while (halt_count != 0) {
+        while (halt_count != 0 || rsr_count != 0) {
             sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
             output_file << machine_code_instruction;
 
             if (single_instruction == 0x35)     halt_count--;
+            if (single_instruction == 0x23)     rsr_count--;
             
             single_instruction = instructions[i++];
         } 
