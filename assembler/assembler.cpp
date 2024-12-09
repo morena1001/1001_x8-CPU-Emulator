@@ -117,7 +117,6 @@ int main (int argc, char** argv) {
                 // Remove $ from string
                 line = line.substr (1, -1);
                 idx = line.find_first_of (" ");
-
                 if (idx == string::npos) {
                     cout << line_number << " : Variables must be initialized where declared." << endl;
                     return 0;
@@ -125,7 +124,7 @@ int main (int argc, char** argv) {
 
                 // Split line in two, for name and value
                 string var_name = line.substr (0, idx);
-                line = line.erase (0, 1);
+                line = line.erase (0, idx);
 
                 Remove_Space (idx, line);
                 byte value;
