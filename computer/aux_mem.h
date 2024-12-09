@@ -28,5 +28,5 @@ typedef struct AUX_MEM {
     }
 } aux_mem_t;
 
-bool Next_Ins (string& value, string& program, word& instruction);
-word String_to_Hex (string value);
+bool Next_Ins (string& value, string& program, byte& instruction);
+byte String_to_Hex (string value);

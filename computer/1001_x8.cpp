@@ -12,11 +12,24 @@ using namespace std;
 void MEM::Init () {
     for (u32 i = 0; i < MAX_MEM; i++)       data[i] = 0;
 
+    // Load character bitmaps
     for (u32 i = 0xDE1D, k = 0; i < 0xE000; k++) {
         for (byte j = 0; j < 7; j++, i++) {
             data[i] = char_bitmaps[k][j];
         }
     }
+
+    // Load bootloader
+    data[0xFFFD] = 0x21;
+    data[0xFFFE] = 0x00;
+    data[0xFFFF] = 0xE0;
+
+    // Load OS
+    data[0xE000] = 0x02;
+    data[0xE001] = 0x00;
+    data[0xE002] = 0x01;
+    data[0xE003] = 0x35;
+
     //     int a = 10;
     // for (int i = 0; i < 7; i++) {
     //   cout << (int) data[0xDE1D + (a * 7) + i] << endl;

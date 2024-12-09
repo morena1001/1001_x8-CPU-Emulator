@@ -6,7 +6,7 @@
 
 // #include "loader.h" // Includes 1001_x8.h file
 #include "os.h" // Includes loader.h and 1001_x8.h files
-#include "aux_mem.h"
+// #include "aux_mem.h"
 
 using namespace std;
 
@@ -18,9 +18,66 @@ int main (int argc, char** argv) {
 
     mem_t mem;
     cpu_t cpu;
+    os_t os;
     aux_mem_t aux_mem;
     cpu.Reset (mem);
     aux_mem.Init ();
+    os.Init (cpu, mem, aux_mem);
+
+
+
+    ofstream file ("memory.txt");
+    char byte_info[4];
+    int i = 0;
+    file << "STACK MEMORY : \n";
+    for (i; i < 0x00FF; i++) {
+        byte value = mem.data[i];
+        sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+        file << byte_info;
+    }
+    
+    file << "\n\nRAM : \n";
+    for (++i; i < 0xD85C; i++) {
+        byte value = mem.data[i];
+        sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+        file << byte_info;
+    }
+
+    file << "\n\nVARIABLE MEMORY : \n";
+    for (++i; i < 0xDA5C; i++) {
+        byte value = mem.data[i];
+        sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+        file << byte_info;
+    }
+
+    file << "\n\nSCREEN PIXEL MEMORY : \n";
+    for (++i; i < 0xDE1C; i++) {
+        byte value = mem.data[i];
+        sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+        file << byte_info;
+    }
+
+    file << "\n\nCHARACTER MEMORY : \n";
+    for (++i; i < 0xDFFF; i++) {
+        byte value = mem.data[i];
+        sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+        file << byte_info;
+    }
+
+    file << "\n\nROM : \n";
+    for (++i; i < 0xFFFF; i++) {
+        byte value = mem.data[i];
+        sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+        file << byte_info;
+    }
+
+    ofstream file2 ("aux_mem.txt");
+    char word_info[8];
+    for (int i = 0; i < aux_mem.MAX_MEM; i++) {
+        word value = aux_mem.data[i];
+        sprintf (word_info, "%s%s%s%X ", value < 0x1000 ? "0" : "", value < 0x100 ? "0" : "", value < 0x10 ? "0" : "", value);
+        file2 << word_info;
+    }
 
 
 
@@ -63,59 +120,59 @@ int main (int argc, char** argv) {
     // }
 
     // if (txt_memory) {
-    //     ofstream file ("memory.txt");
-    //     char byte_info[4];
+        // ofstream file ("memory.txt");
+        // char byte_info[4];
 
-    //     if (!chunk_memory) {
-    //         for (int i = 0; i < mem.MAX_MEM; i++) {
-    //             byte value = mem.data[i];
-    //             sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
-    //             file << byte_info;
-    //         }
-    //     } else {
-    //         int i = 0;
-    //         file << "STACK MEMORY : \n";
-    //         for (i; i < 0x00FF; i++) {
-    //             byte value = mem.data[i];
-    //             sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
-    //             file << byte_info;
-    //         }
+        // if (!chunk_memory) {
+        //     for (int i = 0; i < mem.MAX_MEM; i++) {
+        //         byte value = mem.data[i];
+        //         sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+        //         file << byte_info;
+        //     }
+        // } else {
+            // int i = 0;
+            // file << "STACK MEMORY : \n";
+            // for (i; i < 0x00FF; i++) {
+            //     byte value = mem.data[i];
+            //     sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+            //     file << byte_info;
+            // }
             
-    //         file << "\n\nRAM : \n";
-    //         for (++i; i < 0xD85C; i++) {
-    //             byte value = mem.data[i];
-    //             sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
-    //             file << byte_info;
-    //         }
+            // file << "\n\nRAM : \n";
+            // for (++i; i < 0xD85C; i++) {
+            //     byte value = mem.data[i];
+            //     sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+            //     file << byte_info;
+            // }
 
-    //         file << "\n\nVARIABLE MEMORY : \n";
-    //         for (++i; i < 0xDA5C; i++) {
-    //             byte value = mem.data[i];
-    //             sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
-    //             file << byte_info;
-    //         }
+            // file << "\n\nVARIABLE MEMORY : \n";
+            // for (++i; i < 0xDA5C; i++) {
+            //     byte value = mem.data[i];
+            //     sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+            //     file << byte_info;
+            // }
 
-    //         file << "\n\nSCREEN PIXEL MEMORY : \n";
-    //         for (++i; i < 0xDE1C; i++) {
-    //             byte value = mem.data[i];
-    //             sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
-    //             file << byte_info;
-    //         }
+            // file << "\n\nSCREEN PIXEL MEMORY : \n";
+            // for (++i; i < 0xDE1C; i++) {
+            //     byte value = mem.data[i];
+            //     sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+            //     file << byte_info;
+            // }
 
-    //         file << "\n\nCHARACTER MEMORY : \n";
-    //         for (++i; i < 0xDFFF; i++) {
-    //             byte value = mem.data[i];
-    //             sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
-    //             file << byte_info;
-    //         }
+            // file << "\n\nCHARACTER MEMORY : \n";
+            // for (++i; i < 0xDFFF; i++) {
+            //     byte value = mem.data[i];
+            //     sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+            //     file << byte_info;
+            // }
 
-    //         file << "\n\nROM : \n";
-    //         for (++i; i < 0xFFFF; i++) {
-    //             byte value = mem.data[i];
-    //             sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
-    //             file << byte_info;
-    //         }
-    //     }
+            // file << "\n\nROM : \n";
+            // for (++i; i < 0xFFFF; i++) {
+            //     byte value = mem.data[i];
+            //     sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+            //     file << byte_info;
+            // }
+        // }
     // }
 
     // else if (output_memory) {

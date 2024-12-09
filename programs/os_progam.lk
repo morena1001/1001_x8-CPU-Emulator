@@ -1,0 +1,6 @@
+.variables
+    $counter %0
+
+.data
+_start
+    

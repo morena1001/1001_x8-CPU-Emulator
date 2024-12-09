@@ -38,19 +38,27 @@ void AUX_MEM::Load_Program (string file_name, word& prog_id, word& address) {
 
         string program;
         string value;
-        word instruction;
+        byte instruction;
+        bool high;
 
         while (getline (file, program)) {
             while (1) {
                 if (!Next_Ins (value, program, instruction)) break;
-                data[address++] = instruction;
+                data[address] = instruction;
+                high = false;
+
+                if (!Next_Ins (value, program, instruction)) break;
+                data[address++] |= (instruction << 8);
+                high = true;
             }
+            data[end_address - 1] |= (high ? 0x0000 : 0x1000);
+            address += (high ? 0 : 1);
             data[end_address] = address;
         }
     }
 }
 
-bool Next_Ins (string& value, string& program, word& instruction) {
+bool Next_Ins (string& value, string& program, byte& instruction) {
     if (program.empty ())   return false;
 
     value = program.substr (0, 3);
@@ -61,8 +69,8 @@ bool Next_Ins (string& value, string& program, word& instruction) {
     return true;
 }
 
-word String_to_Hex (string value) {
-    word hex_val;
+byte String_to_Hex (string value) {
+    byte hex_val;
 
     if (value.length () != 2)   return 0;
     hex_val = (INT_REPRESENTATION_OF_HEX (value[0]) * 16) + (INT_REPRESENTATION_OF_HEX (value[1]));
