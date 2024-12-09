@@ -16,7 +16,9 @@ void inline Remove_Space (u32& idx, string& line);
 void inline Remove_Comments (u32& idx, string& line);
 
 bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_number);
+word stoh (string value);
 string htos (byte value);
+word pow (word base, word exp);
 byte char_to_index (char character);
 
 int main (int argc, char** argv) {
@@ -73,7 +75,7 @@ int main (int argc, char** argv) {
 
     if (program.is_open ()) {
         while (getline (program, line)) {
-            
+
             // Increment line number for error throwing
             line_number++;
 
@@ -357,7 +359,7 @@ int main (int argc, char** argv) {
                     continue;
                 }
 
-                // Switch for the first operand. They can either be a variable ($), register (@), a label (#), or subroutine (_)
+                // Switch for the first operand. They can either be a variable ($), register (@), a label (#), subroutine (_), or address (&)
                 switch (op1[0]) {
                     case '$': { // variable
                         if (!MEM_AS_OPERAND1 (opcodes[opcode])) {
@@ -372,6 +374,7 @@ int main (int argc, char** argv) {
                             return 0;
                         }
 
+                        instructions[ins_idx++] = (0x00);
                         instructions[ins_idx++] = (variables[var_name] & 0xFF);
                         instructions[ins_idx++] = (variables[var_name] >> 8);
                     } break;
@@ -406,15 +409,8 @@ int main (int argc, char** argv) {
 
                         // Check if the label is defined
                         if (labels.count (label) == 0) {
-                            // byte opcode_ins = instructions[ins_idx - 1];
-
-                            // instructions[ins_idx - 1] = LABEL_ENCODING;
-                            // instructions[ins_idx++] = (label_id & 0xFF);
-                            // instructions[ins_idx++] = (label_id >> 8);
                             label_t n_label = { label_id++, false };
                             labels[label] = n_label;
-
-                            // instructions[ins_idx++] = opcode_ins;
                         }
 
                         instructions[ins_idx++] = (labels[label].id & 0xFF);
@@ -443,6 +439,19 @@ int main (int argc, char** argv) {
                         instructions[ins_idx++] = (subroutines[subroutine].id >> 8);
                     } break;
 
+                    case '&': { // address
+                        if (!MEM_AS_OPERAND1 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have an address as its 1st operand." << endl;
+                            return 0;
+                        }
+
+                        word address = stoh (op1.substr (1, -1));
+
+                        instructions[ins_idx++] = (ADDR_ENCODING);
+                        instructions[ins_idx++] = (address & 0xFF);
+                        instructions[ins_idx++] = (address >> 8);
+                    } break;
+
                     default: {
                         cout << line_number << " : Symbol " << op1[0] << " is undefined." << endl;
                         return 0;
@@ -456,7 +465,7 @@ int main (int argc, char** argv) {
                     continue;
                 }
 
-                // Switch for the first operand. They can either be a literal (%), variable ($), or register (@)
+                // Switch for the first operand. They can either be a literal (%), variable ($), register (@), or address (&)
                 switch (op2[0]) {
                     case '%': { // literal
                         if (!IMM_AS_OPERAND2 (opcodes[opcode])) {
@@ -482,6 +491,7 @@ int main (int argc, char** argv) {
                             return 0;
                         }
 
+                        instructions[ins_idx++] = 0x00;
                         instructions[ins_idx++] = (variables[var_name] & 0xFF);
                         instructions[ins_idx++] = (variables[var_name] >> 8);
                     } break;
@@ -499,6 +509,19 @@ int main (int argc, char** argv) {
                         }
 
                         instructions[ins_idx++] = registers[reg];
+                    } break;
+
+                    case '&': { // address
+                        if (!MEM_AS_OPERAND2 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have an address as its 2nd operand." << endl;
+                            return 0;
+                        }
+
+                        word address = stoh (op2.substr (1, -1));
+
+                        instructions[ins_idx++] = (ADDR_ENCODING);
+                        instructions[ins_idx++] = (address & 0xFF);
+                        instructions[ins_idx++] = (address >> 8);
                     } break;
 
                     default: {
@@ -529,12 +552,10 @@ int main (int argc, char** argv) {
             return 0;
         }
 
-        // Close the source file and convert processed information into .bin file
+        // Close the source file and convert processed information into .output file
         program.close ();
 
         ofstream output_file (file_name + "output");
-
-
 
         u32 i = 0;
         byte single_instruction = variable_instructions[i++];
@@ -712,6 +733,17 @@ bool Opcode_and_Operands_Match (word opcode, string op1, string op2, u32 line_nu
     return true;
 }
 
+word stoh (string value) {
+    word hex_val = 0;
+
+    // Conversion of hex in string to int
+    for (word i = 0; i < value.size (); i++) {
+        hex_val += (INT_REPRESENTATION_OF_HEX (value[i]) * pow (16, value.size () - 1 - i));
+    }
+
+    return hex_val;
+}
+
 string htos (byte value) {
     string hex_val;
 
@@ -719,6 +751,11 @@ string htos (byte value) {
     hex_val = to_string ((int) (value) / 16) + hex_val;
 
     return hex_val;
+}
+
+word pow (word base, word exp) {
+    if (exp == 0)       return 1;
+    return base * pow (base, exp - 1);
 }
 
 byte char_to_index (char character) {

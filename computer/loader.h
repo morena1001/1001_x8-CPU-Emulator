@@ -13,6 +13,7 @@ using namespace std;
 #define IS_LABEL_ENCODING(opcode)       (opcode == 0x36)
 #define IS_START_ENCODING(opcode)       (opcode == 0x37)
 #define IS_SUBR_ENCODING(opcode)        (opcode == 0x41)
+#define IS_ADDR_ENCODING(opcode)        (opcode == 0x42)
 
 #define IS_NUMBER(value)                (value == '0' || value == '1' || value == '2' || value == '3' || value == '4' || value == '5' || value == '6' || value == '7' || value == '8' || value == '9')
 #define INT_REPRESENTATION_OF_HEX(hex_value)    (IS_NUMBER (hex_value) ? ((u32) hex_value) - 48 : (hex_value == 'A' ? 10 : (hex_value == 'B' ? 11 : (hex_value == 'C' ? 12 : (hex_value == 'D' ? 13 : (hex_value == 'E' ? 14 : (hex_value == 'F' ? 15 : 0)))))))

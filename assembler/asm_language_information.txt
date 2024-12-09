@@ -4,9 +4,9 @@ $  - variable
 #  - label
 .  - section
 ;  - comment
-[] - access array element
 {} - initialize array elements
-//'  - character literal
+'  - character literal
+&  - address
 
 There are only 2 sections, .variables and .data
 
