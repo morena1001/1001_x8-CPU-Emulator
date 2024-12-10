@@ -137,6 +137,10 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 mem.WriteByte (instruction, address++);
             } else if (MEM_AS_OPERAND1 (opcode)) {
                 word var_id;
+                bool addr;
+
+                if (!Pop_Next_Ins (value, program, instruction))    return;
+                addr = IS_ADDR_ENCODING (instruction);
 
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 var_id = instruction;
@@ -144,7 +148,9 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 var_id |= (instruction << 8);
 
-                mem.WriteWord (variables[var_id], address);
+                if (addr)           mem.WriteWord (var_id, address);
+                else                mem.WriteWord (variables[var_id], address);
+
                 address += 2;
             } else if (LAB_AS_OPERAND1 (opcode)) {
                 word label_id;
@@ -178,6 +184,10 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 mem.WriteByte (instruction, address++);
             } else if (MEM_AS_OPERAND2 (opcode)) {
                 word var_id;
+                bool addr;
+
+                if (!Pop_Next_Ins (value, program, instruction))    return;
+                addr = IS_ADDR_ENCODING (instruction);
 
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 var_id = instruction;
@@ -185,7 +195,9 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 var_id |= (instruction << 8);
 
-                mem.WriteWord (variables[var_id], address);
+                if (addr)           mem.WriteWord (var_id, address);
+                else                mem.WriteWord (variables[var_id], address);
+
                 address += 2;
             } else if (IMM_AS_OPERAND2 (opcode)) {
                 if (!Pop_Next_Ins (value, program, instruction))    return;

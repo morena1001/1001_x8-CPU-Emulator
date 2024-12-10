@@ -51,8 +51,9 @@ void AUX_MEM::Load_Program (string file_name, word& prog_id, word& address) {
                 data[address++] |= (instruction << 8);
                 high = true;
             }
-            data[end_address - 1] |= (high ? 0x0000 : 0x1000);
+            // data[end_address - 1] |= (high ? 0x0000 : 0x1000);
             address += (high ? 0 : 1);
+            // address++;
             data[end_address] = address;
         }
     }

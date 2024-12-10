@@ -10,14 +10,18 @@ void OS::Init (cpu_t &cpu, mem_t &mem, aux_mem_t &aux_mem) {
     int address = 0;
     byte stack_counter = 0;
     while (aux_mem[address] != 0x0000) {
-        p_stack[stack_counter++] = address + 2;
-        p_stack[stack_counter++] = aux_mem[address + 1] - 1;
+        p_stack[stack_counter++] = address;
+        p_stack[stack_counter++] = aux_mem[address + 1];
         address = aux_mem[address + 1];
     }
 
     for (int i = 0; i < stack_counter; i++) {
-        cout << (int) p_stack [i] << endl;
+        mem[i + 0xFF85] = p_stack[i];
     }
+
+    // for (int i = 0; i < stack_counter; i++) {
+    //     cout << (int) p_stack [i] << endl;
+    // }
 }
 
 void Status_Reset (cpu_t &cpu, mem_t &mem) {

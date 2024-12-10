@@ -5,7 +5,7 @@
 #include <fstream>
 
 // #include "loader.h" // Includes 1001_x8.h file
-#include "os.h" // Includes loader.h and 1001_x8.h files
+#include "os/os.h" // Includes loader.h and 1001_x8.h files
 // #include "aux_mem.h"
 
 using namespace std;
@@ -24,8 +24,19 @@ int main (int argc, char** argv) {
     aux_mem.Init ();
     os.Init (cpu, mem, aux_mem);
 
+    // cpu.Execute (mem);
 
 
+
+    cout << "A : " << htos (cpu.GPR[A]) << endl;
+    cout << "B : " << htos (cpu.GPR[B]) << endl;
+    cout << "C : " << htos (cpu.GPR[C]) << endl;
+    cout << "D : " << htos (cpu.GPR[D]) << endl;
+    cout << "E : " << htos (cpu.GPR[E]) << endl;
+    cout << "F : " << htos (cpu.GPR[F]) << endl;
+    cout << "G : " << htos (cpu.GPR[G]) << endl;
+    cout << "H : " << htos (cpu.GPR[H]) << endl;
+    
     ofstream file ("memory.txt");
     char byte_info[4];
     int i = 0;
@@ -65,7 +76,7 @@ int main (int argc, char** argv) {
     }
 
     file << "\n\nROM : \n";
-    for (++i; i < 0xFFFF; i++) {
+    for (++i; i < 0xFFFF + 1; i++) {
         byte value = mem.data[i];
         sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
         file << byte_info;
