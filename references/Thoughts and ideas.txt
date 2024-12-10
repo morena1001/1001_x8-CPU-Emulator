@@ -9,3 +9,11 @@ After each program is ran, the OS will print all useful information (variable me
 remove the program from main memory, reset variable memory, flags, and registers, then load the next program in its process stack.
 The OS's process stack will store two words per program, the first is the address storing the first byte of program, and the second is the address storing the last byte. 30 programs can be loaded at a time.
 A fake external hard drive will be coded to represent a virutal location where programs can be stored. 
+
+BEFORE CONTINUING WITH OS , CHANGE LOADER TO LOAD A PROGRAM FROM THE AUX_MEM GIVEN STARTING ADDRESS AND ENDING ADDRESS.
+
+
+FOR THE LOADER : 
+VARIABLES ->
+RAM address
+var address
