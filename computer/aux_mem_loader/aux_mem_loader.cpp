@@ -7,7 +7,11 @@
 
 using namespace std;
 
-void Split_Bytes (word& mem_value, byte& low, byte& high);
+void Split_Bytes (aux_mem_t& aux_mem, word& mem_addr, byte& low, byte& high);
+void Grab_Low (aux_mem_t& aux_mem, word& mem_addr, byte& low);
+void Grab_High (aux_mem_t& aux_mem, word& mem_addr, byte& high);
+void Grab_Word (aux_mem_t& aux_mem, word& mem_addr, byte& low, byte& high, bool& high_next);
+void Grab_Byte (aux_mem_t& aux_mem, word& mem_addr, byte& low, byte& high, bool& high_next);
 
 void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem) {
     map<word, word> headers;
@@ -23,15 +27,30 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem) {
 
     bool PC_set = false;
     bool end_of_program = false;
+    bool high_next = false;
 
-    word mem_value = aux_mem[mem[p_stack_addr] + 1];
+    word mem_addr = mem[p_stack_addr];
     word instruction, opcode;
     byte low, high;
-    word var_count = mem_value;
+    word var_count = aux_mem[2 + mem_addr++];
 
     for (int i = 0; i < mem[p_stack_addr + 1]; i++) {
+        // Parse all variables
         if (var_count != 0) {
-            Split_Bytes (mem_value, low, high);
+            // Grab 1 word for var_id
+            Grab_Word (aux_mem, mem_addr, low, high, high_next);
+
+            word var_id = (word) (low) & (word) (high << 8);
+            variables[var_id] = var_address++;
+
+            // Grab one byte for value of variable
+            Grab_Byte (aux_mem, mem_addr, low, high, high_next);
+            cout << mem_addr << " " << low << " " << high << " " << high_next << endl;
+
+            mem.WriteByte (high_next ? low : high, variables[var_id]);
+
+            var_count--;
+            continue;
         }
     }
 
@@ -184,18 +203,48 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem) {
     // }
 }
 
-string htos (byte value) {
-    string hex_val;
+// string htos (byte value) {
+//     string hex_val;
 
-    hex_val = STRING_FROM_HEX ((int) (value) % 16);
-    hex_val = to_string ((int) (value) / 16) + hex_val;
+//     hex_val = STRING_FROM_HEX ((int) (value) % 16);
+//     hex_val = to_string ((int) (value) / 16) + hex_val;
 
-    return hex_val;
+//     return hex_val;
+// }
+
+void Grab_Word (aux_mem_t& aux_mem, word& mem_addr, byte& low, byte& high, bool& high_next) {
+    if (high_next) {
+        Grab_High (aux_mem, mem_addr, high);
+        mem_addr++;
+        Grab_Low (aux_mem, mem_addr, low);
+    } else {
+        Split_Bytes (aux_mem, mem_addr, low, high);
+    }
 }
 
-void Split_Bytes (word& mem_value, byte& low, byte& high) {
-    low = (mem_value & 0xFF);
-    high = (mem_value >> 8);
+void Grab_Byte (aux_mem_t& aux_mem, word& mem_addr, byte& low, byte& high, bool& high_next) {
+    if (high_next) {
+        Grab_High (aux_mem, mem_addr, high);
+        mem_addr++;
+    } else {
+        Grab_Low (aux_mem, mem_addr, low);
+    }
+
+    high_next ^= 1;
+}
+
+void Grab_Low (aux_mem_t& aux_mem, word& mem_addr, byte& low) {
+    low = (aux_mem[mem_addr] & 0xFF);
+}
+
+void Grab_High (aux_mem_t& aux_mem, word& mem_addr, byte& high) {
+    high = (aux_mem[mem_addr] >> 8);
+}
+
+void Split_Bytes (aux_mem_t& aux_mem, word& mem_addr, byte& low, byte& high) {
+    low = (aux_mem[mem_addr] & 0xFF);
+    high = (aux_mem[mem_addr] >> 8);
+    mem_addr++;
 }
 
 // bool Pop_Next_Ins (string& value, string& program, word& instruction) {

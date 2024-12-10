@@ -7,7 +7,7 @@ ARCHITECTURE
     RAM is reusable memory from 0x0100 to 0xD857.
     Variable memory is 2 bytes long, from 0xD858 to 0xDA5C7.
     Keyboard mapped IO
-    Aux mem mapped IO is 5 bytes, from 0xDA58 to 0xDA5C. The first two are for setting the address, the third is for the ready flag, and the last two are for the return values of those address.
+    Aux mem mapped IO is 5 bytes, from 0xDA58 to 0xDA5C. The first two are for setting the address (LSB then  MSB), the third is for the ready flag, and the last two are for the return values of those address.
     Screen Pixel Memory is 3840 bits longs, from 0xDA5D to 0xDE1C. (80 x 48 pixel screen)
     Character memory is 462 bits long, from 0xDE1D to 0xDFFF.
     ROM is 2 words long, from 0xE000 to 0xFFFF.

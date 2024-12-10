@@ -1,0 +1,81 @@
+.variables
+    $counter %0
+    $addrL %0
+    $addrH %0
+    $valueL %0
+    $valueH %0
+
+.data
+_add
+    LDFM @A $addrL
+    CMPI @A %255
+    JZS #inc
+    INCR @A
+    RSR
+
+    #inc
+    LDFM @B $addrH
+    LDFI @A %0
+    INCR @B
+    RSR
+
+_sub
+    LDFM @A $addrL
+    CMPI @A %0
+    JZS #dec
+    DECR @A
+    RSR
+
+    #dec
+    LDFM @B $addrH
+    LDFI @A %255
+    DECR @B 
+    RSR
+
+_start
+    #start
+    ; Set address to get value from in aux_mem
+    LDFM @A $addrL
+    STOR &DA58 @A
+    LDFM @A $addrH
+    STOR &DA59 @A
+
+    ; Waiting a clock cycle aux_mem IO to get value
+    ; Check that the value is not 0
+    LDFM @A &DA5B
+    LDFM @B &DA5C
+    CMPR @A @B
+    JZC #loop
+    CMPI @A %0
+    JZS #end    
+
+    #loop
+    ; Address + 2 = start of program
+    JSR _add
+    STOR $addrL @A
+    STOR $addrH @B
+    JSR _add
+
+    LDFM @F $counter
+    STOO &FF85 @B
+    INCR @F
+    STOO &FF85 @A
+    INCR @F
+
+    JSR _sub
+    STOR &DA58 @A
+    STOR &DA59 @B
+    LDFM @A &DA5B
+    LDFM @B &DA5C
+    STOO &FF85 @B
+    INCR @F
+    STOO &FF85 @A
+    INCR @F
+    STOR $addrL @A
+    STOR $addrH @B    
+
+    STOR $counter @F
+    JMP #start
+
+    #end
+    HALT

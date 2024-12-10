@@ -1,5 +1,6 @@
-#include "../loader/loader.h"
-#include "../aux_mem/aux_mem.h"
+// #include "../loader/loader.h"
+// #include "../aux_mem/aux_mem.h"
+#include "../aux_mem_loader/aux_mem_loader.h"
 
 using namespace std;
 

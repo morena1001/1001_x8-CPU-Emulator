@@ -20,9 +20,12 @@ int main (int argc, char** argv) {
     cpu_t cpu;
     os_t os;
     aux_mem_t aux_mem;
+    
     cpu.Reset (mem);
     aux_mem.Init ();
     os.Init (cpu, mem, aux_mem);
+
+    Load_Program_From_AuxMem (cpu, mem, aux_mem);
 
     // cpu.Execute (mem);
 

@@ -27,5 +27,5 @@ using namespace std;
 #define MEM_AS_OPERAND2(opcode)         (opcode == 0x01 || opcode == 0x06 || opcode == 0x17 || opcode == 0x38 || opcode == 0x3A || opcode == 0x3C)
 #define IMM_AS_OPERAND2(opcode)         (opcode == 0x02 || opcode == 0x18) 
 
-void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem);
+void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem);
 string htos (byte value);

@@ -1,0 +1,4 @@
+.data
+_start
+    LDFM @A &0100
+    HALT
