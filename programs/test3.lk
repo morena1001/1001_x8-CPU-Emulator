@@ -4,6 +4,7 @@
     $b %100
 
 .data
+_start
     LDFI @A %31
     LDFI @B %100
     SWPR @A @B

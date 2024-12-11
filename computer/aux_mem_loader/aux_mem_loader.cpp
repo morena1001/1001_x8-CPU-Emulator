@@ -13,7 +13,7 @@ void Grab_High (aux_mem_t& aux_mem, aux_loader_t& loader);
 word Grab_Word (aux_mem_t& aux_mem, aux_loader_t& loader);
 byte Grab_Byte (aux_mem_t& aux_mem, aux_loader_t& loader);
 
-void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem) {
+void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_loader_t& loader) {
     map<word, word> headers;
     multimap<word, word> unInit_headers;
     map<word, word> variables;
@@ -28,14 +28,11 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem) {
     bool PC_set = false;
     bool end_of_program = false;
 
-    aux_loader_t loader;
-    loader.mem_addr = mem[p_stack_addr] + 2;
-    loader.high_next = false;
-
     word instruction, opcode;
     word var_count = Grab_Word (aux_mem, loader);
+    word end_addr = (mem[p_stack_addr + 2]) | ((mem[p_stack_addr + 3]) << 8);
 
-    for (loader.mem_addr; loader.mem_addr < mem[p_stack_addr + 1];) {
+    for (loader.mem_addr; loader.mem_addr < end_addr;) {
         // Parse all variables
         if (var_count != 0) {
             word var_id = Grab_Word (aux_mem, loader);

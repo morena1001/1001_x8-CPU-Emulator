@@ -20,25 +20,26 @@ int main (int argc, char** argv) {
     cpu_t cpu;
     os_t os;
     aux_mem_t aux_mem;
+    aux_loader_t loader;
     
     cpu.Reset (mem);
     aux_mem.Init ();
     os.Init (cpu, mem, aux_mem);
 
-    Load_Program_From_AuxMem (cpu, mem, aux_mem);
+    os.Run (cpu, mem, aux_mem, loader);
 
     // cpu.Execute (mem);
 
 
 
-    cout << "A : " << htos (cpu.GPR[A]) << endl;
-    cout << "B : " << htos (cpu.GPR[B]) << endl;
-    cout << "C : " << htos (cpu.GPR[C]) << endl;
-    cout << "D : " << htos (cpu.GPR[D]) << endl;
-    cout << "E : " << htos (cpu.GPR[E]) << endl;
-    cout << "F : " << htos (cpu.GPR[F]) << endl;
-    cout << "G : " << htos (cpu.GPR[G]) << endl;
-    cout << "H : " << htos (cpu.GPR[H]) << endl;
+    // cout << "A : " << htos (cpu.GPR[A]) << endl;
+    // cout << "B : " << htos (cpu.GPR[B]) << endl;
+    // cout << "C : " << htos (cpu.GPR[C]) << endl;
+    // cout << "D : " << htos (cpu.GPR[D]) << endl;
+    // cout << "E : " << htos (cpu.GPR[E]) << endl;
+    // cout << "F : " << htos (cpu.GPR[F]) << endl;
+    // cout << "G : " << htos (cpu.GPR[G]) << endl;
+    // cout << "H : " << htos (cpu.GPR[H]) << endl;
     
     ofstream file ("memory.txt");
     char byte_info[4];

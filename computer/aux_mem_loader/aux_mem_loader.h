@@ -34,5 +34,5 @@ typedef struct aux_loader {
     bool high_next;
 } aux_loader_t;
 
-void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem);
+void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_loader_t& loader);
 string htos (byte value);

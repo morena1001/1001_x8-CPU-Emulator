@@ -3,6 +3,7 @@
     $b %0
 
 .data
+_start
     LDFI @A %41
     LDFR @B @A
     STOR $b @B

@@ -10,8 +10,10 @@ void OS::Init (cpu_t &cpu, mem_t &mem, aux_mem_t &aux_mem) {
     int address = 0;
     byte stack_counter = 0;
     while (aux_mem[address] != 0x0000) {
-        p_stack[stack_counter++] = address;
-        p_stack[stack_counter++] = aux_mem[address + 1];
+        p_stack[stack_counter++] = (address & 0xFF);
+        p_stack[stack_counter++] = (address >> 8);
+        p_stack[stack_counter++] = (aux_mem[address + 1] & 0xFF);
+        p_stack[stack_counter++] = (aux_mem[address + 1] >> 8);
         address = aux_mem[address + 1];
     }
 
@@ -22,6 +24,13 @@ void OS::Init (cpu_t &cpu, mem_t &mem, aux_mem_t &aux_mem) {
     // for (int i = 0; i < stack_counter; i++) {
     //     cout << (int) p_stack [i] << endl;
     // }
+}
+
+void OS::Run (cpu_t &cpu, mem_t &mem, aux_mem_t &aux_mem, aux_loader_t& loader) {
+    loader.mem_addr = ((word) (mem[0xFF85]) | (word) (mem[0xFF86] << 8)) + 2;
+    loader.high_next = false;
+
+    Load_Program_From_AuxMem (cpu, mem, aux_mem, loader);
 }
 
 void Status_Reset (cpu_t &cpu, mem_t &mem) {
