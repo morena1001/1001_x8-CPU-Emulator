@@ -22,6 +22,7 @@ void MEM::Init () {
     // Load bootloader
     data[0xFFFD] = 0x21;
     data[0xFFFE] = 0x00;
+    // data[0xFFFF] = 0x01;
     data[0xFFFF] = 0xE0;
 
     // Load OS
