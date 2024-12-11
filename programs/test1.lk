@@ -3,5 +3,6 @@
 $a %47
 
 .data
+_start
     LDFM @A $a
     HALT
