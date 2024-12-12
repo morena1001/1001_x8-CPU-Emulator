@@ -22,7 +22,7 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
     map<word, word> subroutines;
     multimap<word, word> unInit_subroutines;
 
-    word address = 0x0100;
+    word address = 0xE000;
     word var_address = 0xD85D;
 
     bool PC_set = false;
@@ -84,6 +84,8 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 label_id |= (instruction << 8);
                 headers[label_id] = address;
 
+                cout << "NO SHOT " << headers[label_id] << "  " << label_id << endl;
+
                 while (unInit_headers.count (label_id) != 0) {
                     multimap<word, word>::iterator it = unInit_headers.find (label_id);
                     mem.WriteWord (headers[label_id], it->second);
@@ -110,7 +112,8 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                     unInit_subroutines.erase (it);
                 }
 
-                if (!Pop_Next_Ins (value, program, instruction))    return;
+                // if (!Pop_Next_Ins (value, program, instruction))    return;
+                continue;
             }
 
             // The START instruction denotes a non linear entry point of the cpu 
@@ -161,6 +164,8 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 label_id |= (instruction << 8);
 
+                cout << "YAY " << headers.count (label_id) << " " << label_id << endl;
+
                 if (headers.count (label_id) == 0)      unInit_headers.insert (pair<word, word> (label_id, address));
                 else                                    mem.WriteWord (headers[label_id], address);
                 
@@ -174,8 +179,10 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 subr_id |= (instruction << 8);
 
-                if (subroutines.count (subr_id == 0))       unInit_subroutines.insert (pair<word, word> (subr_id, address));
+                if (subroutines.count (subr_id) == 0)       unInit_subroutines.insert (pair<word, word> (subr_id, address));
                 else                                        mem.WriteWord (subroutines[subr_id], address);
+
+                address += 2;
             }
 
             // Check the second operand and upload correct instruction to memory

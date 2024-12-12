@@ -1,6 +1,7 @@
 #include <string>
 
-#include "../cpu/1001_x8.h"
+// #include "../cpu/1001_x8.h"
+#include "../loader/loader.h"
 #include "../aux_mem/aux_mem.h"
 
 using namespace std;

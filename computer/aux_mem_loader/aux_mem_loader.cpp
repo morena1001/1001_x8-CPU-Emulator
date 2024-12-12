@@ -123,6 +123,8 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
 
             if (subroutines.count (subr_id) == 0)   unInit_subroutines.insert (pair<word, word> (subr_id, address));
             else                                    mem.WriteWord (subroutines[subr_id, address], address);
+
+            address += 2;
         }
 
         // Check the second operand and upload correct instruction to memory

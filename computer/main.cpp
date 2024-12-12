@@ -26,7 +26,9 @@ int main (int argc, char** argv) {
     aux_mem.Init ();
     os.Init (cpu, mem, aux_mem);
 
-    os.Run (cpu, mem, aux_mem, loader);
+    Load_Program ("../programs/os_program.output", cpu, mem);
+
+    // os.Run (cpu, mem, aux_mem, loader);
 
     // cpu.Execute (mem);
 
