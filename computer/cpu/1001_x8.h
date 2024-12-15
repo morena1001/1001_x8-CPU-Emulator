@@ -1,6 +1,12 @@
+#include "../aux_mem/aux_mem.h"
+
 using byte = unsigned char;
 using word = unsigned short;
 using u32 = unsigned int;
+
+#define IS_NUMBER(value)                (value == '0' || value == '1' || value == '2' || value == '3' || value == '4' || value == '5' || value == '6' || value == '7' || value == '8' || value == '9')
+#define INT_REPRESENTATION_OF_HEX(hex_value)    (IS_NUMBER (hex_value) ? ((u32) hex_value) - 48 : (hex_value == 'A' ? 10 : (hex_value == 'B' ? 11 : (hex_value == 'C' ? 12 : (hex_value == 'D' ? 13 : (hex_value == 'E' ? 14 : (hex_value == 'F' ? 15 : 0)))))))
+#define STRING_FROM_HEX(value)          (value == 10 ? "A" : (value == 11 ? "B" : (value == 12 ? "C" : (value == 13 ? "D" : (value == 14 ? "E" : (value == 15 ? "F" : to_string (value)))))))
 
 #define A   0
 #define B   1
@@ -51,7 +57,7 @@ typedef struct CPU {
     void PushStack (byte value, mem_t& memory); // Push a byte to the stack, updates SP
     byte PullStack (mem_t& memory); // Pulls a byte from stack, updates SP
 
-    void Execute (mem_t& memory); // Execute instructions
+    void Execute (mem_t& memory, aux_mem_t& aux_mem); // Execute instructions
 
     void Set_CF (word value); // Set or unset CF
     void Set_ZF (byte reg); // Set or unset ZF

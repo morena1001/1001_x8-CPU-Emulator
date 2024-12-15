@@ -26,11 +26,10 @@ int main (int argc, char** argv) {
     aux_mem.Init ();
     os.Init (cpu, mem, aux_mem);
 
-    Load_Program ("../programs/os_program.output", cpu, mem);
+    // Load_Program ("../programs/os_program.output", cpu, mem);
 
     // os.Run (cpu, mem, aux_mem, loader);
-
-    // cpu.Execute (mem);
+    cpu.Execute (mem, aux_mem);
 
 
 
@@ -47,42 +46,49 @@ int main (int argc, char** argv) {
     char byte_info[4];
     int i = 0;
     file << "STACK MEMORY : \n";
-    for (i; i < 0x00FF; i++) {
+    for (i; i < 0x0100; i++) {
         byte value = mem.data[i];
         sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
         file << byte_info;
     }
     
     file << "\n\nRAM : \n";
-    for (++i; i < 0xD85C; i++) {
+    for (i; i < 0xD858; i++) {
         byte value = mem.data[i];
         sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
         file << byte_info;
     }
 
     file << "\n\nVARIABLE MEMORY : \n";
-    for (++i; i < 0xDA5C; i++) {
+    for (i; i < 0xDA58; i++) {
+        byte value = mem.data[i];
+        sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
+        file << byte_info;
+    }
+
+    file << "\n\nAUXILIARY MEMORY MAPPED IO : \n";
+    for (i; i < 0xDA5D; i++) {
         byte value = mem.data[i];
         sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
         file << byte_info;
     }
 
     file << "\n\nSCREEN PIXEL MEMORY : \n";
-    for (++i; i < 0xDE1C; i++) {
+    for (i; i < 0xDE1D; i++) {
         byte value = mem.data[i];
         sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
         file << byte_info;
     }
 
     file << "\n\nCHARACTER MEMORY : \n";
-    for (++i; i < 0xDFFF; i++) {
+    for (i; i < 0xE000; i++) {
         byte value = mem.data[i];
         sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
         file << byte_info;
     }
 
     file << "\n\nROM : \n";
-    for (++i; i < 0xFFFF + 1; i++) {
+    for (i; i < 0xFFFF + 1; i++) {
         byte value = mem.data[i];
         sprintf (byte_info, "%s%X ", value < 0x10 ? "0" : "", value);
         file << byte_info;

@@ -84,8 +84,6 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                 label_id |= (instruction << 8);
                 headers[label_id] = address;
 
-                cout << "NO SHOT " << headers[label_id] << "  " << label_id << endl;
-
                 while (unInit_headers.count (label_id) != 0) {
                     multimap<word, word>::iterator it = unInit_headers.find (label_id);
                     mem.WriteWord (headers[label_id], it->second);
@@ -163,8 +161,6 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
 
                 if (!Pop_Next_Ins (value, program, instruction))    return;
                 label_id |= (instruction << 8);
-
-                cout << "YAY " << headers.count (label_id) << " " << label_id << endl;
 
                 if (headers.count (label_id) == 0)      unInit_headers.insert (pair<word, word> (label_id, address));
                 else                                    mem.WriteWord (headers[label_id], address);

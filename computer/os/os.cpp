@@ -7,22 +7,18 @@ void OS::Init (cpu_t &cpu, mem_t &mem, aux_mem_t &aux_mem) {
     Status_Reset (cpu, mem);
 
     // Read all programs loaded in aux_mem
-    int address = 0;
-    byte stack_counter = 0;
-    while (aux_mem[address] != 0x0000) {
-        p_stack[stack_counter++] = (address & 0xFF);
-        p_stack[stack_counter++] = (address >> 8);
-        p_stack[stack_counter++] = (aux_mem[address + 1] & 0xFF);
-        p_stack[stack_counter++] = (aux_mem[address + 1] >> 8);
-        address = aux_mem[address + 1];
-    }
-
-    for (int i = 0; i < stack_counter; i++) {
-        mem[i + 0xFF85] = p_stack[i];
-    }
+    // int address = 0;
+    // byte stack_counter = 0;
+    // while (aux_mem[address] != 0x0000) {
+    //     p_stack[stack_counter++] = (address & 0xFF);
+    //     p_stack[stack_counter++] = (address >> 8);
+    //     p_stack[stack_counter++] = (aux_mem[address + 1] & 0xFF);
+    //     p_stack[stack_counter++] = (aux_mem[address + 1] >> 8);
+    //     address = aux_mem[address + 1];
+    // }
 
     // for (int i = 0; i < stack_counter; i++) {
-    //     cout << (int) p_stack [i] << endl;
+    //     mem[i + 0xFF85] = p_stack[i];
     // }
 }
 

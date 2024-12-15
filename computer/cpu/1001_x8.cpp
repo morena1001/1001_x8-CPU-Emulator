@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
 
 #include "1001_x8.h"
+
+void Load_OS (byte data[mem_t::MAX_MEM]);
 
 using namespace std;
 
@@ -21,15 +24,13 @@ void MEM::Init () {
 
     // Load bootloader
     data[0xFFFD] = 0x21;
-    data[0xFFFE] = 0x00;
+    // data[0xFFFE] = 0x00;
     // data[0xFFFF] = 0x01;
+    data[0xFFFE] = 0x17;
     data[0xFFFF] = 0xE0;
 
     // Load OS
-    data[0xE000] = 0x02;
-    data[0xE001] = 0x00;
-    data[0xE002] = 0x01;
-    data[0xE003] = 0x35;
+    Load_OS (data);
 
     //     int a = 10;
     // for (int i = 0; i < 7; i++) {
@@ -89,10 +90,22 @@ byte CPU::PullStack (mem_t& memory) {
     return data;
 }
 
-void CPU::Execute (mem_t& memory) {
+void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
 
     while (ins != INS_HALT) {
+        if (ReadByte (0xDA5A, memory) == 1) {
+            word aux_address = ((word) ReadByte (0xDA58, memory)) | ((word) ReadByte (0xDA59, memory) << 8);
+            // memory.WriteByte (aux_mem[aux_address] >> 8, 0xDA5B);
+            // memory.WriteByte (aux_mem[aux_address] & 0xFF, 0xDA5C);
+            memory.WriteWord (aux_mem[aux_address], 0xDA5B);
+            memory.WriteByte (0, 0xDA5A);
+
+            // system("pause");
+        }
+        printf ("%d     %d     %d      %d\n", ReadByte (0xDA5A, memory), ins, (int) memory[0xFF84], (int) memory[0xFF83]);
+        // system("pause");
+
         switch (ins) {
             case INS_LDFM: {
                 byte reg = FetchByte (memory);
@@ -122,6 +135,8 @@ void CPU::Execute (mem_t& memory) {
                 word address = FetchWord (memory);
                 byte reg = FetchByte (memory);
                 memory.WriteByte (GPR[reg], address);
+
+                if (address == 0xDA59)      memory.WriteByte (1, 0xDA5A);
             } break;
 
             case INS_SWPR: {
@@ -619,5 +634,27 @@ void CPU::Set_SF (byte reg) {
         SF = 1;
     } else {
         SF = 0;
+    }
+}
+
+
+
+void Load_OS (byte data[mem_t::MAX_MEM]) {
+    ifstream file;
+
+    file.open ("os/final os program.txt");
+
+    if (file.is_open ()) {
+        word address = 0xE000;
+        byte instruction;
+        string line;
+
+        getline (file, line);
+
+        while (line.length () != 0) {
+            instruction = (INT_REPRESENTATION_OF_HEX (line[0]) * 16) + (INT_REPRESENTATION_OF_HEX (line[1]));
+            data[address++] = instruction;
+            line.erase (0, 3);
+        }
     }
 }

@@ -1,43 +1,34 @@
 .variables
-    $counter %0
-    $addrL %0
-    $addrH %0
-    $valueL %0
-    $valueH %0
+    ; aux_mem address LOW   &FF84
+    ; aux_mem address HIGH  &FF83
+    ; p_stack address       &FF85
 
 .data
 _add
-    LDFM @A $addrL
+    LDFM @A &FF84
     CMPI @A %255
     JZS #inc
     INCR @A
     RSR
 
     #inc
-    LDFM @B $addrH
+    LDFM @B &FF83
     LDFI @A %0
     INCR @B
     RSR
 
-_sub
-    LDFM @A $addrL
-    CMPI @A %0
-    JZS #dec
-    DECR @A
-    RSR
-
-    #dec
-    LDFM @B $addrH
-    LDFI @A %255
-    DECR @B 
-    RSR
-
 _start
+    ; Reset the values of the p_stack counter, and aux_mem address
+    LDFI @A %0
+    LDFI @F %0
+    STOR &FF84 @A
+    STOR &FF83 @A
+
     #start
     ; Set address to get value from in aux_mem
-    LDFM @A $addrL
+    LDFM @A &FF84
     STOR &DA58 @A
-    LDFM @A $addrH
+    LDFM @A &FF83
     STOR &DA59 @A
 
     ; Waiting a clock cycle aux_mem IO to get value
@@ -50,31 +41,27 @@ _start
     JZS #end    
 
     #loop
-    ; Address + 2 = start of program
-    JSR _add
-    STOR $addrL @A
-    STOR $addrH @B
-    JSR _add
-
-    LDFM @F $counter
-    STOO &FF85 @B
+    ; Same address is start of program
+    LDFM @C &FF84
+    STOO &FF85 @C
     INCR @F
-    STOO &FF85 @A
+    LDFM @C &FF83
+    STOO &FF85 @C
     INCR @F
 
-    JSR _sub
+    ; Value at current address + 1 is end of program
+    JSR _add
     STOR &DA58 @A
     STOR &DA59 @B
     LDFM @A &DA5B
     LDFM @B &DA5C
-    STOO &FF85 @B
-    INCR @F
     STOO &FF85 @A
     INCR @F
-    STOR $addrL @A
-    STOR $addrH @B    
+    STOO &FF85 @B
+    INCR @F
+    STOR &FF84 @A
+    STOR &FF83 @B    
 
-    STOR $counter @F
     JMP #start
 
     #end
