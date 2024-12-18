@@ -1,6 +1,13 @@
+; The OS should run each program in its p_stack. 
+; It should "call" the loader_program, give execution to the loaded program
+; And when the program runs into a HALT instruction, it will give execution back to the OS
+; The program will jump back to run section of the OS, with updated values to point to the next program,
+; and while the run section's p_stack offset does not match the p_stack counter in address &FF82, load the next program
+
 .variables
     ; aux_mem address LOW   &FF84
     ; aux_mem address HIGH  &FF83
+    ; p_stack counter       &FF82
     ; p_stack address       &FF85
 
 .data
@@ -62,6 +69,8 @@ _start
     STOR &FF84 @A
     STOR &FF83 @B    
 
+    STOR &FF82 @F
+    LDFM @F &FF82
     JMP #start
 
     #end

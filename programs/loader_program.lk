@@ -1,0 +1,42 @@
+; Different functions to define :
+; Split_Bytes, Grab_Low, Grab_High, Grab_Word, Grab_Byte
+
+; Variables to define :
+; headers array, unInit_headers array, variables array
+; subroutines array, unInit_subroutines array
+; RAM address offset, variable address offset, p_stack offset
+; aux_mem offset (loader.mem_addr), low byte it grabbed from aux_mem, high byte it grabbed from aux_mem, boolean high_next to know if high byte is next to grab from aux_mem
+; instruction, opcode, var_count, and end_address
+
+; EXTRA
+; IF THE PROGRAM EVER ENCOUNTERS A ZERO INSTRUCTION ERROR, MAKE IT RETURN TO THE RUN SECTION OF THE OS
+; FIGURE OUT HOW TO IMPLEMENT MAPS IN ASSEMBLER
+
+; _Split_Bytes :
+; Grab and load low byte from aux_mem 
+; Grab and low high byte from aux_mem
+; Increment aux_mem offset
+
+; _Grab_Low ::
+; Grab and load low byte from aux_mem
+
+; _Grab_High : 
+; Grab and low high byte from aux_mem
+
+; _Grab_Word :
+; If high_next, call _Grab_High, Increment aux_mem offset, then call _Grab_Low
+; Else call _Split_Bytes
+
+; _Grab_Byte :
+; If high_next, call _Grab_High, make high_next = 0, then call _Grab_Low
+; Else call _Grab_Low, and make high_next = 1
+
+; _start
+; var_count = [first p_stack address (p_stack offset + 0 (L), p_stack offset + 1 (H))] + 2
+; end_addr = [second p_stack address (p_stack offset + 2 (L), p_stack offset + 3 (H))]
+; aux_mem offset = [first p_stack address (p_stack offset + 0 (L), p_stack offset + 1 (H))] + 3
+
+; start of for loop to run until aux_mem offset == end_addr
+; If (var_count != 0) 
+;       Call _Grab_Word
+
