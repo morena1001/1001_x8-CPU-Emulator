@@ -18,5 +18,9 @@ VARIABLES ->
 RAM address
 var address
 
-To implement the map and multimap for the aux mem loader, run through the program twice. The first time will only be for figuring out the maximum possible sizes of the headers, variables and subroutines maps, and the unInit_headers and unInit_subroutines multimaps.
-Because each map only accepts <word size, word size> pairs, each pair will require 4 bytes of memory per pair. This way, we won't have to dynamically keep track of the length of the map and removing empty spaces in the map's allocated memory space, saving us time in that aspect, but will require two runs of the entire program to properly load it into RAM section of main memory. These maps will be stored at the very end of RAM, and will have to be reset back to 0 after the program has been fully loaded.
+To implement the map and multimap for the aux mem loader, run through the program twice. 
+The first time will only be for figuring out the maximum possible sizes of the headers, variables and subroutines maps, and the unInit_headers and unInit_subroutines multimaps.
+Because each map only accepts <word size, word size> pairs, each pair will require 4 bytes of memory per pair. 
+This way, we won't have to dynamically keep track of the length of the map and removing empty spaces in the map's allocated memory space, 
+saving us time in that aspect, but will require two runs of the entire program to properly load it into RAM section of main memory. 
+These maps will be stored at the very end of RAM, and will have to be reset back to 0 after the program has been fully loaded.
