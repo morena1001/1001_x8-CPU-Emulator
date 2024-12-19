@@ -2,15 +2,20 @@
 ; Split_Bytes, Grab_Low, Grab_High, Grab_Word, Grab_Byte
 
 ; Variables to define :
-; headers array, unInit_headers array, variables array
-; subroutines array, unInit_subroutines array
+; headers map, unInit_headers multimap, variables map
+; subroutines map, unInit_subroutines multimap
 ; RAM address offset, variable address offset, p_stack offset
 ; aux_mem offset (loader.mem_addr), low byte it grabbed from aux_mem, high byte it grabbed from aux_mem, boolean high_next to know if high byte is next to grab from aux_mem
 ; instruction, opcode, var_count, and end_address
 
 ; EXTRA
 ; IF THE PROGRAM EVER ENCOUNTERS A ZERO INSTRUCTION ERROR, MAKE IT RETURN TO THE RUN SECTION OF THE OS
-; FIGURE OUT HOW TO IMPLEMENT MAPS IN ASSEMBLER
+; FIGURE OUT HOW TO IMPLEMENT MAPS IN ASSEMBLER 
+; (EITHER Implement a Balanced BST in assembler, 
+; OR iterate twice through the program : 
+;   Once to find the max number of values in a map and multimap and then allocating that much space, 
+;   and the second to read all the code)
+; IF AN IF STATEMENT IS FALSE, JUMP TO A LABEL RIGHT AFTER THE CODE IN THE IF STATEMENT 
 
 ; _Split_Bytes :
 ; Grab and load low byte from aux_mem 
@@ -37,6 +42,91 @@
 ; aux_mem offset = [first p_stack address (p_stack offset + 0 (L), p_stack offset + 1 (H))] + 3
 
 ; start of for loop to run until aux_mem offset == end_addr
-; If (var_count != 0) 
-;       Call _Grab_Word
 
+; If (var_count != 0) 
+;       Call _Grab_Word to get var_id
+;       Add <var_id, var_address> pair to variables map
+;       Increment var_address;
+;       Call _Grab_Byte to get value
+;       Write that value into the variable address offset
+;       decrement var_count
+;       Jump back to beginning of for loop
+
+; Call _Grab_Byte to get instruction
+
+; If instruction is HALT opcode (0x35)
+;       If PC has not been set, set PC address to RAM address offset
+;       Write that instruction into RAM memory address offset
+;       Jump back to beginning of for loop
+
+; If instruction is label encoding (0x36)
+;       Call _Grab_Word to get label_id
+;       Add <label_id, RAM address offset> pair to headers map
+;       While there are pairs in unInit_headers with key equal to label_id
+;               Find the first one, Add <label_id, pair's address> pair to headers map
+;               Erase that pair from multimap
+;       Call _Grab_Byte to get next instruction
+
+; If instruction is subroutine encoding (0x41)
+;       Call _Grab_Word to get subr_id
+;       Add <subr_id, RAM address offset> pair to subroutines map
+;       While there are pairs in unInit_subroutines with key equal to subr_id
+;               Find the first one, Add <label_id, pair's address> pair to headers map
+;               Erase pair from multimap
+;       Call _Grab_Byte to get next instruction
+
+; If instruction is start encoding (0x37)
+;       Set PC address to RAM address offset
+;       Set PC_set to true
+;       Jump back to beginning of for loop
+
+; If !PC_set
+;       Set PC address to RAM address offset
+;       Jump back to beginning of for loop
+
+; Write instruction into RAM address offset
+; Make opcode equal to instruction
+
+; If opcode takes in a register as its first operand
+;       Call _Grab_Byte to get register instruction
+;       Write instruction into RAM address offset
+
+; Else if opcode takes in a memory value as its first operand
+;       Call _Grab_Byte to know if it is an address encoding (0x42)
+;       Call _Grab_Word to get var_id/address
+;       If it has an address encoding
+;               Write var_id/address into RAM address offset
+;       Else write the value of the var_id/address key in variables map into RAM address offset
+;       Increment RAM address offset by two
+
+; Else if opcode takes a label as its first operand
+;       Call _Grab_Word to get label_id
+;       if there is no pair with label_id as its key
+;               Add <label_id, RAM address offset> pair into unInit_headers multimap
+;       Else write the value of the label_id key in headers map into RAM address offset
+;       Increment RAM address offset by two
+
+; Else if opcode takes a subroutine as its first operand
+;       Call _Grab_Word to get subr_id
+;       If there is no pair with subr_id as its key
+;               Add <subr_id, RAM address offset> pair into unInit_subroutines multimap
+;       Else write the value of the subr_id key in subroutines map into RAM address offset
+;       Increment RAM address offset by two
+
+; If opcode takes in a register as its second operand
+;       Call _Grab_Byte to get register instruction
+;       Write instruction into RAM address offset
+
+; Else if opcode takes in a memory value as its second operand
+;       Call _Grab_Byte to know if it is an address encoding (0x42)
+;       Call _Grab_Word to get var_id/address
+;       If it has an address encoding
+;               Write var_id/address into RAM address offset
+;       Else write the value of the var_id/address key in variables map into RAM address offset
+;       Increment RAM address offset by two
+
+; Else if opcode takes an immediate as its second operand
+;       Call _Grab_Byte to get value instruction
+;       Write instruction into RAM address offset
+
+; Jump back to the beginning of the for loop

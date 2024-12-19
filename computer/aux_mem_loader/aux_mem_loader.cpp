@@ -122,7 +122,7 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
             word subr_id = Grab_Word (aux_mem, loader);
 
             if (subroutines.count (subr_id) == 0)   unInit_subroutines.insert (pair<word, word> (subr_id, address));
-            else                                    mem.WriteWord (subroutines[subr_id, address], address);
+            else                                    mem.WriteWord (subroutines[subr_id], address);
 
             address += 2;
         }
