@@ -22,7 +22,7 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
     multimap<word, word> unInit_subroutines;
 
     word address = 0x0100;
-    word var_address = 0xD85D;
+    word var_address = 0xD858;
     word p_stack_addr = 0xFF85;
 
     bool PC_set = false;
@@ -32,7 +32,69 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
     word var_count = Grab_Word (aux_mem, loader);
     word end_addr = (mem[p_stack_addr + 2]) | ((mem[p_stack_addr + 3]) << 8);
 
-    for (loader.mem_addr; loader.mem_addr < end_addr;) {
+    word temp_addr = loader.mem_addr;
+
+    float var_bytes = var_count * 1.5;
+    loader.mem_addr += (int) var_bytes;
+    loader.high_next = (int) (var_bytes * 10) % 10 != 0;
+    int headers_size = 0, unInit_headers_size = 0, subroutines_size = 0, unInit_subroutines_size = 0;
+
+    // cout << loader.mem_addr << " " << loader.high_next << " " << (int) tester << endl;
+    for (; loader.mem_addr < end_addr;) {
+        instruction = Grab_Byte (aux_mem, loader);
+
+        // Label ids have an extra instruction preceding it, 0x36, to signify that a label is present
+        if (IS_LABEL_ENCODING (instruction)) {
+            headers_size++;
+            instruction = Grab_Byte (aux_mem, loader);
+        }
+
+        // Subroutine ids have an extra instruction preceding it, 0x41, to singify that subroutine is present
+        if (IS_SUBR_ENCODING (instruction)) {
+            subroutines_size++;
+            instruction = Grab_Byte (aux_mem, loader);
+        }
+
+        // The START instruction denotes a non linear entry point of the cpu 
+        if (IS_START_ENCODING (instruction)) {
+            cpu.PC = address;
+            PC_set = true;
+
+            continue;
+        } 
+
+        // Update the start of the program. Any subroutines appear the main program of code.
+        if (!PC_set) {
+            cpu.PC = address;
+            PC_set = true;
+        }
+
+        opcode = instruction;
+
+        if (IS_JUMP_OPCODE (opcode)) {
+            if (SBR_AS_OPERAND1 (opcode))   unInit_subroutines_size++;
+            else                            unInit_headers_size++;
+            Grab_Word (aux_mem, loader);
+        } else {
+            if (REG_AS_OPERAND1 (opcode))   Grab_Byte (aux_mem, loader);
+            else if (MEM_AS_OPERAND1 (opcode)) {
+                Grab_Byte (aux_mem, loader);
+                Grab_Word (aux_mem, loader);
+            }
+
+            if (REG_AS_OPERAND2 (opcode))   Grab_Byte (aux_mem, loader); 
+            else if (MEM_AS_OPERAND2 (opcode)) {
+                Grab_Byte (aux_mem, loader);
+                Grab_Word (aux_mem, loader);   
+            } else if (IMM_AS_OPERAND2 (opcode))    Grab_Byte (aux_mem, loader);
+        }
+    }
+    cout << headers_size << " " << unInit_headers_size << " " << subroutines_size << " " << unInit_subroutines_size << endl;
+
+
+    loader.mem_addr = temp_addr;
+    loader.high_next = false;
+    for (; loader.mem_addr < end_addr;) {
         // Parse all variables
         if (var_count != 0) {
             word var_id = Grab_Word (aux_mem, loader);

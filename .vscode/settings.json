@@ -44,5 +44,6 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp"
     },
-    "zenMode.fullScreen": false
+    "zenMode.fullScreen": false,
+    "C_Cpp.errorSquiggles": "disabled"
 }

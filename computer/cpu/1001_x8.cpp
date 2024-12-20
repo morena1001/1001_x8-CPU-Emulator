@@ -100,11 +100,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
             // memory.WriteByte (aux_mem[aux_address] & 0xFF, 0xDA5C);
             memory.WriteWord (aux_mem[aux_address], 0xDA5B);
             memory.WriteByte (0, 0xDA5A);
-
-            // system("pause");
         }
-        printf ("%d     %d     %d      %d\n", ReadByte (0xDA5A, memory), ins, (int) memory[0xFF84], (int) memory[0xFF83]);
-        // system("pause");
 
         switch (ins) {
             case INS_LDFM: {

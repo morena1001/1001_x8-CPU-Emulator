@@ -28,9 +28,8 @@ int main (int argc, char** argv) {
 
     // Load_Program ("../programs/os_program.output", cpu, mem);
 
-    // os.Run (cpu, mem, aux_mem, loader);
     cpu.Execute (mem, aux_mem);
-
+    os.Run (cpu, mem, aux_mem, loader);
 
 
     // cout << "A : " << htos (cpu.GPR[A]) << endl;

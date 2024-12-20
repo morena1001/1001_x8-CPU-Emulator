@@ -22,7 +22,7 @@
 ; Grab and low high byte from aux_mem
 ; Increment aux_mem offset
 
-; _Grab_Low ::
+; _Grab_Low :
 ; Grab and load low byte from aux_mem
 
 ; _Grab_High : 
@@ -41,9 +41,13 @@
 ; end_addr = [second p_stack address (p_stack offset + 2 (L), p_stack offset + 3 (H))]
 ; aux_mem offset = [first p_stack address (p_stack offset + 0 (L), p_stack offset + 1 (H))] + 3
 
-; start of for loop to run until aux_mem offset == end_addr (3rd time)
+; start of for loop to run until aux_mem offset == end_addr (1st time)
+;       Call _Grab_Byte to get instruction
+;       If the instruction is any encoding, we want to increment size of appropriate map
+;       
 
 
+; aux_mem offset = [first p_stack address (p_stack offset + 0 (L), p_stack offset + 1 (H))] + 3
 ; start of for loop to run until aux_mem offset == end_addr (2nd time)
 
 ; If (var_count != 0) 
