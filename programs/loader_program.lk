@@ -1,135 +1,123 @@
-; Different functions to define :
-; Split_Bytes, Grab_Low, Grab_High, Grab_Word, Grab_Byte
+.variables
+  $h_size %0
+  $unH_size %0
+  $s_size %0
+  $unS_size %0
+  $var_size %0
 
-; Variables to define :
-; headers map, unInit_headers multimap, variables map
-; subroutines map, unInit_subroutines multimap
-; RAM address offset, variable address offset, p_stack offset
-; aux_mem offset (loader.mem_addr), low byte it grabbed from aux_mem, high byte it grabbed from aux_mem, boolean high_next to know if high byte is next to grab from aux_mem
-; instruction, opcode, var_count, and end_address
+  $h_offset %0
+  $unH_offset %0
+  $s_offset %0
+  $unS_offset %0
+  $var_offset %0
 
-; EXTRA
-; IF THE PROGRAM EVER ENCOUNTERS A ZERO INSTRUCTION ERROR, MAKE IT RETURN TO THE RUN SECTION OF THE OS
-; FIGURE OUT HOW TO IMPLEMENT MAPS IN ASSEMBLER 
-; (EITHER Implement a Balanced BST in assembler, 
-; OR iterate twice through the program : 
-;   Once to find the max number of values in a map and multimap and then allocating that much space, 
-;   and the second to read all the code)
-; IF AN IF STATEMENT IS FALSE, JUMP TO A LABEL RIGHT AFTER THE CODE IN THE IF STATEMENT 
+  $RAM_offset %0
+  $p_stack_offset %0
+  $aux_offset_L %0
+  $aux_offset_H %0
+  $low_byte %0
+  $high_byte %0
+  $high_next %0
 
-; _Split_Bytes :
-; Grab and load low byte from aux_mem 
-; Grab and low high byte from aux_mem
-; Increment aux_mem offset
+  $instruction %0
+  $opcode %0
+  $end_addr
 
-; _Grab_Low ::
-; Grab and load low byte from aux_mem
+.data
+_Increment_Address
+  ; Grabs the address stored in registers C (low) and D (high) and increments it by one
+  CMPI @C %255
+  JZS #inc_low
+  INCR @C
+  RSR
 
-; _Grab_High : 
-; Grab and low high byte from aux_mem
+  #inc_low
+  LDFI @C %0  
+  INCR @D
+  RSR
 
-; _Grab_Word :
-; If high_next, call _Grab_High, Increment aux_mem offset, then call _Grab_Low
-; Else call _Split_Bytes
+_Increment_Aux_Address
+  ; Increment aux mem offset address
+  LDFM @C $aux_offset_L
+  LDFM @D $aux_offset_H
+  JSR _Increment_Address
+  STOR $aux_offset_L @C
+  STOR $aux_offset_H @D
+  RSR
 
-; _Grab_Byte :
-; If high_next, call _Grab_High, make high_next = 0, then call _Grab_Low
-; Else call _Grab_Low, and make high_next = 1
+_Grab_Low
+  ; Load the aux_mem offset address into the setter bytes of the IO
+  LDFM @A %aux_offset_L
+  STOR &DA58 @A
+  LDFM @A %aux_offset_H
+  STOR &DA59 @A
 
-; _start
-; var_count = [first p_stack address (p_stack offset + 0 (L), p_stack offset + 1 (H))] + 2
-; end_addr = [second p_stack address (p_stack offset + 2 (L), p_stack offset + 3 (H))]
-; aux_mem offset = [first p_stack address (p_stack offset + 0 (L), p_stack offset + 1 (H))] + 3
+  ; Get the lower byte value stored at the aux mem offset address from the getter bytes of the IO
+  LDFM @A &DA5B
+  STOR $low_byte @A
+  RSR
 
-; start of for loop to run until aux_mem offset == end_addr (3rd time)
+_Grab_High
+  ; Load the aux_mem offset address into the setter bytes of the IO
+  LDFM @A %aux_offset_L
+  STOR &DA58 @A
+  LDFM @A %aux_offset_H
+  STOR &DA59 @A
 
+  ; Get the higher byte value stored at the aux mem offset address from the getter bytes of the IO
+  LDFM @A &DA5C
+  STOR $high_byte @A
+  RSR
 
-; start of for loop to run until aux_mem offset == end_addr (2nd time)
+_Split_Bytes
+  ; Load the aux_mem offset address into the setter bytes of the IO
+  LDFM @A %aux_offset_L
+  STOR &DA58 @A
+  LDFM @A %aux_offset_H
+  STOR &DA59 @A
 
-; If (var_count != 0) 
-;       Call _Grab_Word to get var_id
-;       Add <var_id, var_address> pair to variables map
-;       Increment var_address;
-;       Call _Grab_Byte to get value
-;       Write that value into the variable address offset
-;       decrement var_count
-;       Jump back to beginning of for loop
+  ; Get the two bytes stored at the aux mem offset address from the getter bytes of the IO
+  LDFM @A &DA5B
+  STOR $low_byte @A
+  LDFM @A &DA5C
+  STOR $high_byte @A
+  JSR _Increment_Aux_Address
+  RSR
 
-; Call _Grab_Byte to get instruction
+_Grab_Byte
+  ; Grabs the low byte if high_next is false, else grabs the high byte
+  LDFM @A $high_next
+  CMPI @A %0
+  JZS #grab_low
 
-; If instruction is HALT opcode (0x35)
-;       If PC has not been set, set PC address to RAM address offset
-;       Write that instruction into RAM memory address offset
-;       Jump back to beginning of for loop
+  #grab_high
+  JSR _Grab_High
+  LDFI @A %0
+  STOR $high_next @A
 
-; If instruction is label encoding (0x36)
-;       Call _Grab_Word to get label_id
-;       Add <label_id, RAM address offset> pair to headers map
-;       While there are pairs in unInit_headers with key equal to label_id
-;               Find the first one, Add <label_id, pair's address> pair to headers map
-;               Erase that pair from multimap
-;       Call _Grab_Byte to get next instruction
+  JSR _Increment_Aux_Address
+  RSR 
 
-; If instruction is subroutine encoding (0x41)
-;       Call _Grab_Word to get subr_id
-;       Add <subr_id, RAM address offset> pair to subroutines map
-;       While there are pairs in unInit_subroutines with key equal to subr_id
-;               Find the first one, Add <label_id, pair's address> pair to headers map
-;               Erase pair from multimap
-;       Call _Grab_Byte to get next instruction
+  #grab_low
+  JSR _Grab_Low
+  LDFI @A %1
+  STOR $high_next @A
+  RSR
 
-; If instruction is start encoding (0x37)
-;       Set PC address to RAM address offset
-;       Set PC_set to true
-;       Jump back to beginning of for loop
+_Grab_Word
+  ; Grabs a word from aux mem offset address
+  LDFM @A $high_next
+  CMPI @A %0
+  JZS #split
 
-; If !PC_set
-;       Set PC address to RAM address offset
-;       Jump back to beginning of for loop
+  JSR _Grab_High
+  JSR _Increment_Aux_Address
+  JSR _Grab_Low
 
-; Write instruction into RAM address offset
-; Make opcode equal to instruction
+  #split
+  JSR _Split_Bytes
+  RSR
 
-; If opcode takes in a register as its first operand
-;       Call _Grab_Byte to get register instruction
-;       Write instruction into RAM address offset
-
-; Else if opcode takes in a memory value as its first operand
-;       Call _Grab_Byte to know if it is an address encoding (0x42)
-;       Call _Grab_Word to get var_id/address
-;       If it has an address encoding
-;               Write var_id/address into RAM address offset
-;       Else write the value of the var_id/address key in variables map into RAM address offset
-;       Increment RAM address offset by two
-
-; Else if opcode takes a label as its first operand
-;       Call _Grab_Word to get label_id
-;       if there is no pair with label_id as its key
-;               Add <label_id, RAM address offset> pair into unInit_headers multimap
-;       Else write the value of the label_id key in headers map into RAM address offset
-;       Increment RAM address offset by two
-
-; Else if opcode takes a subroutine as its first operand
-;       Call _Grab_Word to get subr_id
-;       If there is no pair with subr_id as its key
-;               Add <subr_id, RAM address offset> pair into unInit_subroutines multimap
-;       Else write the value of the subr_id key in subroutines map into RAM address offset
-;       Increment RAM address offset by two
-
-; If opcode takes in a register as its second operand
-;       Call _Grab_Byte to get register instruction
-;       Write instruction into RAM address offset
-
-; Else if opcode takes in a memory value as its second operand
-;       Call _Grab_Byte to know if it is an address encoding (0x42)
-;       Call _Grab_Word to get var_id/address
-;       If it has an address encoding
-;               Write var_id/address into RAM address offset
-;       Else write the value of the var_id/address key in variables map into RAM address offset
-;       Increment RAM address offset by two
-
-; Else if opcode takes an immediate as its second operand
-;       Call _Grab_Byte to get value instruction
-;       Write instruction into RAM address offset
-
-; Jump back to the beginning of the for loop
+_Start
+  
+  
