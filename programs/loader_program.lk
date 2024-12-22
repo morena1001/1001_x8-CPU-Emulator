@@ -1,123 +1,243 @@
 .variables
-  $h_size %0
-  $unH_size %0
-  $s_size %0
-  $unS_size %0
-  $var_size %0
+    $h_size %0
+    $unH_size %0
+    $s_size %0
+    $unS_size %0
+    $var_size %0
 
-  $h_offset %0
-  $unH_offset %0
-  $s_offset %0
-  $unS_offset %0
-  $var_offset %0
+    $h_offset %0
+    $unH_offset %0
+    $s_offset %0
+    $unS_offset %0
+    $var_offset %0
 
-  $RAM_offset %0
-  $p_stack_offset %0
-  $aux_offset_L %0
-  $aux_offset_H %0
-  $low_byte %0
-  $high_byte %0
-  $high_next %0
+    $RAM_offset %0
+    $p_stack_offset %0
+    $aux_offset_L %0
+    $aux_offset_H %0
+    $low_byte %0
+    $high_byte %0
+    $high_next %0
 
-  $instruction %0
-  $opcode %0
-  $end_addr
+    $temp_L %0
+    $temp_H %0
+    $i %0
+
+    $instruction %0
+    $opcode %0
+    $end_addr %0
+
+    $pc_addr_L %0
+    $pc_addr_H %0
+    $pc_set %0
+
+    ; aux_mem address LOW   &FF84
+    ; aux_mem address HIGH  &FF83
+    ; p_stack address       &FF85
 
 .data
 _Increment_Address
-  ; Grabs the address stored in registers C (low) and D (high) and increments it by one
-  CMPI @C %255
-  JZS #inc_low
-  INCR @C
-  RSR
+    ; Grabs the address stored in registers C (low) and D (high) and increments it by one
+    CMPI @C %255
+    JZS #inc_low
+    INCR @C
+    RSR
 
-  #inc_low
-  LDFI @C %0  
-  INCR @D
-  RSR
+    #inc_low
+        LDFI @C %0  
+        INCR @D
+        RSR
 
 _Increment_Aux_Address
-  ; Increment aux mem offset address
-  LDFM @C $aux_offset_L
-  LDFM @D $aux_offset_H
-  JSR _Increment_Address
-  STOR $aux_offset_L @C
-  STOR $aux_offset_H @D
-  RSR
+    ; Increment aux mem offset address
+    LDFM @C $aux_offset_L
+    LDFM @D $aux_offset_H
+    JSR _Increment_Address
+    STOR $aux_offset_L @C
+    STOR $aux_offset_H @D
+    RSR
 
 _Grab_Low
-  ; Load the aux_mem offset address into the setter bytes of the IO
-  LDFM @A %aux_offset_L
-  STOR &DA58 @A
-  LDFM @A %aux_offset_H
-  STOR &DA59 @A
+    ; Load the aux_mem offset address into the setter bytes of the IO
+    LDFM @A $aux_offset_L
+    STOR &DA58 @A
+    LDFM @A $aux_offset_H
+    STOR &DA59 @A
 
-  ; Get the lower byte value stored at the aux mem offset address from the getter bytes of the IO
-  LDFM @A &DA5B
-  STOR $low_byte @A
-  RSR
+    ; Get the lower byte value stored at the aux mem offset address from the getter bytes of the IO
+    LDFM @A &DA5B
+    STOR $low_byte @A
+    RSR
 
 _Grab_High
-  ; Load the aux_mem offset address into the setter bytes of the IO
-  LDFM @A %aux_offset_L
-  STOR &DA58 @A
-  LDFM @A %aux_offset_H
-  STOR &DA59 @A
+    ; Load the aux_mem offset address into the setter bytes of the IO
+    LDFM @A $aux_offset_L
+    STOR &DA58 @A
+    LDFM @A $aux_offset_H
+    STOR &DA59 @A
 
-  ; Get the higher byte value stored at the aux mem offset address from the getter bytes of the IO
-  LDFM @A &DA5C
-  STOR $high_byte @A
-  RSR
+    ; Get the higher byte value stored at the aux mem offset address from the getter bytes of the IO
+    LDFM @A &DA5C
+    STOR $high_byte @A
+    RSR
 
 _Split_Bytes
-  ; Load the aux_mem offset address into the setter bytes of the IO
-  LDFM @A %aux_offset_L
-  STOR &DA58 @A
-  LDFM @A %aux_offset_H
-  STOR &DA59 @A
+    ; Load the aux_mem offset address into the setter bytes of the IO
+    LDFM @A $aux_offset_L
+    STOR &DA58 @A
+    LDFM @A $aux_offset_H
+    STOR &DA59 @A
 
-  ; Get the two bytes stored at the aux mem offset address from the getter bytes of the IO
-  LDFM @A &DA5B
-  STOR $low_byte @A
-  LDFM @A &DA5C
-  STOR $high_byte @A
-  JSR _Increment_Aux_Address
-  RSR
+    ; Get the two bytes stored at the aux mem offset address from the getter bytes of the IO
+    LDFM @A &DA5B
+    STOR $low_byte @A
+    LDFM @A &DA5C
+    STOR $high_byte @A
+    JSR _Increment_Aux_Address
+    RSR
 
 _Grab_Byte
-  ; Grabs the low byte if high_next is false, else grabs the high byte
-  LDFM @A $high_next
-  CMPI @A %0
-  JZS #grab_low
+    ; Grabs the low byte if high_next is false, else grabs the high byte
+    ; All bytes are stored in $low_byte, even if the high byte is grabbed 
+    LDFM @A $high_next
+    CMPI @A %0
+    JZS #grab_low
 
-  #grab_high
-  JSR _Grab_High
-  LDFI @A %0
-  STOR $high_next @A
+    #grab_high
+        JSR _Grab_High
+        LDFI @A %0
+        STOR $high_next @A
 
-  JSR _Increment_Aux_Address
-  RSR 
+        LDFM @A $high_byte
+        STOR $low_byte @A
 
-  #grab_low
-  JSR _Grab_Low
-  LDFI @A %1
-  STOR $high_next @A
-  RSR
+        JSR _Increment_Aux_Address
+        RSR 
+
+    #grab_low
+        JSR _Grab_Low
+        LDFI @A %1
+        STOR $high_next @A
+        RSR
 
 _Grab_Word
-  ; Grabs a word from aux mem offset address
-  LDFM @A $high_next
-  CMPI @A %0
-  JZS #split
+    ; Grabs a word from aux mem offset address
+    LDFM @A $high_next
+    CMPI @A %0
+    JZS #split
 
-  JSR _Grab_High
-  JSR _Increment_Aux_Address
-  JSR _Grab_Low
+    JSR _Grab_High
+    JSR _Increment_Aux_Address
+    JSR _Grab_Low
 
-  #split
-  JSR _Split_Bytes
-  RSR
+    #split
+        JSR _Split_Bytes
+        RSR
 
-_Start
-  
-  
+_start
+    ; GET THE NUMBER OF VARIABLES
+    ; Get the first address from p_stack
+    LDFM @F $p_stack_offset
+    LDFO @A &FF85
+    STOR $aux_offset_L @A
+    INCR @F
+    LDFO @A &FF85
+    STOR $aux_offset_H @A
+    STOR $p_stack_offset @F
+
+    ; Increment address by 2
+    JSR _Increment_Aux_Address
+    JSR _Increment_Aux_Address
+
+
+    ; A word stores size of var_size, but only low byte is used
+    JSR _Grab_Word
+    LDFM @A $low_byte
+    STOR $var_size @A
+
+    ; Store the first address of a variable in temp word
+    STOR $temp_L @A
+    LDFM @A $high_byte
+    STOR $temp_H @A
+
+    ; GET THE ENDING ADDRESS
+    ; Get the second address from p_stack
+    LDFM @F $p_stack_offset
+    LDFO @A &FF85
+    STOR $aux_offset_L @A
+    INCR @F
+    LDFO @A &FF85
+    STOR $aux_offset_H @A
+    STOR $p_stack_offset @F
+
+    ; GO TO THE FIRST ADDRESS OF .data SECTION
+    #loop_start_1
+        LDFM @A $var_size
+        CMPM @A $i
+        JZS #loop_end_1
+
+        JSR _Grab_Word
+        JSR _Grab_Byte
+
+        INCM $i
+    #loop_end_1
+
+    ; 1ST LOOP TO GET SIZES OF MAPS
+    #loop_start_2
+        ; Grab the next instruction
+        JSR _Grab_Byte
+        LDFM @A $low_byte
+        STOR $instruction @A
+
+        ; Check if instruction is a label encoding (0x36, 54)
+        #label_check_1
+            LDFM @A $instruction
+            CMPI @A %54
+            JZC #subr_check_1
+            INCM $h_size
+
+            ; Grab the next instruction
+            JSR _Grab_Byte
+            LDFM @A $low_byte
+            STOR $instruction @A
+
+        ; Check if the instruction is a subroutine encoding (0x41, 65)
+        #subr_check_1
+            LDFM @A $instruction
+            CMPI @A %65
+            JZC #opcode_check_1
+            INCM $s_hize
+
+            ; Grab the next instruction
+            JSR _Grab_Byte
+            LDFM @A $low_byte
+            STOR $instruction @A
+
+        #opcode_check_1
+            LDFM @A $instruction
+            STOR $opcode @A
+
+            ; Check if opcode is a label jump opcode (0x21, 0x24 - 0x2B, 33, 36 - 43)
+            #lj_check_1
+
+            ; Check if opcode is a subroutine jump opcode (0x22, 34)
+            #sj_check_1
+
+            ; Check if the first operand is a register (0x01 - 0x03, 0x05, 0x07, 0x08, 0x0E - 0x19, 0x1B, 0x1D, 0x1E, 0x38, 0x3C, 1 - 3, 5, 6, 7, 14 - 25, 27, 29, 30, 56, 60)
+
+            ; Check if the first operand is a memory value (0x04, 0x06, 0x09, 0x1A, 0x1C, 0x1F, 0x20, 0x39 - 0x3B, 0x3D - 0x40, 4, 6, 9, 26 28, 31, 32, 57 - 59, 61 - 64)
+
+            ; Check if the second operand is a register (0x03, 0x04, 0x05, 0x0E, 0x0F, 0x10, 0x12 - 0x16, 0x39, 3, 4, 5, 14, 15, 16, 18 - 22, 57)
+
+            ; Check if the second operand is a memory value (0x01, 0x06, 0x17, 0x38, 0x3A, 0x3C, 1, 6, 23, 56, 58, 60)
+
+            ; Check if the second operand is an immediate (0x02, 0x18, 2, 24)
+    #loop_end_2
+
+    LDFM @A $temp_L
+    STOR $aux_offset_L @A
+    LDFM @A $temp_H
+    STOR $aux_offset_H @A
+
+    #end
+        HALT

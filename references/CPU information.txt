@@ -67,7 +67,7 @@ INSTRUCTIONS
     0x14	MULT	    Reg1	    Reg2	    CF, SF, ZF, OF	3	    Multiply contents of reg1 with reg2, storing result in reg1
     0x15	DIV	        Reg1	    Reg2	    CF, SF, ZF, OF	3	    Divide contents of reg1 with reg2, storing result in reg1
     0x16	CMPR	    Reg1	    Reg2	    CF, SF, ZF	    3	    Compare contents of reg1 with reg2. CF is set if reg1 >= reg2, ZF is set if reg1 = reg2
-    0x17	CMPM	    Reg	        Mem	        CF, SF, ZF	    4	    Compare contents of reg with mem. CF is set if reg >= mem ZF is set if reg = mem
+    0x17	CMPM	    Reg	        Mem	        CF, SF, ZF	    4	    Compare contents of reg with mem. CF is set if reg >= mem, ZF is set if reg = mem
     0x18	CMPI	    Reg	        Imm	        CF, SF, ZF	    3	    Compare contents of reg with imm. CF is set if reg >= imm, ZF is set if reg = imm
     0x19	INCR	    Reg		                SF, ZF	        2	    Increment value held in register
     0x1A	INCM	    Mem		                    	        3	    Increment value held in memory
