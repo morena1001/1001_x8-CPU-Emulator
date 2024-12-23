@@ -45,5 +45,5 @@
         "typeinfo": "cpp"
     },
     "zenMode.fullScreen": false,
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "enabled"
 }

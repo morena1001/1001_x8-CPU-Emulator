@@ -139,7 +139,9 @@ typedef struct CPU {
         INS_INCO = 0x3D,
         INS_DECO = 0x3E,
         INS_SHLO = 0x3F,
-        INS_SHRO = 0x40;
+        INS_SHRO = 0x40,
+        INS_COPM = 0x43,
+        INS_COPO = 0x44;
 } cpu_t;
 
 const byte char_bitmaps[69][7] = {

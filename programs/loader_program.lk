@@ -9,7 +9,8 @@
     $unH_offset %0
     $s_offset %0
     $unS_offset %0
-    $var_offset %0
+    $var_offset_L %0
+    $var_offset_H %0
 
     $RAM_offset %0
     $p_stack_offset %0
@@ -25,7 +26,8 @@
 
     $instruction %0
     $opcode %0
-    $end_addr %0
+    $end_addr_L %0
+    $end_addr_H %0
 
     $pc_addr_L %0
     $pc_addr_H %0
@@ -34,6 +36,7 @@
     ; aux_mem address LOW   &FF84
     ; aux_mem address HIGH  &FF83
     ; p_stack address       &FF85
+    ; Variable memory       &D858
 
 .data
 _Increment_Address
@@ -164,10 +167,10 @@ _start
     ; Get the second address from p_stack
     LDFM @F $p_stack_offset
     LDFO @A &FF85
-    STOR $aux_offset_L @A
+    STOR $end_addr_L @A
     INCR @F
     LDFO @A &FF85
-    STOR $aux_offset_H @A
+    STOR $end_addr_H @A
     STOR $p_stack_offset @F
 
     ; GO TO THE FIRST ADDRESS OF .data SECTION
@@ -184,6 +187,15 @@ _start
 
     ; 1ST LOOP TO GET SIZES OF MAPS
     #loop_start_2
+        LDFM @A $end_addr_L
+        CMPM @A $aux_offset_L
+        JZC #end_loop_check
+
+        LDFM @A $end_addr_H
+        CMPM @A $aux_offset_H
+        JZS #loop_end_2
+
+        #end_loop_check
         ; Grab the next instruction
         JSR _Grab_Byte
         LDFM @A $low_byte
@@ -219,25 +231,200 @@ _start
 
             ; Check if opcode is a label jump opcode (0x21, 0x24 - 0x2B, 33, 36 - 43)
             #lj_check_1
+                LDFM @A $opcode
+                CMPI @A %33
+                JZS #is_jump_1
+                CMPI @A %36
+                JCC #sj_check_1
+                CMPI @A %44
+                JCS #sj_check_1
+
+            #is_jump_1
+                INCM $unH_size
+                JSR _Grab_Word
+                JMP #loop_start_2
 
             ; Check if opcode is a subroutine jump opcode (0x22, 34)
             #sj_check_1
+                LDFM @A $opcode 
+                CMPI @A %34
+                JZC #reg_op1_check_1
+
+                INCM $unS_size
+                JSR _Grab_Word
+                JMP #loop_start_2
 
             ; Check if the first operand is a register (0x01 - 0x03, 0x05, 0x07, 0x08, 0x0E - 0x19, 0x1B, 0x1D, 0x1E, 0x38, 0x3C, 1 - 3, 5, 6, 7, 14 - 25, 27, 29, 30, 56, 60)
+            #reg_op1_check_1
+                LDFM @A $opcode
+                CMPI @A %1
+                JZS #is_reg_op1_1
+                CMPI @A %2
+                JZS #is_reg_op1_1
+                CMPI @A %3
+                JZS #is_reg_op1_1
+                CMPI @A %5
+                JZS #is_reg_op1_1
+                CMPI @A %6
+                JZS #is_reg_op1_1
+                CMPI @A %7
+                JZS #is_reg_op1_1
+                CMPI @A %27
+                JZS #is_reg_op1_1
+                CMPI @A %29
+                JZS #is_reg_op1_1
+                CMPI @A %30
+                JZS #is_reg_op1_1
+                CMPI @A %56
+                JZS #is_reg_op1_1
+                CMPI @A %60
+                JZS #is_reg_op1_1
+                CMPI @A %14
+                JCC #mem_op1_check_1
+                CMPI @A %26
+                JCS #mem_op1_check_1
 
-            ; Check if the first operand is a memory value (0x04, 0x06, 0x09, 0x1A, 0x1C, 0x1F, 0x20, 0x39 - 0x3B, 0x3D - 0x40, 4, 6, 9, 26 28, 31, 32, 57 - 59, 61 - 64)
+            #is_reg_op1_1
+                JSR _Grab_Byte
+                JMP #reg_op2_check_1
+
+            ; Check if the first operand is a memory value (0x04, 0x06, 0x09, 0x1A, 0x1C, 0x1F, 0x20, 0x39 - 0x3B, 0x3D - 0x40, 0x43, 0x44, 4, 6, 9, 26 28, 31, 32, 57 - 59, 61 - 64, 67, 68)
+            #mem_op1_check_1
+                LDFM @A $opcode
+                CMPI @A %4
+                JZS #is_mem_op1_1
+                CMPI @A %6
+                JZS #is_mem_op1_1
+                CMPI @A %9
+                JZS #is_mem_op1_1
+                CMPI @A %26
+                JZS #is_mem_op1_1
+                CMPI @A %28
+                JZS #is_mem_op1_1
+                CMPI @A %31
+                JZS #is_mem_op1_1
+                CMPI @A %32
+                JZS #is_mem_op1_1
+                CMPI @A %67
+                JZS #is_mem_op1_1
+                CMPI @A %68
+                JZS #is_mem_op1_1
+                CMPI @A %57
+                JCC #reg_op2_check_1
+                CMPI @A %60
+                JCC #is_mem_op1_1
+                CMPI @A %61
+                JCC #reg_op2_check_1
+                CMPI @A %65
+                JCC #is_mem_op1_1
+
+            #is_mem_op1_1
+                JSR _Grab_Byte
+                JSR _Grab_Word
+                JMP #reg_op2_check_1
 
             ; Check if the second operand is a register (0x03, 0x04, 0x05, 0x0E, 0x0F, 0x10, 0x12 - 0x16, 0x39, 3, 4, 5, 14, 15, 16, 18 - 22, 57)
+            #reg_op2_check_1
+                LDFM @A $opcode
+                CMPI @A %3
+                JZS #is_reg_op2_1
+                CMPI @A %4
+                JZS #is_reg_op2_1
+                CMPI @A %5
+                JZS #is_reg_op2_1
+                CMPI @A %14
+                JZS #is_reg_op2_1
+                CMPI @A %15
+                JZS #is_reg_op2_1
+                CMPI @A %16
+                JZS #is_reg_op2_1
+                CMPI @A %57
+                JZS #is_reg_op2_1
+                CMPI @A %18
+                JCC #mem_op2_check_1
+                CMPI @A %23
+                JCS #mem_op2_check_1
 
-            ; Check if the second operand is a memory value (0x01, 0x06, 0x17, 0x38, 0x3A, 0x3C, 1, 6, 23, 56, 58, 60)
+            #is_reg_op2_1
+                JSR _Grab_Byte 
+                JMP #loop_start_2
+
+            ; Check if the second operand is a memory value (0x01, 0x06, 0x17, 0x38, 0x3A, 0x3C, 0x43, 0x44, 1, 6, 23, 56, 58, 60, 67, 68)
+            #mem_op2_check_1
+                LDFM @A $opcode
+                CMPI @A %1
+                JZS #is_mem_op2_1
+                CMPI @A %6
+                JZS #is_mem_op2_1
+                CMPI @A %23
+                JZS #is_mem_op2_1
+                CMPI @A %56
+                JZS #is_mem_op2_1
+                CMPI @A %58
+                JZS #is_mem_op2_1
+                CMPI @A %60
+                JZS #is_mem_op2_1
+                CMPI @A %67
+                JZS #is_mem_op2_1
+                CMPI @A %68
+                JZC #imm_op2_check_1
+
+            #is_mem_op2_1
+                JSR _Grab_Byte
+                JSR _Grab_Word
+                JMP #loop_start_2
 
             ; Check if the second operand is an immediate (0x02, 0x18, 2, 24)
+            #imm_op2_check_1
+                LDFM @A $opcode
+                CMPI @A %2
+                JZS #is_imm_op2_1
+                CMPI @A %24
+                JZS #is_imm_op2_1
+
+                JMP #loop_start_2
+            
+            #is_imm_op2_1
+                JSR _Grab_Byte
+                JMP #loop_start_2
+
     #loop_end_2
 
+    ; Go back to first address of variable to start second loop
     LDFM @A $temp_L
     STOR $aux_offset_L @A
     LDFM @A $temp_H
     STOR $aux_offset_H @A
+    LDFI @A %0
+    STOR $high_next @A
+
+    ; 2ST LOOP TO PARSE CONTENT
+    #loop_start_3
+        LDFM @A $end_addr_L
+        CMPM @A $aux_offset_L
+        JZC #end_loop_check_1 
+
+        LDFM @A $end_addr_H
+        CMPM @A $aux_offset_H
+        JZS #loop_end_3
+
+        #end_loop_check_1
+
+        ; Parse the variables var_count != 0
+        LDFM @A $var_size
+        JZS #instruction_grab
+
+        JSR _Grab_Word
+        JSR _Grab_Byte
+
+        LDFM @F $var_offset
+        STOO &D858 
+
+
+
+        #instruction_grab
+
+    #loop_end_3
 
     #end
         HALT
