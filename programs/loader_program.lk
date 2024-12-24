@@ -12,7 +12,17 @@
     $var_offset_L %0
     $var_offset_H %0
 
-    $RAM_offset %0
+    $h_start_addr_L %0
+    $h_start_addr_H %0
+    $unH_start_addr_L %0
+    $unH_start_addr_H %0
+    $s_start_addr_L %0
+    $s_start_addr_H %0
+    $unS_start_addr_L %0
+    $unS_start_addr_H %0
+
+    $RAM_offset_L %0
+    $RAM_offset_H
     $p_stack_offset %0
     $aux_offset_L %0
     $aux_offset_H %0
@@ -37,8 +47,22 @@
     ; aux_mem address HIGH  &FF83
     ; p_stack address       &FF85
     ; Variable memory       &D858
+    ; RAM address           &0100
+    ; RAM final address     &DA57
 
 .data
+_Decrement_Address
+    ; Grabs the address stored in registers C (low) and D (high) and decrements it by one
+    CMPI @C %0
+    JZS #dec_low
+    DECR @C
+    RSR
+
+    #dec_low
+        LDFI @C %255
+        DECR @D
+        RSR
+
 _Increment_Address
     ; Grabs the address stored in registers C (low) and D (high) and increments it by one
     CMPI @C %255
@@ -185,6 +209,7 @@ _start
         JSR _Grab_Byte
 
         INCM $i
+        JMP #loop_start_1
     #loop_end_1
 
     ; 1ST LOOP TO GET SIZES OF MAPS
@@ -220,7 +245,7 @@ _start
             LDFM @A $instruction
             CMPI @A %65
             JZC #opcode_check_1
-            INCM $s_hize
+            INCM $s_size
 
             ; Grab the next instruction
             JSR _Grab_Byte
@@ -389,8 +414,65 @@ _start
             #is_imm_op2_1
                 JSR _Grab_Byte
                 JMP #loop_start_2
-
     #loop_end_2
+
+    ; ALLOCATE A SECTION OF MEMORY TO THE MAPS (END OF RAM)
+    ; Allocate h_size * 2 (2 bytes per label to store its low and high location address) to labels map
+    LDFI @C %87 ; (0x57)
+    LDFI @D %218 ; (0xDA)
+    #h_alloc_loop_start
+        LDFM @A $h_size
+        JZS #h_alloc_loop_end
+
+        JSR _Decrement_Address
+        JSR _Decrement_Address
+        DECM $h_size
+        JMP #h_alloc_loop_start
+    #h_alloc_loop_end
+    STOR $h_start_addr_L @C
+    STOR $h_start_addr_H @D
+
+    ; Allocate unH_size * 3 (2 bytes per label to store its location address, 1 to store its id)
+    #unH_alloc_loop_start
+        LDFM @A $unH_size
+        JZS #unH_alloc_loop_end
+
+        JSR _Decrement_Address
+        JSR _Decrement_Address
+        JSR _Decrement_Address
+        DECM $unH_size
+        JMP #unH_alloc_loop_start
+    #unH_alloc_loop_end
+    STOR $unH_start_addr_L @C
+    STOR $unH_start_addr_H @D
+
+    ; Allocate s_size * 2 (2 bytes to store its low and high location address)
+    #s_alloc_loop_start
+        LDFM @A $s_size
+        JZS #s_alloc_loop_end
+
+        JSR _Decrement_Address
+        JSR _Decrement_Address
+        DECM $s_size
+        JMP #s_alloc_loop_start
+    #s_alloc_loop_end
+    STOR $s_start_addr_L @C
+    STOR $s_start_addr_H @D
+
+    ; Allocate unS_size * 3 (2 bytes per label to store its location address, 1 to store its id)
+    #unS_alloc_loop_start
+        LDFM @A $unS_size
+        JZS #unS_alloc_loop_end
+
+        JSR _Decrement_Address
+        JSR _Decrement_Address
+        JSR _Decrement_Address
+        DECM $unS_size
+        JMP #unS_alloc_loop_start
+    #unS_alloc_loop_end
+    STOR $unS_start_addr_L @C
+    STOR $unS_start_addr_H @D
+
 
     ; Go back to first address of variable to start second loop
     LDFM @A $temp_L
@@ -421,7 +503,7 @@ _start
 
         LDFM @E $var_offset
         LDFM @F %0
-        STOO &D858 $low_byte
+        COPO &D858 $low_byte
         INCM $var_offset
         DECM $var_size
         JMP #loop_start_3
@@ -431,6 +513,27 @@ _start
         LDFM @A $low_byte
         STOR $instruction @A
 
+        ; Check if it is an halt instruction (0x35, 53)
+        #halt_check_2
+            LDFM @A $instruction
+            CMPI @A %53
+            JZC #label_check_2
+            LDFM @A $pc_set
+            CMPI @A %1
+            JZS #write_to_memory_1
+            COPM $pc_addr_L $RAM_offset_L
+            COPM $pc_addr_H $RAM_offset_H
+            #write_to_memory_1
+            LDFI @C %0
+            LDFI @D %0
+            LDFM @E $RAM_offset_L
+            LDFM @F $RAM_offset_H
+            COPO &0100 $instruction
+            LDFM @C $RAM_offset_L
+            LDFM @D $RAM_offset_H
+            JMP #loop_start_3
+
+        #label_check_2
 
     #loop_end_3
 
