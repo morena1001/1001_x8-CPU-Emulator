@@ -140,13 +140,14 @@ _Grab_Word
 _start
     ; GET THE NUMBER OF VARIABLES
     ; Get the first address from p_stack
-    LDFM @F $p_stack_offset
+    LDFM @E $p_stack_offset
+    LDFI @F %0
     LDFO @A &FF85
     STOR $aux_offset_L @A
-    INCR @F
+    INCR @E
     LDFO @A &FF85
     STOR $aux_offset_H @A
-    STOR $p_stack_offset @F
+    STOR $p_stack_offset @E
 
     ; Increment address by 2
     JSR _Increment_Aux_Address
@@ -165,13 +166,14 @@ _start
 
     ; GET THE ENDING ADDRESS
     ; Get the second address from p_stack
-    LDFM @F $p_stack_offset
+    LDFM @E $p_stack_offset
+    LDFI @F %0
     LDFO @A &FF85
     STOR $end_addr_L @A
-    INCR @F
+    INCR @E
     LDFO @A &FF85
     STOR $end_addr_H @A
-    STOR $p_stack_offset @F
+    STOR $p_stack_offset @E
 
     ; GO TO THE FIRST ADDRESS OF .data SECTION
     #loop_start_1
@@ -417,12 +419,18 @@ _start
         JSR _Grab_Word
         JSR _Grab_Byte
 
-        LDFM @F $var_offset
-        STOO &D858 
-
-
+        LDFM @E $var_offset
+        LDFM @F %0
+        STOO &D858 $low_byte
+        INCM $var_offset
+        DECM $var_size
+        JMP #loop_start_3
 
         #instruction_grab
+        JSR _Grab_Byte
+        LDFM @A $low_byte
+        STOR $instruction @A
+
 
     #loop_end_3
 

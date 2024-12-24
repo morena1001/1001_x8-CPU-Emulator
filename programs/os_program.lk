@@ -27,7 +27,7 @@ _add
 _start
     ; Reset the values of the p_stack counter, and aux_mem address
     LDFI @A %0
-    LDFI @F %0
+    LDFI @E %0
     STOR &FF84 @A
     STOR &FF83 @A
 
@@ -51,10 +51,10 @@ _start
     ; Same address is start of program
     LDFM @C &FF84
     STOO &FF85 @C
-    INCR @F
+    INCR @E
     LDFM @C &FF83
     STOO &FF85 @C
-    INCR @F
+    INCR @E
 
     ; Value at current address + 1 is end of program
     JSR _add
@@ -63,14 +63,14 @@ _start
     LDFM @A &DA5B
     LDFM @B &DA5C
     STOO &FF85 @A
-    INCR @F
+    INCR @E
     STOO &FF85 @B
-    INCR @F
+    INCR @E
     STOR &FF84 @A
     STOR &FF83 @B    
 
-    STOR &FF82 @F
-    LDFM @F &FF82
+    STOR &FF82 @E
+    LDFM @E &FF82
     JMP #start
 
     #end
