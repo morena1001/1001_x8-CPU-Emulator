@@ -31,11 +31,6 @@ void MEM::Init () {
 
     // Load OS
     Load_OS (data);
-
-    //     int a = 10;
-    // for (int i = 0; i < 7; i++) {
-    //   cout << (int) data[0xDE1D + (a * 7) + i] << endl;
-    // }
 }
 
 void MEM::WriteByte (byte value, u32 address) {
@@ -94,12 +89,12 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
 
     while (ins != INS_HALT) {
+        printf ("%d   %d\n", (int) ins, PC);
         if (ReadByte (0xDA5A, memory) == 1) {
             word aux_address = ((word) ReadByte (0xDA58, memory)) | ((word) ReadByte (0xDA59, memory) << 8);
-            // memory.WriteByte (aux_mem[aux_address] >> 8, 0xDA5B);
-            // memory.WriteByte (aux_mem[aux_address] & 0xFF, 0xDA5C);
             memory.WriteWord (aux_mem[aux_address], 0xDA5B);
             memory.WriteByte (0, 0xDA5A);
+            printf ("YEAH               %d %d %d %d\n", ReadByte (0xDA58, memory), ReadByte (0xDA59, memory), ReadByte (0xDA5B, memory), ReadByte (0xDA5C, memory));
         }
 
         switch (ins) {
@@ -549,10 +544,10 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
                 word address1 = FetchWord (memory);
                 word address2 = FetchWord (memory);
                 
-                GPR[G] = ReadByte (address1 + ((word) (GPR[C]) | (word) (GPR[D] << 8)), memory);
-                GPR[H] = ReadByte (address2 + ((word) (GPR[E]) | (word) (GPR[F] << 8)), memory);
-                memory.WriteByte (GPR[H], address1 + ((word) (GPR[C]) | (word) (GPR[D] << 8)));
-                memory.WriteByte (GPR[G], address2 + ((word) (GPR[E]) | (word) (GPR[F] << 8)));
+                GPR[G] = ReadByte (address1 + ((word) (GPR[E]) | (word) (GPR[F] << 8)), memory);
+                GPR[H] = ReadByte (address2 + ((word) (GPR[C]) | (word) (GPR[D] << 8)), memory);
+                memory.WriteByte (GPR[H], address1 + ((word) (GPR[E]) | (word) (GPR[F] << 8)));
+                memory.WriteByte (GPR[G], address2 + ((word) (GPR[C]) | (word) (GPR[D] << 8)));
             } break;
 
             case INS_PSHO: {
@@ -605,14 +600,18 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
 
                 GPR[H] = ReadByte (address2, memory);
                 memory.WriteByte (GPR[H], address1);
+
+                if (address1 == 0xDA59)      memory.WriteByte (1, 0xDA5A);
             } break;
 
             case INS_COPO: {
                 word address1 = FetchWord (memory);
                 word address2 = FetchWord (memory);
 
-                GPR[H] = ReadByte (address2 + ((word) (GPR[E]) | (word) (GPR[F] << 8)), memory);
-                memory.WriteByte (GPR[H], address1 + ((word) (GPR[C]) | (word) (GPR[D] << 8)));
+                GPR[H] = ReadByte (address2 + ((word) (GPR[C]) | (word) (GPR[D] << 8)), memory);
+                memory.WriteByte (GPR[H], address1 + ((word) (GPR[E]) | (word) (GPR[F] << 8)));
+
+                if (address1 == 0xDA59)      memory.WriteByte (1, 0xDA5A);
             } break;
 
             default : {

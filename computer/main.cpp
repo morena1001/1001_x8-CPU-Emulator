@@ -32,7 +32,7 @@ int main (int argc, char** argv) {
     // Execute the OS pointed to by the bootloader
     cpu.Execute (mem, aux_mem);
     // Load a program from auxiliary memory 
-    os.Run (cpu, mem, aux_mem, loader);
+    // os.Run (cpu, mem, aux_mem, loader);
 
 
 
