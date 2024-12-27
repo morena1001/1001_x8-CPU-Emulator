@@ -89,12 +89,10 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
 
     while (ins != INS_HALT) {
-        printf ("%d   %d\n", (int) ins, PC);
         if (ReadByte (0xDA5A, memory) == 1) {
             word aux_address = ((word) ReadByte (0xDA58, memory)) | ((word) ReadByte (0xDA59, memory) << 8);
             memory.WriteWord (aux_mem[aux_address], 0xDA5B);
             memory.WriteByte (0, 0xDA5A);
-            printf ("YEAH               %d %d %d %d\n", ReadByte (0xDA58, memory), ReadByte (0xDA59, memory), ReadByte (0xDA5B, memory), ReadByte (0xDA5C, memory));
         }
 
         switch (ins) {
@@ -127,7 +125,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
                 byte reg = FetchByte (memory);
                 memory.WriteByte (GPR[reg], address);
 
-                if (address == 0xDA59)      memory.WriteByte (1, 0xDA5A);
+                // if (address == 0xDA59)      memory.WriteByte (1, 0xDA5A);
             } break;
 
             case INS_SWPR: {
@@ -601,7 +599,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
                 GPR[H] = ReadByte (address2, memory);
                 memory.WriteByte (GPR[H], address1);
 
-                if (address1 == 0xDA59)      memory.WriteByte (1, 0xDA5A);
+                // if (address1 == 0xDA59)      memory.WriteByte (1, 0xDA5A);
             } break;
 
             case INS_COPO: {
@@ -611,7 +609,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
                 GPR[H] = ReadByte (address2 + ((word) (GPR[C]) | (word) (GPR[D] << 8)), memory);
                 memory.WriteByte (GPR[H], address1 + ((word) (GPR[E]) | (word) (GPR[F] << 8)));
 
-                if (address1 == 0xDA59)      memory.WriteByte (1, 0xDA5A);
+                // if (address1 == 0xDA59)      memory.WriteByte (1, 0xDA5A);
             } break;
 
             case INS_STRI: {
@@ -619,7 +617,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
                 byte imm = FetchByte (memory);
 
                 memory.WriteByte (imm, address);
-                if (address = 0xDA59)       memory.WriteByte (1, 0xDA5A);
+                // if (address == 0xDA59)       memory.WriteByte (1, 0xDA5A);
             } break;
 
             case INS_STRO: {
@@ -627,7 +625,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
                 byte imm = FetchByte (memory);
 
                 memory.WriteByte (imm, address + ((word) (GPR[E]) | (word) (GPR[F] << 8)));
-                if (address == 0xDA59)      memory.WriteByte (1, 0xDA5A);
+                // if (address == 0xDA59)      memory.WriteByte (1, 0xDA5A);
             } break;
 
             default : {

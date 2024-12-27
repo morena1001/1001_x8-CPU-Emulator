@@ -28,9 +28,10 @@ int main (int argc, char** argv) {
     os.Init (cpu, mem, aux_mem);
 
     // Load_Program ("../programs/os_program.output", cpu, mem);
+    Load_Program ("../programs/loader_refined_program.output", cpu, mem);
 
     // Execute the OS pointed to by the bootloader
-    cpu.Execute (mem, aux_mem);
+    // cpu.Execute (mem, aux_mem);
     // Load a program from auxiliary memory 
     // os.Run (cpu, mem, aux_mem, loader);
 

@@ -22,8 +22,14 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
     map<word, word> subroutines;
     multimap<word, word> unInit_subroutines;
 
-    word address = 0xE000;
-    word var_address = 0xD85D;
+
+    // ADDRESSES FOR REGULAR PROGRAM
+    word address = 0x0100;
+    word var_address = 0xD858;
+
+    // ADDRESSES FOR OS PROGRAM
+    // word address = 0xE000;
+    // word var_address = 0xD85D;
 
     bool PC_set = false;
     bool end_of_program = false;
