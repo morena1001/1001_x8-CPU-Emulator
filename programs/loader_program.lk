@@ -22,7 +22,7 @@
     $unS_start_addr_H %0
 
     $RAM_offset_L %0
-    $RAM_offset_H
+    $RAM_offset_H %0
     $p_stack_offset %0
     $aux_offset_L %0
     $aux_offset_H %0
@@ -33,6 +33,7 @@
     $temp_L %0
     $temp_H %0
     $i %0
+    $j %0
 
     $instruction %0
     $opcode %0
@@ -432,11 +433,12 @@ _start
     STOR $h_start_addr_L @C
     STOR $h_start_addr_H @D
 
-    ; Allocate unH_size * 3 (2 bytes per label to store its location address, 1 to store its id)
+    ; Allocate unH_size * 4 (2 bytes per label to store its location address, 2 to store its id)
     #unH_alloc_loop_start
         LDFM @A $unH_size
         JZS #unH_alloc_loop_end
 
+        JSR _Decrement_Address
         JSR _Decrement_Address
         JSR _Decrement_Address
         JSR _Decrement_Address
@@ -459,11 +461,12 @@ _start
     STOR $s_start_addr_L @C
     STOR $s_start_addr_H @D
 
-    ; Allocate unS_size * 3 (2 bytes per label to store its location address, 1 to store its id)
+    ; Allocate unS_size * 4 (2 bytes per label to store its location address, 2 to store its id)
     #unS_alloc_loop_start
         LDFM @A $unS_size
         JZS #unS_alloc_loop_end
 
+        JSR _Decrement_Address
         JSR _Decrement_Address
         JSR _Decrement_Address
         JSR _Decrement_Address
@@ -513,27 +516,162 @@ _start
         LDFM @A $low_byte
         STOR $instruction @A
 
-        ; Check if it is an halt instruction (0x35, 53)
-        #halt_check_2
+        ; Check if it is a halt instruction (0x35, 53)
+        #halt_check
             LDFM @A $instruction
             CMPI @A %53
             JZC #label_check_2
+
             LDFM @A $pc_set
-            CMPI @A %1
-            JZS #write_to_memory_1
+            JZC #write_to_memory_1
             COPM $pc_addr_L $RAM_offset_L
             COPM $pc_addr_H $RAM_offset_H
+            
             #write_to_memory_1
-            LDFI @C %0
-            LDFI @D %0
-            LDFM @E $RAM_offset_L
-            LDFM @F $RAM_offset_H
-            COPO &0100 $instruction
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+                LDFI @C %0
+                LDFI @D %0
+                LDFM @E $RAM_offset_L
+                LDFM @F $RAM_offset_H
+                COPO &0100 $instruction
+                LDFM @C $RAM_offset_L
+                LDFM @D $RAM_offset_H
+                JSR _Increment_Address
             JMP #loop_start_3
 
+        ; Check if the instruction is a label encoding (0x36, 54)
         #label_check_2
+            LDFM @A $instruction
+            CMPI @A %54
+            JZC #subr_check_2
+
+            JSR _Grab_Word
+            PSHM $high_byte
+            PSHM $low_byte
+
+            LDFI @C %0
+            LDFI @D %0
+            LDFM @E $h_start_addr_L
+            LDFM @F $h_start_addr_H
+            LDFM @B $h_offset
+            ADD @E @B
+            JOC #addr_store
+            INCR @F
+
+            #addr_store
+                COPO &0000 $RAM_offset_L
+                INCR @E 
+                JZC #second_addr_store
+                INCR @F
+
+            #second_addr_store
+                COPO &0000 $RAM_offset_H
+                INCM $h_offset
+                INCM $h_offset
+
+            ; For every value in unInit_headers who's label matches this label, update
+            LDFI @C %0
+            STOR $i @C
+            STOR $j @C
+            #unH_loop_start
+                LDFM @A $unH_start_addr_L
+                LDFM @B $unH_start_addr_H
+                CMPM @A $s_start_addr_L
+                JZC #check_unH_id
+                CMPM @B $s_start_addr_H
+                JZS #unH_loop_end
+
+                #check_unH_id
+                    LDFI @E %0
+                    LDFI @F %0
+                    LDFM @C $unH_start_addr_L
+                    LDFM @D $unH_start_addr_H
+                    LDFM @A $i
+                    LDFM @B $j
+                    
+                    ADD @C @A
+                    JZC #unH_value
+                    INCR @D
+                    ADD @D @B
+                    JZC #unH_value
+                    LDFI @D %255
+                    
+                #unH_value
+                    COPO $temp_L &0000
+                    INCR @C
+                    JZC #unH_value_H
+                    INCR @D
+
+                #unH_value_H
+                    COPO $temp_H &0000
+                    INCR @C
+                    JZC #compare_label_id
+                    INCR @D
+
+                #compare_label_id
+                    PULR @A
+                    PULR @B
+
+                    CMPM @A $temp_L
+                    JZC #unH_memwrite
+                    CMPM @B $temp_H
+                    JZS #unH_loop_start
+
+                #unH_memwrite
+                    PSHR @A
+                    PSHR @B
+                    PSHM $temp_L
+                    PSHM $temp_H
+
+                    COPO $temp_L &0000
+                    INCR @C
+                    JZC #addr_unH_H
+                    INCR @D
+
+                    #addr_unH_H
+                        COPO $temp_L &0000
+                        INCR @C
+                        JZC #addr_unH_H
+                        INCR @D
+
+                    LDFM @C $h_start_addr_L
+                    LDFM @D $h_start_addr_H
+                    LDFM @E $temp_L
+                    LDFM @F $temp_H
+                    PSHR @A
+                    PSHR @B
+
+                    ADD @C @A
+                    JOC #addr_get_unH
+                    INCR @D
+                    ADD @C @B
+
+                #addr_get_unH
+                    COPO &0100 &0000
+
+                        INCM $i
+                        JZC #inc_2
+                        INCM $j
+                    #inc_2
+                        INCM $i
+                        JZC #inc_3
+                        INCM $j
+                    #inc_3
+                        INCM $i
+                        JZC #inc_4
+                        INCM $j
+                    #inc_4
+                    INCM $i
+                    JZC #unH_loop_start
+                    INCM $j
+                    JMP #unH_loop_start
+            #unH_loop_end
+
+            ; Grab new instruction
+            JSR _Grab_Byte
+            LDFM @A $low_byte
+            STOR $instruction @A
+            
+        #subr_check_2
 
     #loop_end_3
 
