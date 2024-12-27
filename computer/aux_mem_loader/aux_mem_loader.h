@@ -21,13 +21,13 @@ using namespace std;
 
 
 #define REG_AS_OPERAND1(opcode)         ((opcode >= 0x01 && opcode <= 0x03) || opcode == 0x05 || opcode == 0x07 || opcode == 0x08 || (opcode >= 0x0E && opcode <= 0x19) || opcode == 0x1B || opcode == 0x1D || opcode == 0x1E || opcode == 0x38 || opcode == 0x3C)
-#define MEM_AS_OPERAND1(opcode)         (opcode == 0x04 || opcode == 0x06 || opcode == 0x09 || opcode == 0x1A || opcode == 0x1C || opcode == 0x1F || opcode == 0x20 || (opcode >= 0x39 && opcode <= 0x3B) || (opcode >= 0x3D && opcode <= 0x40) || opcode == 0x43 || opcode == 0x44)
+#define MEM_AS_OPERAND1(opcode)         (opcode == 0x04 || opcode == 0x06 || opcode == 0x09 || opcode == 0x1A || opcode == 0x1C || opcode == 0x1F || opcode == 0x20 || (opcode >= 0x39 && opcode <= 0x3B) || (opcode >= 0x3D && opcode <= 0x40) || (opcode >= 0x43 && opcode <= 0x46))
 #define LAB_AS_OPERAND1(opcode)         (opcode == 0x21 || (opcode >= 0x24 && opcode <= 0x2B))
 #define SBR_AS_OPERAND1(opcode)         (opcode == 0x22)
 
 #define REG_AS_OPERAND2(opcode)         (opcode == 0x03 || opcode == 0x04 || opcode == 0x05 || opcode == 0x0E || opcode == 0x0F || opcode == 0x10 || (opcode >= 0x12 && opcode <= 0x16) || opcode == 0x39)
 #define MEM_AS_OPERAND2(opcode)         (opcode == 0x01 || opcode == 0x06 || opcode == 0x17 || opcode == 0x38 || opcode == 0x3A || opcode == 0x3C || opcode == 0x43 || opcode == 0x44)
-#define IMM_AS_OPERAND2(opcode)         (opcode == 0x02 || opcode == 0x18) 
+#define IMM_AS_OPERAND2(opcode)         (opcode == 0x02 || opcode == 0x18 || opcode == 0x45 || opcode == 0x46) 
 
 typedef struct aux_loader {
     word mem_addr;

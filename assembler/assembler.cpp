@@ -667,6 +667,8 @@ void Opcodes_Init (map<string, word>& opcodes) {
     opcodes.insert (pair<string, word> ("SHRO", 0x40));
     opcodes.insert (pair<string, word> ("COPM", 0x43));
     opcodes.insert (pair<string, word> ("COPO", 0x44));
+    opcodes.insert (pair<string, word> ("STRI", 0x45));
+    opcodes.insert (pair<string, word> ("STRO", 0x46));
 }
 
 void Registers_Init (map<char, word>& registers) {

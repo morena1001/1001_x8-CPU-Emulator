@@ -108,8 +108,10 @@ INSTRUCTIONS
     0x3E    DECO        Mem		                    	        3	    Decrement value held in memory plus offset stored in registers E (low byte) and F (high byte)
     0x3F    SHLO        Mem		                        	    3   	Shift contents in memory plus offset stored in registers E (low byte) and F (high byte), left by 1 bit.
     0x40    SHRO        Mem		                        	    3   	Shift contents in memory plus offset stored in registers E (low byte) and F (high byte), right by 1 bit.
-    0x43    COPM        Mem1       Mem2                         5       Copies the contents of mem location 2 into mem location 1, using register H to store a temporary value
-    0x44    COPO        Mem1       Mem2                         5       Copies the contents of mem location 2 given offset stored in registers C (low byte) and D (high byte) into mem location 1 given offset stored in registers E (low byte) and F (high byte), using register H to store a temporary value
+    0x43    COPM        Mem1        Mem2                        5       Copies the contents of mem location 2 into mem location 1, using register H to store a temporary value
+    0x44    COPO        Mem1        Mem2                        5       Copies the contents of mem location 2 given offset stored in registers C (low byte) and D (high byte) into mem location 1 given offset stored in registers E (low byte) and F (high byte), using register H to store a temporary value
+    0x45    STRI        Mem         Imm                         4       Stores an immediate into the mem location
+    0x46    STRO        Mem         Imm                         4       Stores an immediate into the mem location with offset stored in registers E (low) and F (high).
 
 
 

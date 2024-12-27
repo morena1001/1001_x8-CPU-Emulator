@@ -614,6 +614,22 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
                 if (address1 == 0xDA59)      memory.WriteByte (1, 0xDA5A);
             } break;
 
+            case INS_STRI: {
+                word address = FetchWord (memory);
+                byte imm = FetchByte (memory);
+
+                memory.WriteByte (imm, address);
+                if (address = 0xDA59)       memory.WriteByte (1, 0xDA5A);
+            } break;
+
+            case INS_STRO: {
+                word address = FetchWord (memory);
+                byte imm = FetchByte (memory);
+
+                memory.WriteByte (imm, address + ((word) (GPR[E]) | (word) (GPR[F] << 8)));
+                if (address == 0xDA59)      memory.WriteByte (1, 0xDA5A);
+            } break;
+
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
                 return;

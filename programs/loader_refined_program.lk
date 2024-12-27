@@ -1,0 +1,74 @@
+.variables
+    $aux_offset_L %0
+    $aux_offset_H %0
+    $low_byte
+    $high_byte
+    $high_next
+
+    ; IO Setter byte low        &DA58
+    ; IO Setter byte high       &DA59
+    ; IO ready flag             &DA5A
+
+.data
+_Decrement_Address
+    ; Decrements the address stored in registers C (low) and D (high)
+    DECR @C
+    CMPI @C %255
+    JZS #dec_high
+    RSR
+
+    #dec_high
+        DECR @D
+        RSR
+
+_Increment_Address
+    ; Increments the address stored in registers C (low) and D (high)
+    INCR @C
+    JZS #inc_high
+    RSR
+
+    #inc_high
+        INCR @D
+        RSR
+
+_Increment_Aux_Address
+    ; Shortcut subroutine to increment aux mem offset address
+    LDFM @C $aux_offset_L
+    LDFM @D $aux_offset_H
+    JSR _Increment_Address
+    STOR $aux_offset_L
+    STOR $aux_offset_H
+    RSR
+
+_Grab_Low
+    ; Load the aux mem offset address into the setter bytes of the IO
+    COPM &DA58 $aux_offset_L
+    COPM &DA59 $aux_offset_H
+    STRI &DA5A %0 ; Sets the IO flag to let IO know to perform operations
+
+    ; Get the lower byte value stored at the aux mem offset address
+    COPM $low_byte &DA5B
+    RSR
+
+_Grab_High
+    ; Load the aux mem offset address into the setter bytes of the IO
+    COPM &DA58 $aux_offset_L
+    COPM &DA59 $aux_offset_H
+    STRI &DA5A %0
+
+    ; Get the higher byte stores at the aux mem offset address
+    COPM $high_byte &DA5C
+    RSR
+
+_Split_Bytes
+    ; Load the aux mem offset address into the setter bytes of the IO
+    COPM &DA58 $aux_offset_L
+    COPM &DA59 $aux_offset_H
+    STRI &DA5A %0
+
+    ; Get the two bytes stored at the aux mem offset address
+    COPM $low_byte &DA5B
+    COPM $high_byte &DA5C
+    JSR _Increment_Aux_Address
+    RSR
+    
