@@ -5,9 +5,30 @@
     $high_byte %0
     $high_next %0
 
+    $instruction %0
+    $opcode %0
+
+    $p_stack_offset %0
+    $end_addr_L %0
+    $end_addr_H %0
+
+    $l_size_L %0
+    $l_size_H %0
+    $unL_size_L %0
+    $unL_size_H %0
+    $s_size_L %0
+    $s_size_H %0
+    $unS_size_L %0
+    $unS_size_H %0
+    $var_size_L %0
+    $var_size_H %0
+
+    $i %0
+
     ; IO Setter byte low        &DA58
     ; IO Setter byte high       &DA59
     ; IO ready flag             &DA5A
+    ; p_stack                   &FF85
 
 .data
 _Decrement_Address
@@ -106,6 +127,113 @@ _Grab_Word
         RSR
 
 _start
-    
+    ; GET THE NUMBER OF VARIABLES 
+    ; Get the first address from p_stack
+    LDFM @E $p_stack_offset
+    LDFI @F %0
+    LDFO @A &FF85
+    STOR $aux_offset_L @A
+    INCR @E 
+
+    LDFO @A &FF85
+    STOR $aux_offset_H @A
+    INCR @E
+    STOR $p_stack_offset @E
+
+    ; Increment given address by 2
+    JSR _Increment_Aux_Address
+    JSR _Increment_Aux_Address
+
+    ; A word stores the size of var_size
+    JSR _Grab_Word
+    COPM $var_size_L $low_byte
+    COPM $var_size_H $high_byte
+
+    ; GET ENDING ADDRESS
+    ; Get the second address from p_stack
+    LDFM @E $p_stack_offset
+    LDFI @F %0
+    LDFO @A &FF85
+    STOR $end_addr_L @A
+    INCR @E
+
+    LDFO @A &FF85
+    STOR $end_addr_H @A
+    INCR @E
+    STOR $p_stack_offset @E
+
+    ; GO TO THE FIRST ADDRESS OF .data SECTION
+    #loop_start_1
+        LDFM @A $var_size_L
+        CMPM @A $i
+        JZS #loop_end_1
+
+        JSR _Grab_Word
+        JSR _Grab_Byte
+
+        INCM $i
+        JMP #loop_start_1
+    #loop_end_1
+
+    ; 1ST LOOP TO GET SIZES OF MAPS
+    #loop_start_2
+        LDFM @A $end_addr_L
+        CMPM @A $aux_offset_L
+        JZC #loop_check_end
+
+        LDFM @A $end_addr_H
+        CMPM @A $aux_offset_H
+        JZS #loop_end_2
+        
+        #loop_check_end
+            ; Grab the next instruction
+            JSR _Grab_Byte
+            COPM $instruction $low_byte
+
+        ; Check if the instruction is a label encoding (0x35, 54)
+        #label_check_1
+            LDFM @A $instruction 
+            CMPI @A %54
+            JZC #subr_check_1
+            
+            INCM $l_size_L
+            LDFM @A $h_size_L
+            JZC #next_instruction_1
+            INCM $l_size_H
+
+            #next_instruction_1
+            JSR _Grab_Byte
+            COPM $instruction $low_byte
+
+        ; Check if the instruction is a subroutine encoding (0x41, 65)
+        #subr_check_1
+            LDFM @A $instruction
+            CMPI @A %65
+            JZC #op_check_1
+
+            INCM $s_size_L
+            LDFM @A $s_size_L
+            JZC #next_instruction_2
+            INCM $s_size_H
+
+            #next_instruction_2
+            JSR _Grab_Byte
+            COPM $instruction $low_byte
+
+        ; Check opcode operands for any possible unL or unS values
+        #op_check_1
+            COPM $opcode $instruction
+
+            ; Check if the opcode is a label jump opcode (0x21, 0x24 - 0x2B, 33, 36 - 43)
+            #lj_check_1
+                LDFM @A $opcode 
+                CMPI @A %33
+                JZS #is_jump_1
+                CMPI @A %36
+
+            #is_jump_1
+        
+
+    #loop_end_2
 
     HALT

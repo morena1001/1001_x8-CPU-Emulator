@@ -26,12 +26,12 @@ void MEM::Init () {
     data[0xFFFD] = 0x21;
 
     // ADDRESS FOR REGULAR PROGRAM
-    data[0xFFFE] = 0x00;
-    data[0xFFFF] = 0x01;
+    // data[0xFFFE] = 0x00;
+    // data[0xFFFF] = 0x01;
 
     // ADDRESS FOR OS PROGRAM
-    // data[0xFFFE] = 0x17;
-    // data[0xFFFF] = 0xE0;
+    data[0xFFFE] = 0x17;
+    data[0xFFFF] = 0xE0;
 
     // Load OS
     Load_OS (data);
