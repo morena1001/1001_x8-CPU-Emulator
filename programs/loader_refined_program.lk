@@ -1,9 +1,9 @@
 .variables
     $aux_offset_L %0
     $aux_offset_H %0
-    $low_byte
-    $high_byte
-    $high_next
+    $low_byte %0
+    $high_byte %0
+    $high_next %0
 
     ; IO Setter byte low        &DA58
     ; IO Setter byte high       &DA59
@@ -36,15 +36,15 @@ _Increment_Aux_Address
     LDFM @C $aux_offset_L
     LDFM @D $aux_offset_H
     JSR _Increment_Address
-    STOR $aux_offset_L
-    STOR $aux_offset_H
+    STOR $aux_offset_L @C
+    STOR $aux_offset_H @D
     RSR
 
 _Grab_Low
     ; Load the aux mem offset address into the setter bytes of the IO
     COPM &DA58 $aux_offset_L
     COPM &DA59 $aux_offset_H
-    STRI &DA5A %0 ; Sets the IO flag to let IO know to perform operations
+    STRI &DA5A %1 ; Sets the IO flag to let IO know to perform operations
 
     ; Get the lower byte value stored at the aux mem offset address
     COPM $low_byte &DA5B
@@ -54,7 +54,7 @@ _Grab_High
     ; Load the aux mem offset address into the setter bytes of the IO
     COPM &DA58 $aux_offset_L
     COPM &DA59 $aux_offset_H
-    STRI &DA5A %0
+    STRI &DA5A %1
 
     ; Get the higher byte stores at the aux mem offset address
     COPM $high_byte &DA5C
@@ -64,7 +64,7 @@ _Split_Bytes
     ; Load the aux mem offset address into the setter bytes of the IO
     COPM &DA58 $aux_offset_L
     COPM &DA59 $aux_offset_H
-    STRI &DA5A %0
+    STRI &DA5A %1
 
     ; Get the two bytes stored at the aux mem offset address
     COPM $low_byte &DA5B
@@ -72,3 +72,40 @@ _Split_Bytes
     JSR _Increment_Aux_Address
     RSR
     
+_Grab_Byte
+    ; Grabs the low byte if high_next is false, else grabs high byte
+    ; In this subroutine, output is stored in low_byte
+    LDFM @A $high_next
+    JZS #grab_low
+
+    ; Grab high byte
+    JSR _Grab_High
+    STRI $high_next %0
+    COPM $low_byte $high_byte
+    JSR _Increment_Aux_Address
+    RSR
+
+    #grab_low
+        JSR _Grab_Low
+        STRI $high_next %1
+        RSR
+
+_Grab_Word
+    ; Grabs a word from aux mem offset address
+    LDFM @A $high_next
+    JZS #split
+
+    ; The bytes to grab are in different addresses
+    JSR _Grab_High
+    JSR _Increment_Aux_Address
+    JSR _Grab_Low
+    RSR
+
+    #split
+        JSR _Split_Bytes
+        RSR
+
+_start
+    
+
+    HALT

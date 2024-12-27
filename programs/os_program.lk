@@ -19,54 +19,55 @@ _add
     RSR
 
     #inc
-    LDFM @B &FF83
-    LDFI @A %0
-    INCR @B
-    RSR
+        LDFM @B &FF83
+        LDFI @A %0
+        INCR @B
+        RSR
 
 _start
     ; Reset the values of the p_stack counter, and aux_mem address
-    LDFI @A %0
     LDFI @E %0
     LDFI @C %0 
     LDFI @D %0
     LDFI @F %0
     
-    STOR &FF84 @A
-    STOR &FF83 @A
+    STRI &FF84 %0
+    STRI &FF83 %0
 
     #start
-    ; Set address to get value from in aux_mem
-    COPM &DA58 &FF84
-    COPM &DA59 &FF83
+        ; Set address to get value from in aux_mem
+        COPM &DA58 &FF84
+        COPM &DA59 &FF83
+        STRI &DA5A %1
 
-    ; Waiting a clock cycle aux_mem IO to get value
-    ; Check that the value is not 0
-    LDFM @A &DA5B
-    LDFM @B &DA5C
-    CMPR @A @B
-    JZC #loop
-    CMPI @A %0
-    JZS #end    
+        ; Waiting a clock cycle aux_mem IO to get value
+        ; Check that the value is not 0
+        LDFM @A &DA5B
+        LDFM @B &DA5C
+        CMPR @A @B
+        JZC #loop
+        CMPI @A %0
+        JZS #end    
 
     #loop
-    ; Same address is start of program    
-    COPO &FF85 &FF84
-    INCR @E
-    COPO &FF85 &FF83
-    INCR @E
+        ; Same address is start of program    
+        COPO &FF85 &FF84
+        INCR @E
+        COPO &FF85 &FF83
+        INCR @E
 
-    ; Value at current address + 1 is end of program
-    JSR _add
-    STOR &DA58 @A
-    STOR &DA59 @B
-    COPO &FF85 &DA5B
-    INCR @E
-    COPO &FF85 &DA5C
-    INCR @E
-    COPM &FF84 &DA5B
-    COPM &FF83 &DA5C  
-    JMP #start
+        ; Value at current address + 1 is end of program
+        JSR _add
+        STOR &DA58 @A
+        STOR &DA59 @B
+        STRI &DA5A %1
+        COPO &FF85 &DA5B
+        INCR @E
+        COPO &FF85 &DA5C
+        INCR @E
+        COPM &FF84 &DA5B
+        COPM &FF83 &DA5C  
+        JMP #start
 
     #end
-    HALT
+        HALT

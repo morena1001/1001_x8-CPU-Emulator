@@ -31,7 +31,7 @@ int main (int argc, char** argv) {
     Load_Program ("../programs/loader_refined_program.output", cpu, mem);
 
     // Execute the OS pointed to by the bootloader
-    // cpu.Execute (mem, aux_mem);
+    cpu.Execute (mem, aux_mem);
     // Load a program from auxiliary memory 
     // os.Run (cpu, mem, aux_mem, loader);
 
@@ -39,14 +39,14 @@ int main (int argc, char** argv) {
 
 
 
-    // cout << "A : " << htos (cpu.GPR[A]) << endl;
-    // cout << "B : " << htos (cpu.GPR[B]) << endl;
-    // cout << "C : " << htos (cpu.GPR[C]) << endl;
-    // cout << "D : " << htos (cpu.GPR[D]) << endl;
-    // cout << "E : " << htos (cpu.GPR[E]) << endl;
-    // cout << "F : " << htos (cpu.GPR[F]) << endl;
-    // cout << "G : " << htos (cpu.GPR[G]) << endl;
-    // cout << "H : " << htos (cpu.GPR[H]) << endl;
+    cout << "A : " << htos (cpu.GPR[A]) << endl;
+    cout << "B : " << htos (cpu.GPR[B]) << endl;
+    cout << "C : " << htos (cpu.GPR[C]) << endl;
+    cout << "D : " << htos (cpu.GPR[D]) << endl;
+    cout << "E : " << htos (cpu.GPR[E]) << endl;
+    cout << "F : " << htos (cpu.GPR[F]) << endl;
+    cout << "G : " << htos (cpu.GPR[G]) << endl;
+    cout << "H : " << htos (cpu.GPR[H]) << endl;
     
     ofstream file ("memory.txt");
     char byte_info[4];

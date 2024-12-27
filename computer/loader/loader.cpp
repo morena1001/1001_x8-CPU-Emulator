@@ -232,7 +232,7 @@ string htos (byte value) {
     string hex_val;
 
     hex_val = STRING_FROM_HEX ((int) (value) % 16);
-    hex_val = to_string ((int) (value) / 16) + hex_val;
+    hex_val = STRING_FROM_HEX ((int) (value) / 16) + hex_val;
 
     return hex_val;
 }

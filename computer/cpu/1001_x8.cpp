@@ -24,10 +24,14 @@ void MEM::Init () {
 
     // Load bootloader
     data[0xFFFD] = 0x21;
-    // data[0xFFFE] = 0x00;
-    // data[0xFFFF] = 0x01;
-    data[0xFFFE] = 0x17;
-    data[0xFFFF] = 0xE0;
+
+    // ADDRESS FOR REGULAR PROGRAM
+    data[0xFFFE] = 0x00;
+    data[0xFFFF] = 0x01;
+
+    // ADDRESS FOR OS PROGRAM
+    // data[0xFFFE] = 0x17;
+    // data[0xFFFF] = 0xE0;
 
     // Load OS
     Load_OS (data);
@@ -89,10 +93,12 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
 
     while (ins != INS_HALT) {
+        // printf ("%d   %d\n", (int) ins, PC);
         if (ReadByte (0xDA5A, memory) == 1) {
             word aux_address = ((word) ReadByte (0xDA58, memory)) | ((word) ReadByte (0xDA59, memory) << 8);
             memory.WriteWord (aux_mem[aux_address], 0xDA5B);
             memory.WriteByte (0, 0xDA5A);
+            // printf ("YEAH               %d %d %d %d\n", ReadByte (0xDA58, memory), ReadByte (0xDA59, memory), ReadByte (0xDA5B, memory), ReadByte (0xDA5C, memory));
         }
 
         switch (ins) {
@@ -630,6 +636,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
 
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
+                // printf ("%d %d %d\n", memory[PC - 1], memory[PC], memory[PC + 1]);
                 return;
             } break;
         }

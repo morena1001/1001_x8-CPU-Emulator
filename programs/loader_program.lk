@@ -157,6 +157,7 @@ _Grab_Word
     JSR _Grab_High
     JSR _Increment_Aux_Address
     JSR _Grab_Low
+    RSR
 
     #split
         JSR _Split_Bytes
