@@ -636,7 +636,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
 
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
-                // printf ("%d %d %d\n", memory[PC - 1], memory[PC], memory[PC + 1]);
+                printf ("%d %d %d\n", memory[PC - 1], memory[PC], memory[PC + 1]);
                 return;
             } break;
         }

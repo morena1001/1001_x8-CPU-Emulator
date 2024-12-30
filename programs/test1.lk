@@ -5,4 +5,7 @@ $a %47
 .data
 _start
     LDFM @A $a
+    JMP #end
+
+    #end
     HALT

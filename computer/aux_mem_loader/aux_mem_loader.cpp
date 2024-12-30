@@ -46,13 +46,15 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
         // Label ids have an extra instruction preceding it, 0x36, to signify that a label is present
         if (IS_LABEL_ENCODING (instruction)) {
             headers_size++;
-            instruction = Grab_Byte (aux_mem, loader);
+            // instruction = Grab_Byte (aux_mem, loader);
+            continue;
         }
 
         // Subroutine ids have an extra instruction preceding it, 0x41, to singify that subroutine is present
         if (IS_SUBR_ENCODING (instruction)) {
             subroutines_size++;
-            instruction = Grab_Byte (aux_mem, loader);
+            // instruction = Grab_Byte (aux_mem, loader);
+            continue;
         }
 
         // The START instruction denotes a non linear entry point of the cpu 
@@ -61,12 +63,6 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
             PC_set = true;
 
             continue;
-        } 
-
-        // Update the start of the program. Any subroutines appear the main program of code.
-        if (!PC_set) {
-            cpu.PC = address;
-            PC_set = true;
         }
 
         opcode = instruction;
@@ -126,7 +122,8 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
                 unInit_headers.erase (it);
             }
 
-            instruction = Grab_Byte (aux_mem, loader);
+            // instruction = Grab_Byte (aux_mem, loader);
+            continue;
         }
 
         // Subroutine ids have an extra instruction preceding it, 0x41, to singify that subroutine is present
@@ -140,7 +137,8 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
                 unInit_subroutines.erase (it);
             }
 
-            instruction = Grab_Byte (aux_mem, loader);
+            // instruction = Grab_Byte (aux_mem, loader);
+            continue;
         }
 
         // The START instruction denotes a non linear entry point of the cpu 

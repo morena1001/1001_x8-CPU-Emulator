@@ -38,7 +38,6 @@ int main (int argc, char** argv) {
 
     // Run a loaded program in RAM
     Load_Program ("../programs/loader_refined_program.output", cpu, mem);
-    // cpu.PC = 0x01A0B
     cpu.Execute (mem, aux_mem);
 
 

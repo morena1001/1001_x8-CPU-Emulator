@@ -317,7 +317,7 @@ _start
                 JSR _Grab_Byte
                 JMP #reg_op2_check_1
 
-            ; Check if the first operand is a memory value (0x04, 0x06, 0x09, 0x1A, 0x1C, 0x1F, 0x20, 0x39 - 0x3B, 0x3D - 0x40, 0x43, 0x44, 4, 6, 9, 26 28, 31, 32, 57 - 59, 61 - 64, 67, 68)
+            ; Check if the first operand is a memory value (0x04, 0x06, 0x09, 0x1A, 0x1C, 0x1F, 0x20, 0x39 - 0x3B, 0x3D - 0x40, 0x43 - 0x46, 4, 6, 9, 26 28, 31, 32, 57 - 59, 61 - 64, 67, 68)
             #mem_op1_check_1
                 LDFM @A $opcode
                 CMPI @A %4
@@ -403,7 +403,7 @@ _start
                 JSR _Grab_Word
                 JMP #loop_start_2
 
-            ; Check if the second operand is an immediate (0x02, 0x18, 2, 24)
+            ; Check if the second operand is an immediate (0x02, 0x18, 0x45, 0x46, 2, 24)
             #imm_op2_check_1
                 LDFM @A $opcode
                 CMPI @A %2

@@ -126,6 +126,180 @@ _Grab_Word
         JSR _Split_Bytes
         RSR
 
+_Check_Opcode_Type
+    ; Given the opcode in $opcode, return a certain depending on what kind of encoding it is in register B
+    LDFM @A $opcode
+    LDFI @B %0
+
+    ; If label jump opcode, (0x21, 0x24 - 0x2B)
+    #lj_check
+        CMPI @A %33
+        JZS #is_lj
+
+        CMPI @A %44
+        JCS #sj_check
+        CMPI @A %24
+        JCS #is_lj
+
+        JMP #sj_check
+
+    #is_lj
+        LDFI @B %1
+        RSR
+
+    ; If subroutine jump (0x22)
+    #sj_check
+        CMPI @A %34
+        JZC #reg_op1_check
+
+    #is_sj
+        LDFI @B %2
+        RSR
+
+    ; If reg as op 1, (0x01 - 0x03, 0x05, 0x07, 0x08, 0x0E - 0x19, 0x1B, 0x1D, 0x1E, 0x38, 0x3C)
+    #reg_op1_check
+        CMPI @A %1
+        JZS #is_reg_op1
+        CMPI @A %2
+        JZS #is_reg_op1
+        CMPI @A %3
+        JZS #is_reg_op1
+        CMPI @A %5
+        JZS #is_reg_op1
+        CMPI @A %7
+        JZS #is_reg_op1
+        CMPI @A %8
+        JZS #is_reg_op1
+        CMPI @A %27
+        JZS #is_reg_op1
+        CMPI @A %29
+        JZS #is_reg_op1
+        CMPI @A %30
+        JZS #is_reg_op1
+        CMPI @A %56
+        JZS #is_reg_op1
+        CMPI @A %60
+        JZS #is_reg_op1
+
+        CMPI @A %26
+        JCS #mem_op1_check
+        CMPI @A %14
+        JCS #is_reg_op1
+
+        JMP #mem_op1_check
+
+    #is_reg_op1
+        LDFI @B %3
+        JMP #reg_op2_check
+
+    ; If mem as op 1, (0x04, 0x06, 0x09, 0x1A, 0x1C, 0x1F, 0x20, 0x39 - 0x3B, 0x3D - 0x40, 0x43 - 0x46)
+    #mem_op1_check
+        CMPI @A %4
+        JZS #is_mem_op1
+        CMPI @A %6
+        JZS #is_mem_op1
+        CMPI @A %9
+        JZS #is_mem_op1
+        CMPI @A %26
+        JZS #is_mem_op1
+        CMPI @A %28
+        JZS #is_mem_op1
+        CMPI @A %31
+        JZS #is_mem_op1
+        CMPI @A %32
+        JZS #is_mem_op1
+
+        CMPI @A %71
+        JCS #reg_op2_check
+        CMPI @A %67
+        JCS #is_mem_op1
+        CMPI @A %65
+        JCS #reg_op2_check
+        CMPI @A %61
+        JCS #is_mem_op1
+        CMPI @A %60
+        JCS #reg_op2_check
+        CMPI @A %57
+        JCS #is_mem_op1
+
+        JMP #reg_op2_check
+
+    #is_mem_op1
+        LDFI @B %4
+
+    ; If reg as op 2, (0x03, 0x04, 0x05, 0x0E, 0x0F, 0x10, 0x12 - 0x16, 0x39)
+    #reg_op2_check
+        CMPI @A %3
+        JZS #is_reg_op2
+        CMPI @A %4
+        JZS #is_reg_op2
+        CMPI @A %5
+        JZS #is_reg_op2
+        CMPI @A %14
+        JZS #is_reg_op2
+        CMPI @A %15
+        JZS #is_reg_op2
+        CMPI @A %16
+        JZS #is_reg_op2
+        CMPI @A %57
+        JZS #is_reg_op2
+
+        CMPI @A %23
+        JCS #mem_op2_check
+        CMPI @A %18
+        JCS #is_reg_op2
+
+        JMP #mem_op2_check
+
+    #is_reg_op2
+        LDFI @A %2
+        ADD @B @A
+        RSR
+
+    ; If mem as op 2, (0x01, 0x06, 0x17, 0x38, 0x3A, 0x3C, 0x43, 0x44)
+    #mem_op2_check
+        CMPI @A %1
+        JZS #is_mem_op2
+        CMPI @A %6
+        JZS #is_mem_op2
+        CMPI @A %23
+        JZS #is_mem_op2
+        CMPI @A %56
+        JZS #is_mem_op2
+        CMPI @A %58
+        JZS #is_mem_op2
+        CMPI @A %60
+        JZS #is_mem_op2
+        CMPI @A %67
+        JZS #is_mem_op2
+        CMPI @A %68
+        JZS #is_mem_op2
+
+        JMP #imm_op2_check
+    
+    #is_mem_op2
+        LDFI @A %4
+        ADD @B @A 
+        RSR
+
+    ; If imm as op 2, (0x02, 0x18, 0x45, 0x46)
+    #imm_op2_check
+        CMPI @A %2
+        JZS #is_imm_op2
+        CMPI @A %24
+        JZS #is_imm_op2
+        CMPI @A %69
+        JZS #is_imm_op2
+        CMPI @A %70
+        JZS #is_imm_op2
+
+        RSR
+
+    #is_imm_op2
+        LDFI @A %6
+        ADD @B @A 
+        RSR
+
 _start
     ; GET THE NUMBER OF VARIABLES 
     ; Get the first address from p_stack
@@ -197,13 +371,14 @@ _start
             JZC #subr_check_1
             
             INCM $l_size_L
-            LDFM @A $h_size_L
-            JZC #next_instruction_1
+            LDFM @A $l_size_L
+            JZC #continue_1
             INCM $l_size_H
 
-            #next_instruction_1
-            JSR _Grab_Byte
-            COPM $instruction $low_byte
+        #continue_1
+            JMP #loop_start_2
+            ;JSR _Grab_Byte
+            ;COPM $instruction $low_byte
 
         ; Check if the instruction is a subroutine encoding (0x41, 65)
         #subr_check_1
@@ -213,27 +388,106 @@ _start
 
             INCM $s_size_L
             LDFM @A $s_size_L
-            JZC #next_instruction_2
+            JZC #continue_2
             INCM $s_size_H
 
-            #next_instruction_2
-            JSR _Grab_Byte
-            COPM $instruction $low_byte
+        #continue_2
+            JMP #loop_start_2
+            ;JSR _Grab_Byte
+            ;COPM $instruction $low_byte
 
         ; Check opcode operands for any possible unL or unS values
         #op_check_1
             COPM $opcode $instruction
 
-            ; Check if the opcode is a label jump opcode (0x21, 0x24 - 0x2B, 33, 36 - 43)
-            #lj_check_1
-                LDFM @A $opcode 
-                CMPI @A %33
-                JZS #is_jump_1
-                CMPI @A %36
+            ; Check what kind of opcode it is
+            JSR _Check_Opcode_Type
+            
+            #label_value
+                CMPI @B %1
+                JZC #subr_value
 
-            #is_jump_1
-        
+                JSR _Grab_Word
+                INCM $unL_size_L
+                LDFM @A $unL_size_L
+                JZC #loop_start_2
+                INCM $unL_size_H
+                JMP #loop_start_2
 
+            #subr_value
+                CMPI @B %2
+                JZC #r_value
+
+                JSR _Grab_Word
+                INCM $unS_size_L
+                LDFM @A $unS_size_L
+                JZC #loop_start_2
+                INCM $unS_size_H
+                JMP #loop_start_2
+
+            #r_value
+                CMPI @B %3
+                JZC #m_value
+
+                JSR _Grab_Byte
+                JMP #loop_start_2
+
+            #m_value
+                CMPI @B %4
+                JZC #rr_value
+
+                JSR _Grab_Byte
+                JSR _Grab_Word
+                JMP #loop_start_2
+
+            #rr_value
+                CMPI @B %3
+                JZC #mr_value
+
+                JSR _Grab_Word
+                JMP #loop_start_2
+
+            #mr_value
+                CMPI @B %3
+                JZC #rm_value
+
+                JSR _Grab_Word
+                JSR _Grab_Word
+                JMP #loop_start_2
+
+            #rm_value
+                CMPI @B %3
+                JZC #mm_value
+                
+                JSR _Grab_Word
+                JSR _Grab_Word
+                JMP #loop_start_2
+
+            #mm_value
+                CMPI @B %3
+                JZC #ri_value
+
+                JSR _Grab_Word
+                JSR _Grab_Word
+                JSR _Grab_Word
+                JMP #loop_start_2
+
+            #ri_value
+                CMPI @B %3
+                JZC #mi_value
+
+                JSR _Grab_Word
+                JMP #loop_start_2
+
+            #mi_value
+                CMPI @B %3
+                JZC #loop_start_2
+
+                JSR _Grab_Word
+                JSR _Grab_Word
+                JMP #loop_start_2
     #loop_end_2
+
+    ; ALLOCATE SECTION OF MEMORY FOR THE MAPS AT THE END OF RAM
 
     HALT

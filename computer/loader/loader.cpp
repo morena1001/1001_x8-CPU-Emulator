@@ -96,7 +96,8 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
                     unInit_headers.erase (it);
                 }
 
-                if (!Pop_Next_Ins (value, program, instruction))    return;
+                // if (!Pop_Next_Ins (value, program, instruction))    return;
+                continue;
             }
 
             // Subroutine ids have an extra instruction preceding it, 0x41, to singify that a subroutine is present
