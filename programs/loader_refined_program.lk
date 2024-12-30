@@ -23,12 +23,23 @@
     $var_size_L %0
     $var_size_H %0
 
+    $l_start_addr_L %0
+    $l_start_addr_H %0
+    $unL_start_addr_L %0
+    $unL_start_addr_H %0
+    $s_start_addr_L %0
+    $s_start_addr_H %0
+    $unS_start_addr_L %0
+    $unS_start_addr_H %0
+
+
     $i %0
 
     ; IO Setter byte low        &DA58
     ; IO Setter byte high       &DA59
     ; IO ready flag             &DA5A
     ; p_stack                   &FF85
+    ; RAM final address         &DA57
 
 .data
 _Decrement_Address
@@ -323,6 +334,10 @@ _start
     COPM $var_size_L $low_byte
     COPM $var_size_H $high_byte
 
+    ; Store the first address of actual program in stack
+    PSHM $high_byte
+    PSHM $low_byte
+
     ; GET ENDING ADDRESS
     ; Get the second address from p_stack
     LDFM @E $p_stack_offset
@@ -489,5 +504,103 @@ _start
     #loop_end_2
 
     ; ALLOCATE SECTION OF MEMORY FOR THE MAPS AT THE END OF RAM
+    ; Allocate l_size * 2 (2 bytes per label to store is address)
+    LDFI @C %87 ; (0x57)
+    LDFI @D %218 ; (0xDA)
+    #l_alloc_loop_start
+        LDFM @A $l_size_L
+        JZC #loop_check_end_2
+        LDFM @A $l_size_H
+        JZS #l_alloc_loop_end
+
+        #loop_check_end_2
+            JSR _Decrement_Address
+            JSR _Decrement_Address
+
+            DECM $l_size_L
+            LDFM @A $l_size_L
+            CMPI @A %255
+            JZC #l_alloc_loop_start
+            DECM $l_size_H
+            JMP #l_alloc_loop_start
+    #l_alloc_loop_end
+    STOR $l_start_addr_L @C
+    STOR $l_start_addr_H @D
+
+    ; Allocate unL_size * 4 (2 bytes to store address, 2 to store id)
+    #unL_alloc_loop_start
+        LDFM @A $unL_size_L
+        JZC #loop_check_end_3
+        LDFM @A $unL_size_H
+        JZS #unL_alloc_loop_end
+
+        #loop_check_end_3
+            JSR _Decrement_Address
+            JSR _Decrement_Address
+            JSR _Decrement_Address
+            JSR _Decrement_Address
+
+            DECM $unL_size_L
+            LDFM @A $unL_size_L
+            CMPI @A %255
+            JZC #unL_alloc_loop_start
+            DECM $unL_size_H
+            JMP #unL_alloc_loop_start
+    #unL_alloc_loop_end
+    STOR $unL_start_addr_L @C
+    STOR $unL_start_addr_H @D
+
+    ; Allocate s_size * 2 (2 bytes to store its address)
+    #s_alloc_loop_start
+        LDFM @A $s_size_L
+        JZC #loop_check_end_4
+        LDFM @A $s_size_H
+        JZS #s_alloc_loop_end
+
+        #loop_check_end_4
+            JSR _Decrement_Address
+            JSR _Decrement_Address
+
+            DECM $s_size_L
+            LDFM @A $s_size_L
+            CMPI @A %255
+            JZC #s_alloc_loop_start
+            DECM $s_size_H
+            JMP #s_alloc_loop_start
+    #s_alloc_loop_end
+    STOR $s_start_addr_L @C
+    STOR $s_start_addr_H @D
+
+    ; Allocate unS_size * 4  (2 bytes to store its address, 2 bytes to store id)
+    #unS_alloc_loop_start
+        LDFM @A $unS_size_L
+        JZC #loop_check_end_5
+        LDFM @A $unS_size_H
+        JZS #unS_alloc_loop_end
+
+        #loop_check_end_5
+            JSR _Decrement_Address
+            JSR _Decrement_Address
+            JSR _Decrement_Address
+            JSR _Decrement_Address
+
+            DECM $unS_size_L
+            LDFM @A $unS_size_L
+            CMPI @A %255
+            JZC #unS_alloc_loop_start
+            DECM $unS_size_H
+            JMP #unS_alloc_loop_start
+    #unS_alloc_loop_end
+    STOR $unS_start_addr_L @C
+    STOR $unS_start_addr_H @D
+
+    ; Go back to first address of variables to start second loop
+    PULR @A
+    STOR $aux_offset_L @A
+    PULR @A
+    STOR $aux_offset_H @A
+    STRI $high_next %0
+
+    ; 2ND LOOP TO PARSE CONTENT
 
     HALT
