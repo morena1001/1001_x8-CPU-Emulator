@@ -12,6 +12,9 @@
     $end_addr_L %0
     $end_addr_H %0
 
+    $var_offset_L %0
+    $var_offset_H %0
+
     $l_size_L %0
     $l_size_H %0
     $unL_size_L %0
@@ -40,6 +43,7 @@
     ; IO ready flag             &DA5A
     ; p_stack                   &FF85
     ; RAM final address         &DA57
+    ; Variable Memory           &D858
 
 .data
 _Decrement_Address
@@ -602,5 +606,53 @@ _start
     STRI $high_next %0
 
     ; 2ND LOOP TO PARSE CONTENT
+    #loop_start_3
+        LDFM @A $end_addr_L
+        CMPM @A $aux_offset_L
+        JZC #loop_check_end_6
+
+        LDFM @A $end_addr_H
+        CMPM @A $aux_offset_H
+        JZS #loop_end_3
+
+        #loop_check_end_6
+            ; Parse a variable if var_count != 0
+            LDFM @A $var_size_L
+            JZC #get_var_value
+
+            LDFM @A $var_size_H
+            JZS #instruction_grab
+
+        #get_var_value
+            JSR _Grab_Word
+            JSR _Grab_Byte
+
+            LDFM @E $var_offset_L
+            LDFM @F $var_offset_H
+            COPO &D858 $low_byte
+            
+            INCM $var_offset_L
+            LDFM @A $var_offset_L
+            JZC #var_count_minus
+            INCM $var_offset_H
+
+            #var_count_minus
+                LDFM @A $var_size_L
+                JZC #minus_L
+                DECM $var_size_H
+
+            #minus_L
+                DECM $var_size_L
+
+            JMP #loop_start_3
+            
+        #instruction_grab
+            JSR _Grab_Byte
+            COPM $instruction $low_byte
+
+        ; Check if it is a halt instruction (0x35)
+
+        JMP #loop_start_3
+    #loop_end_3
 
     HALT

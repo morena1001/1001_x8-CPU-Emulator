@@ -583,6 +583,7 @@ int main (int argc, char** argv) {
         single_instruction = instructions[i++];
 
         while (halt_count > 0 || rsr_count > 0) {
+            cout << (int) single_instruction << endl;
             sprintf (machine_code_instruction, "%s%X ", single_instruction < 0x10 ? "0" : "", single_instruction);
             output_file << machine_code_instruction;
 
