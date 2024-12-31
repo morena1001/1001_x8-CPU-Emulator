@@ -780,13 +780,13 @@ _start
                 #get_element_3
                     LDFO @A &0000
                     INCR @E
-                    JZC #get_element_2
+                    JZC #get_element_4
                     INCR @F
 
                 #get_element_4
                     LDFO @B &0000
                     INCR @E 
-                    JZC #compare_id_1
+                    JZC #write_label_to_memory
                     INCR @F
 
                 #write_label_to_memory
@@ -808,7 +808,124 @@ _start
 
             JMP #loop_start_3
 
+        ; Check if the is a subroutine encoding (0x41)
         #subr_check_2
+            CMPI @A %65
+            JZC #start_check
+            
+            JSR _Grab_Word
+            PSHM $high_byte
+            PSHM $low_byte
+
+            LDFI @C %0
+            LDFI @D %0
+            LDFM @E $s_start_addr_L
+            LDFM @F $s_start_addr_H
+            LDFM @B $s_offset_L
+            ADD @E @B
+            JOC #second_add
+            INCR @F
+
+            #second_add
+            LDFM @B $s_offset_H
+            ADD @F @B
+
+            #addr_store
+                COPO &0000 $RAM_offset_L
+                INCR @E 
+                JZC #second_addr_store
+                INCR @F
+            
+            #second_addr_store
+                COPO &0000 $RAM_offset_H
+                INCM $s_offset_L
+                LDFM @A $s_offset_L
+                JZS #second_inc
+                INCM $s_offset_H
+
+            #second_inc
+                INCM $s_offset_L
+                LDFM @A $s_offset_L
+                JZS #loop_start_5
+                INCM $s_offset_H
+
+            STRI $i %0
+            STRI $j %0
+            #loop_start_5
+                LDFI @A $58
+                CMPM @A $i 
+                JZC #check_label
+                LDFM @A %216
+                CMPM @A $j
+                JZS #loop_end_5
+
+                #check_label
+                    LDFM @E $unS_start_addr_L
+                    LDFM @F $unS_start_addr_H
+                    LDFM @A $i
+
+                    ADD @E @A
+                    JZC #add_1
+                    INCR @F 
+                    #add_1
+                    LDFM @A $j
+                    ADD @F @A
+
+                #get_element_1
+                    LDFO @A &0000
+                    INCR @E
+                    JZC #get_element_2
+                    INCR @F
+
+                #get_element_2
+                    LDFO @B &0000
+                    INCR @E 
+                    JZC #compare_id_1
+                    INCR @F
+
+                #compare_id_1
+                    PULR @C 
+                    PULR @D
+                    CMPR @A @C
+                    JZC #loop_start_5
+                    CMPR @B @D
+                    JZC #loop_start_5
+                    PSHR @C 
+                    PSHR @D
+
+                #get_element_3
+                    LDFO @A &0000
+                    INCR @E
+                    JZC #get_element_4
+                    INCR @F
+
+                #get_element_4
+                    LDFO @B &0000
+                    INCR @E 
+                    JZC #write_subr_to_memory
+                    INCR @F
+
+                #write_subr_to_memory
+                LDFM @G $s_start_addr_L
+                LDFM @H $s_start_addr_H
+                ADD @C @G 
+                JOC #add_2
+                INCR @D
+
+                #add_2
+                ADD @D @H
+
+                COPO &0100 &0000
+
+                STOR $i @E
+                STOR $j @F
+                JMP #loop_start_5
+            #loop_end_5
+
+            JMP #loop_start_3
+
+        ; Check if it a start encoding (0x37) 55
+        #start_check
 
     #loop_end_3
 
