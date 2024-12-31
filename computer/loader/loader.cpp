@@ -29,7 +29,7 @@ void Load_Program (string file_path, cpu_t& cpu, mem_t& mem) {
 
     // ADDRESSES FOR LOADER PROGRAM
     word address = 0xE086;
-    word var_address = 0x0FF64;
+    word var_address = 0x0FF57;
 
     // ADDRESSES FOR OS PROGRAM
     // word address = 0xE000;

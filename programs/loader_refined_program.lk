@@ -12,8 +12,24 @@
     $end_addr_L %0
     $end_addr_H %0
 
+    $pc_set %0
+    $pc_start_addr_L %0
+    $pc_start_addr_H %0
+
+    $RAM_offset_L %0
+    $RAM_offset_H %0
+
     $var_offset_L %0
     $var_offset_H %0
+
+    $l_offset_L %0
+    $l_offset_H %0
+    $unL_offset_L %0
+    $unL_offset_H %0
+    $s_offset_L %0
+    $s_offset_H %0
+    $unS_offset_L %0
+    $unS_offset_H %0
 
     $l_size_L %0
     $l_size_H %0
@@ -35,8 +51,8 @@
     $unS_start_addr_L %0
     $unS_start_addr_H %0
 
-
     $i %0
+    $j %0
 
     ; IO Setter byte low        &DA58
     ; IO Setter byte high       &DA59
@@ -531,7 +547,7 @@ _start
     STOR $l_start_addr_L @C
     STOR $l_start_addr_H @D
 
-    ; Allocate unL_size * 4 (2 bytes to store address, 2 to store id)
+    ; Allocate unL_size * 4 (2 bytes to store id, 2 to store address)
     #unL_alloc_loop_start
         LDFM @A $unL_size_L
         JZC #loop_check_end_3
@@ -653,8 +669,147 @@ _start
             COPM $instruction $low_byte
 
         ; Check if it is a halt instruction (0x35)
+        #halt_check
+            LDFM @A $instruction
+            CMPI @A %53
+            JZC #label_check_2
 
-        JMP #loop_start_3
+            LDFM @A $pc_set
+            JZS #write_halt_to_memory
+            COPM $pc_start_addr_L $RAM_offset_L
+            COPM $pc_start_addr_H $RAM_offset_H
+            STRI $pc_set %1
+
+            #write_halt_to_memory
+                LDFI @C %0
+                LDFI @D %0
+                LDFM @E $RAM_offset_L
+                LDFM @F $RAM_offset_H
+                COPO &0100 $instruction
+                LDFM @C $RAM_offset_L
+                LDFM @D $RAM_offset_H
+                JSR _Increment_Address
+            
+            JMP #loop_start_3
+
+        ; Check if the is a label encoding (0x36)
+        #label_check_2
+            CMPI @A %54
+            JZC #subr_check_2
+            
+            JSR _Grab_Word
+            PSHM $high_byte
+            PSHM $low_byte
+
+            LDFI @C %0
+            LDFI @D %0
+            LDFM @E $l_start_addr_L
+            LDFM @F $l_start_addr_H
+            LDFM @B $l_offset_L
+            ADD @E @B
+            JOC #second_add
+            INCR @F
+
+            #second_add
+            LDFM @B $l_offset_H
+            ADD @F @B
+
+            #addr_store
+                COPO &0000 $RAM_offset_L
+                INCR @E 
+                JZC #second_addr_store
+                INCR @F
+            
+            #second_addr_store
+                COPO &0000 $RAM_offset_H
+                INCM $l_offset_L
+                LDFM @A $l_offset_L
+                JZS #second_inc
+                INCM $l_offset_H
+
+            #second_inc
+                INCM $l_offset_L
+                LDFM @A $l_offset_L
+                JZS #loop_start_4
+                INCM $l_offset_H
+
+            STRI $i %0
+            STRI $j %0
+            #loop_start_4
+                LDFM @A $s_start_addr_L
+                CMPM @A $i 
+                JZC #check_label
+                LDFM @A $s_start_addr_H
+                CMPM @A $j
+                JZS #loop_end_4
+
+                #check_label
+                    LDFM @E $unL_start_addr_L
+                    LDFM @F $unL_start_addr_H
+                    LDFM @A $i
+
+                    ADD @E @A
+                    JZC #add_1
+                    INCR @F 
+                    #add_1
+                    LDFM @A $j
+                    ADD @F @A
+
+                #get_element_1
+                    LDFO @A &0000
+                    INCR @E
+                    JZC #get_element_2
+                    INCR @F
+
+                #get_element_2
+                    LDFO @B &0000
+                    INCR @E 
+                    JZC #compare_id_1
+                    INCR @F
+
+                #compare_id_1
+                    PULR @C 
+                    PULR @D
+                    CMPR @A @C
+                    JZC #loop_start_4
+                    CMPR @B @D
+                    JZC #loop_start_4
+                    PSHR @C 
+                    PSHR @D
+
+                #get_element_3
+                    LDFO @A &0000
+                    INCR @E
+                    JZC #get_element_2
+                    INCR @F
+
+                #get_element_4
+                    LDFO @B &0000
+                    INCR @E 
+                    JZC #compare_id_1
+                    INCR @F
+
+                #write_label_to_memory
+                LDFM @G $l_start_addr_L
+                LDFM @H $l_start_addr_H
+                ADD @C @G 
+                JOC #add_2
+                INCR @D
+
+                #add_2
+                ADD @D @H
+
+                COPO &0100 &0000
+
+                STOR $i @E
+                STOR $j @F
+                JMP #loop_start_4
+            #loop_end_4
+
+            JMP #loop_start_3
+
+        #subr_check_2
+
     #loop_end_3
 
     HALT
