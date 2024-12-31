@@ -339,8 +339,8 @@ _start
     COPM $var_size_H $high_byte
 
     ; Store the first address of actual program in stack
-    PSHM $high_byte
-    PSHM $low_byte
+    PSHM $aux_offset_H
+    PSHM $aux_offset_L
 
     ; GET ENDING ADDRESS
     ; Get the second address from p_stack
@@ -629,6 +629,8 @@ _start
 
             LDFM @E $var_offset_L
             LDFM @F $var_offset_H
+            LDFI @C %0
+            LDFI @D %0
             COPO &D858 $low_byte
             
             INCM $var_offset_L

@@ -93,7 +93,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
 
     while (ins != INS_HALT) {
-        printf ("%d   %d\n", (int) ins, PC);
+        // printf ("%d   %d\n", (int) ins, PC);
         if (ReadByte (0xDA5A, memory) == 1) {
             word aux_address = ((word) ReadByte (0xDA58, memory)) | ((word) ReadByte (0xDA59, memory) << 8);
             memory.WriteWord (aux_mem[aux_address], 0xDA5B);
@@ -636,7 +636,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
 
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
-                printf ("%d %d %d    %d\n", memory[PC - 1], memory[PC], memory[PC + 1], PC);
+                // printf ("%d %d %d    %d\n", memory[PC - 1], memory[PC], memory[PC + 1], PC);
                 return;
             } break;
         }
