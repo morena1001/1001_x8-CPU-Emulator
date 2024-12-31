@@ -476,14 +476,14 @@ _start
                 JMP #loop_start_2
 
             #rr_value
-                CMPI @B %3
+                CMPI @B %5
                 JZC #mr_value
 
                 JSR _Grab_Word
                 JMP #loop_start_2
 
             #mr_value
-                CMPI @B %3
+                CMPI @B %6
                 JZC #rm_value
 
                 JSR _Grab_Word
@@ -491,7 +491,7 @@ _start
                 JMP #loop_start_2
 
             #rm_value
-                CMPI @B %3
+                CMPI @B %7
                 JZC #mm_value
                 
                 JSR _Grab_Word
@@ -499,7 +499,7 @@ _start
                 JMP #loop_start_2
 
             #mm_value
-                CMPI @B %3
+                CMPI @B %8
                 JZC #ri_value
 
                 JSR _Grab_Word
@@ -508,14 +508,14 @@ _start
                 JMP #loop_start_2
 
             #ri_value
-                CMPI @B %3
+                CMPI @B %9
                 JZC #mi_value
 
                 JSR _Grab_Word
                 JMP #loop_start_2
 
             #mi_value
-                CMPI @B %3
+                CMPI @B %10
                 JZC #loop_start_2
 
                 JSR _Grab_Word
@@ -924,9 +924,78 @@ _start
 
             JMP #loop_start_3
 
-        ; Check if it a start encoding (0x37) 55
+        ; Check if it a start encoding (0x37)
         #start_check
+            LDFM @A $instruction
+            CMPI @A %55
+            JZC #pc_set_check
 
+            COPM $pc_start_addr_L $RAM_offset_L
+            COPM $pc_start_addr_H $RAM_offset_H
+            STRI $pc_set %1
+            
+            JMP #loop_start_3
+
+        ; Update the start of the program if either a halt or a start instruction has not yet appeared
+        #pc_set_check
+            LDFM @A $pc_set
+            JZC #ins_to_op
+
+            COPM $pc_start_addr_L $RAM_offset_L
+            COPM $pc_start_addr_H $RAM_offset_H
+            STRI $pc_set %1
+
+        #ins_to_op
+            COPM $opcode $instruction
+
+            JSR _Check_Opcode_Type
+
+        #r_value_2
+            CMPI @B %3
+            JZC #m_value_2
+            JSR _Grab_Byte
+
+            LDFI @C %0
+            LDFI @D %0
+            LDFM @E $RAM_offset_L
+            LDFM @F $RAM_offset_H
+
+            COPO &0100 $low_byte
+        
+            LDFM @C $RAM_offset_L
+            LDFM @D $RAM_offset_H
+            JSR _Increment_Address
+
+            JMP #loop_start_3
+
+        #m_value_2
+            CMPI @B %4
+            JZC #rr_value_2
+
+        #rr_value_2
+            CMPI @B %5
+            JZC #mr_value_2
+
+        #mr_value_2
+            CMPI @B %6
+            JZC #rm_value_2
+
+        #rm_value_2
+            CMPI @B %7
+            JZC #mm_value_2
+
+        #mm_value_2
+            CMPI @B %8
+            JZC #ri_value_2
+
+        #ri_value_2
+            CMPI @B %9
+            JZC #mi_value_2
+
+        #mi_value_2
+            CMPI @B %10
+            JZC #loop_start_3
+        
     #loop_end_3
 
     HALT
