@@ -702,8 +702,6 @@ _start
 
             ; Grab the label id
             JSR _Grab_Word
-            PSHM $high_byte
-            PSHM $low_byte
 
             ; Prepare the offsets to store address of label
             LDFI @C %0
@@ -847,8 +845,6 @@ _start
 
             ; Grab the label id
             JSR _Grab_Word
-            PSHM $high_byte
-            PSHM $low_byte
 
             ; Prepare the offsets to store address of label
             LDFI @C %0
@@ -1016,17 +1012,132 @@ _start
             JZC #subr_value_2
             JSR _Grab_Word
 
-            STRI $i %0
-            LDFM @C $low_byte
-            LDFM @D $high_byte
-            LDFM @E $s_start_addr_L
-            LDFM @F $s_start_addr_H
-            
-            #loop_start_6
-                LDFM @A $low_byte
-                CMPO @A %
+            LDFM @E $l_start_addr_L
+            LDFM @F $l_start_addr_H
 
-            #loop_end_6
+            LDFM @A $low_byte
+            LDFM @A $high_byte
+            DECR @A
+            CMPI @A %255
+            JZC #add_1
+            DECR @B
+            
+            #add_1
+            ADD @E @A
+            JOC #add_2
+            INCR @F
+
+            #add_2
+            ADD @F @B
+            ADD @E @A
+            JOC #add_3
+            INCR @F
+
+            #add_3
+            ADD @F @B
+
+            #get_label_addr_1
+            LDFO @A &0000
+            INCR @E 
+            JZC #get_label_addr_2
+            INCR @F
+
+            #get_label_addr_2
+            LDFO @B &0000
+
+            ; If the label address is 0, write the label to unL
+            CMPR @A @B 
+            JZC #write_label_to_memory
+            CMPI @A %0
+            JZC #write_label_to_memory
+
+            LDFI @C %0
+            LDFI @D %0
+            LDFM @E $unL_start_addr_L
+            LDFM @F $unL_start_addr_H
+
+            LDFM @A $unL_offset_L
+            LDFM @B $unL_offset_H
+            ADD @E @A
+            JOC #add_4
+            INCR @F
+
+            #add_4
+            ADD @F @B
+
+            COPO &0000 $low_byte
+            INCR @E 
+            JZC #inc_unL_offset_1
+            INCR @F
+
+            #inc_unL_offset_1
+                INCR @A
+                JZC #copy_high_byte
+                INCR @B
+
+            #copy_high_byte
+                COPO &0000 $high_byte
+                INCR @E 
+                JZC #inc_unL_offset_2
+                INCR @F
+
+            #inc_unL_offset_2
+                INCR @A
+                JZC #copy_addr_low
+                INCR @B
+
+            #copy_addr_low
+                COPO &0000 $RAM_offset_L
+                INCR @E 
+                JZC #inc_unL_offset_3
+                INCR @F
+
+            #inc_unL_offset_3
+                INCR @A
+                JZC #copy_addr_high
+                INCR @B
+
+            #copy_addr_high
+                COPO &0000 $RAM_offset_L
+                INCR @A
+                JZC #store_offset
+                INCR @B
+
+            #store_offset
+            STOR $unL_offset_L @A
+            STOR $unL_offset_H @B
+
+            LDFM @C $RAM_offset_L
+            LDFM @D $RAM_offset_H
+            JSR _Increment_Address
+            JSR _Increment_Address
+            STOR $RAM_offset_L @C
+            STOR $RAM_offset_H @D
+
+            JMP #loop_start_3
+
+            #write_label_to_memory
+            LDFR @C @A
+            LDFR @D @B
+            LDFM @E $RAM_offset_L
+            LDFM @F $RAM_offset_H
+            
+            STOO &0100 @A
+            INCR @E 
+            JZC #store_high
+            INCR @F
+
+            #store_high
+                STOO &0100 @B
+
+            LDFM @C $RAM_offset_L
+            LDFM @D $RAM_offset_H
+            JSR _Increment_Address
+            JSR _Increment_Address
+            STOR $RAM_offset_L @C
+            STOR $RAM_offset_H @D
+
+            JMP #loop_start_3
 
         #subr_value_2
             CMPI @B %2
