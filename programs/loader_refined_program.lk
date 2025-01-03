@@ -699,139 +699,143 @@ _start
         #label_check_2
             CMPI @A %54
             JZC #subr_check_2
-            
+
+            ; Grab the label id
             JSR _Grab_Word
             PSHM $high_byte
             PSHM $low_byte
 
+            ; Prepare the offsets to store address of label
             LDFI @C %0
             LDFI @D %0
             LDFM @E $l_start_addr_L
             LDFM @F $l_start_addr_H
 
+            ; Decrement id to get position in map / array
             LDFM @A $low_byte
             LDFM @B $high_byte
-
             DECR @A
             CMPI @A %255
-            JZC #move_to_addr_1
+            JSC #move_to_addr_1
             DECR @B
 
-            STRI $i %0
-            STRI $j %0
-
+            ; increment @E and @F to move offset to correct spot 
             #move_to_addr_1
-                CMPM @A $i
+                CMPI @A %0
                 JZC #inc_1
-                CMPM @B $j
-                JZS #addr_store
+                CMPI @B %0
+                JZS #first_addr_store
 
                 #inc_1
-                    INCM $i
-                    LDFM @G $i
+                    DECR @A
+                    CMPI @A %255
+                    JSC #low_byte_inc
+                    DECR @B
+
+                    #low_byte_inc
+                    INCR @E 
                     JZC #inc_2
-                    INCM $j
-                
+                    INCR @F
+
                 #inc_2
-                    INCM $i
-                    LDFM @G $i
+                    INCR @E 
                     JZC #move_to_addr_1
-                    INCM $j
+                    INCR @F
                     JMP #move_to_addr_1
-     
-            #first_add
-            COPM $l_offset_L $i
-            COPM $l_offset_H $j
 
-            LDFM @B $i
-            ADD @E @B
-            JOC #second_add
-            INCR @F
-
-            #second_add
-            LDFM @B $j
-            ADD @F @B
-
-            #addr_store
+            ; store RAM_offset in set position
+            #first_addr_store
                 COPO &0000 $RAM_offset_L
-                INCR @E 
+                INCR @E
                 JZC #second_addr_store
                 INCR @F
-            
+
             #second_addr_store
                 COPO &0000 $RAM_offset_H
 
-            LDFM @E $unL_start_addr_L
-            LDFM @F $unL_start_addr_H
+            ; Loop through unL map
+            #loop_start_4_prep
+                LDFM @A $low_byte
+                LDFM @B $low_byte
+                LDFM @E $unL_start_addr_L
+                LDFM @F $unL_start_addr_H
+
             #loop_start_4
-                LDFM @A $s_start_addr_L
-                CMPR @A @E
-                JZC #check_label
-                LDFM @A $s_start_addr_H
-                CMPR @A @F
+                CMPM @E $s_start_addr_L
+                JZC #check_id
+                CMPM @F $s_start_addr_H
                 JZS #loop_end_4
 
-                #check_label
-                    LDFM @E $unL_start_addr_L
-                    LDFM @F $unL_start_addr_H
-                    LDFM @A $i
+                #check_id
+                    CMPO @A &0000                    
+                    JZC #id_nq_1
+                    INCR @E
+                    JZC #high_byte_check
+                    INCR @F
+                    
+                #high_byte_check
+                    CMPO @B &0000
+                    JZC #get_addr_low
+                    INCR @E
+                    JZC #get_addr_low
+                    INCR @F
 
-                    ADD @E @A
-                    JZC #add_1
-                    INCR @F 
-                    #add_1
-                    LDFM @A $j
-                    ADD @F @A
-
-                #get_element_1
+                #get_addr_low
                     LDFO @A &0000
                     INCR @E
-                    JZC #get_element_2
+                    JZC #get_addr_high
                     INCR @F
 
-                #get_element_2
+                #get_addr_high
                     LDFO @B &0000
-                    INCR @E 
-                    JZC #compare_id_1
-                    INCR @F
-
-                #compare_id_1
-                    PULR @C 
-                    PULR @D
-                    CMPR @A @C
-                    JZC #loop_start_4
-                    CMPR @B @D
-                    JZC #loop_start_4
-                    PSHR @C 
-                    PSHR @D
-
-                #get_element_3
-                    LDFO @A &0000
                     INCR @E
-                    JZC #get_element_4
+                    JZC #store_id_addr_low
                     INCR @F
 
-                #get_element_4
-                    LDFO @B &0000
-                    INCR @E 
-                    JZC #write_label_to_memory
+                #store_id_addr_low
+                    PSHM @F
+                    PSHM @E
+
+                    LDFR @E @A
+                    LDFR @F @B
+
+                    COPO &0100 $RAM_offset_L
+
+                    INCR @E
+                    JZC #store_id_addr_high
                     INCR @F
 
-                #write_label_to_memory
-                LDFM @G $l_start_addr_L
-                LDFM @H $l_start_addr_H
-                ADD @C @G 
-                JOC #add_2
-                INCR @D
+                #store_id_addr_high
+                    COPO &0100 $RAM_offset_H
+                    PULR @E
+                    PULR @F
+                    LDFM @A $low_byte
+                    LDFM @B $high_byte
 
-                #add_2
-                ADD @D @H
+                    JMP #loop_start_4
 
-                COPO &0100 &0000
 
-                STOR $i @E
-                STOR $j @F
-                JMP #loop_start_4
+                ; id not equal, skip 4 bytes to go to next id
+                #id_nq_1
+                    INCR @E
+                    JZC #id_nq_2
+                    INCR @F
+
+                #id_nq_2
+                    INCR @E
+                    JZC #id_nq_3
+                    INCR @F
+
+                #id_nq_3
+                    INCR @E
+                    JZC #id_nq_4
+                    INCR @F
+
+                #id_nq_4
+                    INCR @E
+                    JZC #loop_start_4
+                    INCR @F
+                    JMP #loop_start_4
             #loop_end_4
 
             JMP #loop_start_3
@@ -840,114 +844,143 @@ _start
         #subr_check_2
             CMPI @A %65
             JZC #start_check
-            
+
+            ; Grab the label id
             JSR _Grab_Word
             PSHM $high_byte
             PSHM $low_byte
 
+            ; Prepare the offsets to store address of label
             LDFI @C %0
             LDFI @D %0
             LDFM @E $s_start_addr_L
             LDFM @F $s_start_addr_H
-            LDFM @B $s_offset_L
-            ADD @E @B
-            JOC #second_add
-            INCR @F
 
-            #second_add
-            LDFM @B $s_offset_H
-            ADD @F @B
+            ; Decrement id to get position in map / array
+            LDFM @A $low_byte
+            LDFM @B $high_byte
+            DECR @A
+            CMPI @A %255
+            JSC #move_to_addr_2
+            DECR @B
 
-            #addr_store
+            ; increment @E and @F to move offset to correct spot 
+            #move_to_addr_2
+                CMPI @A %0
+                JZC #inc_3
+                CMPI @B %0
+                JZS #first_addr_store_1
+
+                #inc_3
+                    DECR @A
+                    CMPI @A %255
+                    JSC #low_byte_inc_1
+                    DECR @B
+
+                    #low_byte_inc_1
+                    INCR @E 
+                    JZC #inc_4
+                    INCR @F
+
+                #inc_4
+                    INCR @E 
+                    JZC #move_to_addr_2
+                    INCR @F
+                    JMP #move_to_addr_2
+
+            ; store RAM_offset in set position
+            #first_addr_store_1
                 COPO &0000 $RAM_offset_L
-                INCR @E 
-                JZC #second_addr_store
+                INCR @E
+                JZC #second_addr_store_2
                 INCR @F
-            
-            #second_addr_store
+
+            #second_addr_store_2
                 COPO &0000 $RAM_offset_H
-                INCM $s_offset_L
-                LDFM @A $s_offset_L
-                JZS #second_inc
-                INCM $s_offset_H
 
-            #second_inc
-                INCM $s_offset_L
-                LDFM @A $s_offset_L
-                JZS #loop_start_5
-                INCM $s_offset_H
+            ; Loop through unL map
+            #loop_start_4_prep_1
+                LDFM @A $low_byte
+                LDFM @B $low_byte
+                LDFM @E $unS_start_addr_L
+                LDFM @F $unS_start_addr_H
 
-            STRI $i %0
-            STRI $j %0
             #loop_start_5
-                LDFI @A $58
-                CMPM @A $i 
-                JZC #check_label
-                LDFM @A %216
-                CMPM @A $j
+                CMPI @E %88
+                JZC #check_id_1
+                CMPI @F %216
                 JZS #loop_end_5
 
-                #check_label
-                    LDFM @E $unS_start_addr_L
-                    LDFM @F $unS_start_addr_H
-                    LDFM @A $i
+                #check_id_1
+                    CMPO @A &0000                    
+                    JZC #id_nq_1_1
+                    INCR @E
+                    JZC #high_byte_check_1
+                    INCR @F
+                    
+                #high_byte_check_1
+                    CMPO @B &0000
+                    JZC #get_addr_low_1
+                    INCR @E
+                    JZC #get_addr_low_1
+                    INCR @F
 
-                    ADD @E @A
-                    JZC #add_1
-                    INCR @F 
-                    #add_1
-                    LDFM @A $j
-                    ADD @F @A
-
-                #get_element_1
+                #get_addr_low_1
                     LDFO @A &0000
                     INCR @E
-                    JZC #get_element_2
+                    JZC #get_addr_high_1
                     INCR @F
 
-                #get_element_2
+                #get_addr_high_1
                     LDFO @B &0000
-                    INCR @E 
-                    JZC #compare_id_1
-                    INCR @F
-
-                #compare_id_1
-                    PULR @C 
-                    PULR @D
-                    CMPR @A @C
-                    JZC #loop_start_5
-                    CMPR @B @D
-                    JZC #loop_start_5
-                    PSHR @C 
-                    PSHR @D
-
-                #get_element_3
-                    LDFO @A &0000
                     INCR @E
-                    JZC #get_element_4
+                    JZC #store_id_addr_low_1
                     INCR @F
 
-                #get_element_4
-                    LDFO @B &0000
-                    INCR @E 
-                    JZC #write_subr_to_memory
+                #store_id_addr_low_1
+                    PSHM @F
+                    PSHM @E
+
+                    LDFR @E @A
+                    LDFR @F @B
+
+                    COPO &0100 $RAM_offset_L
+
+                    INCR @E
+                    JZC #store_id_addr_high_1
                     INCR @F
 
-                #write_subr_to_memory
-                LDFM @G $s_start_addr_L
-                LDFM @H $s_start_addr_H
-                ADD @C @G 
-                JOC #add_2
-                INCR @D
+                #store_id_addr_high_1
+                    COPO &0100 $RAM_offset_H
+                    PULR @E
+                    PULR @F
+                    LDFM @A $low_byte
+                    LDFM @B $high_byte
 
-                #add_2
-                ADD @D @H
+                    JMP #loop_start_5
 
-                COPO &0100 &0000
 
-                STOR $i @E
-                STOR $j @F
-                JMP #loop_start_5
+                ; id not equal, skip 4 bytes to go to next id
+                #id_nq_1_1
+                    INCR @E
+                    JZC #id_nq_2_1
+                    INCR @F
+
+                #id_nq_2_1
+                    INCR @E
+                    JZC #id_nq_3_1
+                    INCR @F
+
+                #id_nq_3_1
+                    INCR @E
+                    JZC #id_nq_4_1
+                    INCR @F
+
+                #id_nq_4_1
+                    INCR @E
+                    JZC #loop_start_5
+                    INCR @F
+                    JMP #loop_start_5
             #loop_end_5
 
             JMP #loop_start_3
