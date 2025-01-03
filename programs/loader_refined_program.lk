@@ -708,13 +708,48 @@ _start
             LDFI @D %0
             LDFM @E $l_start_addr_L
             LDFM @F $l_start_addr_H
-            LDFM @B $l_offset_L
+
+            LDFM @A $low_byte
+            LDFM @B $high_byte
+
+            DECR @A
+            CMPI @A %255
+            JZC #move_to_addr_1
+            DECR @B
+
+            STRI $i %0
+            STRI $j %0
+
+            #move_to_addr_1
+                CMPM @A $i
+                JZC #inc_1
+                CMPM @B $j
+                JZS #addr_store
+
+                #inc_1
+                    INCM $i
+                    LDFM @G $i
+                    JZC #inc_2
+                    INCM $j
+                
+                #inc_2
+                    INCM $i
+                    LDFM @G $i
+                    JZC #move_to_addr_1
+                    INCM $j
+                    JMP #move_to_addr_1
+     
+            #first_add
+            COPM $l_offset_L $i
+            COPM $l_offset_H $j
+
+            LDFM @B $i
             ADD @E @B
             JOC #second_add
             INCR @F
 
             #second_add
-            LDFM @B $l_offset_H
+            LDFM @B $j
             ADD @F @B
 
             #addr_store
@@ -725,25 +760,15 @@ _start
             
             #second_addr_store
                 COPO &0000 $RAM_offset_H
-                INCM $l_offset_L
-                LDFM @A $l_offset_L
-                JZS #second_inc
-                INCM $l_offset_H
 
-            #second_inc
-                INCM $l_offset_L
-                LDFM @A $l_offset_L
-                JZS #loop_start_4
-                INCM $l_offset_H
-
-            STRI $i %0
-            STRI $j %0
+            LDFM @E $unL_start_addr_L
+            LDFM @F $unL_start_addr_H
             #loop_start_4
                 LDFM @A $s_start_addr_L
-                CMPM @A $i 
+                CMPR @A @E
                 JZC #check_label
                 LDFM @A $s_start_addr_H
-                CMPM @A $j
+                CMPR @A @F
                 JZS #loop_end_4
 
                 #check_label
@@ -958,7 +983,17 @@ _start
             JZC #subr_value_2
             JSR _Grab_Word
 
-            JMP #loop_start_3
+            STRI $i %0
+            LDFM @C $low_byte
+            LDFM @D $high_byte
+            LDFM @E $s_start_addr_L
+            LDFM @F $s_start_addr_H
+            
+            #loop_start_6
+                LDFM @A $low_byte
+                CMPO @A %
+
+            #loop_end_6
 
         #subr_value_2
             CMPI @B %2
