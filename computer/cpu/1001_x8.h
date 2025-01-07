@@ -4,9 +4,16 @@ using byte = unsigned char;
 using word = unsigned short;
 using u32 = unsigned int;
 
-#define IS_NUMBER(value)                (value == '0' || value == '1' || value == '2' || value == '3' || value == '4' || value == '5' || value == '6' || value == '7' || value == '8' || value == '9')
+#define IS_NUMBER(value)                        (value == '0' || value == '1' || value == '2' || value == '3' || value == '4' || value == '5' || value == '6' || value == '7' || value == '8' || value == '9')
 #define INT_REPRESENTATION_OF_HEX(hex_value)    (IS_NUMBER (hex_value) ? ((u32) hex_value) - 48 : (hex_value == 'A' ? 10 : (hex_value == 'B' ? 11 : (hex_value == 'C' ? 12 : (hex_value == 'D' ? 13 : (hex_value == 'E' ? 14 : (hex_value == 'F' ? 15 : 0)))))))
-#define STRING_FROM_HEX(value)          (value == 10 ? "A" : (value == 11 ? "B" : (value == 12 ? "C" : (value == 13 ? "D" : (value == 14 ? "E" : (value == 15 ? "F" : to_string (value)))))))
+#define STRING_FROM_HEX(value)                  (value == 10 ? "A" : (value == 11 ? "B" : (value == 12 ? "C" : (value == 13 ? "D" : (value == 14 ? "E" : (value == 15 ? "F" : to_string (value)))))))
+
+#define NEEDS_1_BYTE(opcode)        ((opcode >= 0x0A && opcode <= 0x0D) || opcode == 0x23 || (opcode >= 0x2C && opcode <= 0x35))
+#define NEEDS_2_BYTES(opcode)       (opcode == 0x07 || opcode == 0x08 || opcode == 0x11 || opcode == 0x19 || opcode == 0x1B || opcode == 0x1D || opcode == 0x1E || opcode == 0x21 || (opcode >= 0x24 && opcode <= 0x2B))
+#define NEEDS_3_BYTES(opcode)       (opcode == 0x02 || opcode == 0x03 || opcode == 0x05 || opcode == 0x09 || (opcode >= 0x0E && opcode <= 0x10) || opcode == 0x16 || opcode == 0x18 || opcode == 0x1A || opcode == 0x1C || opcode == 0x1F || opcode == 0x20 || opcode == 0x22 || opcode == 0x3B || (opcode >= 0x3D && opcode <= 0x49))
+#define NEEDS_4_BYTES(opcode)       (opcode == 0x01 || opcode == 0x04 || opcode == 0x17 || opcode == 0x38 || opcode == 0x39 || opcode == 0x3C || opcode == 0x45 || opcode == 0x46)
+#define NEEDS_5_BYTES(opcode)       (opcode == 0x06 || opcode == 0x3A || opcode == 0x43 || opcode == 0x44)
+
 
 #define A   0
 #define B   1

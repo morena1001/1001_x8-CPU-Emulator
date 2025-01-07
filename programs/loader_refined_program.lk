@@ -696,6 +696,7 @@ _start
             JMP #loop_start_3
 
         ; Check if the is a label encoding (0x36)
+        STRI &00FF %250
         #label_check_2
             CMPI @A %54
             JZC #subr_check_2
@@ -839,6 +840,7 @@ _start
             JMP #loop_start_3
 
         ; Check if the is a subroutine encoding (0x41)
+        STRI &00FF %255
         #subr_check_2
             CMPI @A %65
             JZC #start_check

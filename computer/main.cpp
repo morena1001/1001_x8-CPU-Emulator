@@ -31,14 +31,13 @@ int main (int argc, char** argv) {
     // Load_Program ("../programs/loader_refined_program.output", cpu, mem);
 
     // Execute the OS pointed to by the bootloader
-    cpu.Execute (mem, aux_mem);
+    // cpu.Execute (mem, aux_mem);
     
     // Load a program from auxiliary memory 
     // os.Run (cpu, mem, aux_mem, loader);
 
     // Run a loaded program in RAM
-    Load_Program ("../programs/loader_refined_program.output", cpu, mem);
-    cpu.Execute (mem, aux_mem);
+    // Load_Program ("../programs/loader_refined_program.output", cpu, mem);
 
 
 

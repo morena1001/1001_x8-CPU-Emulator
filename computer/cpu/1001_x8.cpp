@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
+#include <iostream>
 
 #include "1001_x8.h"
 
-void Load_OS (byte data[mem_t::MAX_MEM]);
+void Load_OS (byte data[mem_t::MAX_MEM], word& address);
+void Load_PL (byte data[mem_t::MAX_MEM], word& address);
 
 using namespace std;
 
@@ -34,7 +36,11 @@ void MEM::Init () {
     data[0xFFFF] = 0xE0;
 
     // Load OS
-    Load_OS (data);
+    word address = 0xE000;
+    Load_OS (data, address);
+
+    // Load Program Loader
+    // Load_PL (data, address);
 }
 
 void MEM::WriteByte (byte value, u32 address) {
@@ -89,11 +95,68 @@ byte CPU::PullStack (mem_t& memory) {
     return data;
 }
 
+string from_hex (int value) {
+    switch (value) {
+        case 10 :
+            return "A";
+
+        case 11 :
+            return "B";
+
+        case 12 :
+            return "C";
+
+        case 13 :
+            return "D";
+
+        case 14 :
+            return "E";
+
+        case 15 :
+            return "F";
+
+        default :
+            return to_string (value);
+    }
+
+    return "";
+}
+
+string huh (byte value) {
+    return from_hex ((int) value / 16) + from_hex ((int) value % 16);
+}
+
 void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
 
     while (ins != INS_HALT) {
-        // printf ("%d   %d\n", (int) ins, PC);
+        cout << "VARIABLES" << endl;
+        for (int i = 0xFF55; i < 0xFF82; i++)       cout << huh (i >> 8) << huh (i & 0xFF) << " : " << huh (ReadByte (i, memory)) << endl; 
+
+        cout << endl;
+        cout << "A: " << huh (GPR[A]) << endl;
+        cout << "B: " << huh (GPR[B]) << endl;
+        cout << "C: " << huh (GPR[C]) << endl;
+        cout << "D: " << huh (GPR[D]) << endl;
+        cout << "E: " << huh (GPR[E]) << endl;
+        cout << "F: " << huh (GPR[F]) << endl;
+        cout << "G: " << huh (GPR[G]) << endl;
+        cout << "H: " << huh (GPR[H]) << endl;
+        cout << endl;
+
+        if (NEEDS_1_BYTE (ins))             cout << huh (ins) << endl; 
+        else if (NEEDS_2_BYTES (ins))       cout << huh (ins) << " " << huh (ReadByte (PC, memory)) << endl; 
+        else if (NEEDS_3_BYTES (ins))       cout << huh (ins) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC, memory)) << endl; 
+         else if (NEEDS_4_BYTES (ins))      cout << huh (ins) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC, memory)) << endl;
+         else if (NEEDS_5_BYTES (ins))      cout << huh (ins) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC, memory)) << endl;
+        cout << endl;
+
+        system ("pause");
+
+        
+
+        
+
         if (ReadByte (0xDA5A, memory) == 1) {
             word aux_address = ((word) ReadByte (0xDA58, memory)) | ((word) ReadByte (0xDA59, memory) << 8);
             memory.WriteWord (aux_mem[aux_address], 0xDA5B);
@@ -636,6 +699,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
 
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
+                cout << PC << endl;
                 // printf ("%d %d %d    %d\n", memory[PC - 1], memory[PC], memory[PC + 1], PC);
                 return;
             } break;
@@ -671,13 +735,31 @@ void CPU::Set_SF (byte reg) {
 
 
 
-void Load_OS (byte data[mem_t::MAX_MEM]) {
+void Load_OS (byte data[mem_t::MAX_MEM], word& address) {
     ifstream file;
 
     file.open ("os/final os program.txt");
 
     if (file.is_open ()) {
-        word address = 0xE000;
+        byte instruction;
+        string line;
+
+        getline (file, line);
+
+        while (line.length () != 0) {
+            instruction = (INT_REPRESENTATION_OF_HEX (line[0]) * 16) + (INT_REPRESENTATION_OF_HEX (line[1]));
+            data[address++] = instruction;
+            line.erase (0, 3);
+        }
+    }
+}
+
+void Load_PL (byte data[mem_t::MAX_MEM], word& address) {
+    ifstream file;
+
+    file.open ("aux_mem_loader/final loader program.txt");
+
+    if (file.is_open ()) {
         byte instruction;
         string line;
 
