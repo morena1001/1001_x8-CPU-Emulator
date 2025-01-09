@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.embeddedhtml": "html",
         "ostream": "cpp",
         "iostream": "cpp",
         "array": "cpp",
@@ -42,7 +43,8 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "xstring": "cpp"
     },
     "zenMode.fullScreen": false,
     "C_Cpp.errorSquiggles": "enabled"
