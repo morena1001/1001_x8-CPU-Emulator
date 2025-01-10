@@ -77,17 +77,17 @@ INSTRUCTIONS
     0x1E	SHRR	    Reg		                CF, SF, ZF	    2   	Shift contents in register right by 1 bit. CF becomes value of the old LSB
     0x1F	SHLM	    Mem		                        	    3   	Shift contents in memory left by 1 bit.
     0x20	SHRM	    Mem		                        	    3   	Shift contents in memory right by 1 bit.
-    0x21	JMP	        Imm			                            2	    Set PC to imm. 
+    0x21	JMP	        Imm			                            3	    Set PC to imm. 
     0x22	JSR	        Imm			                            3	    Set PC to address stored in mem
     0x23	RSR				                                    1	    Return to previously stored address in stack
-    0x24	JSC	        Imm			                            2	    Set PC to imm if SF is not set
-    0x25	JSS	        Imm			                            2	    Set PC to imm if SF is set
-    0x26	JCC	        Imm			                            2	    Set PC to imm if CF is not set
-    0x27	JCS	        Imm			                            2	    Set PC to imm if CF is set
-    0x28	JOC	        Imm			                            2	    Set PC to imm if OF is not set
-    0x29	JOS	        Imm			                            2	    Set PC to imm if OF is set
-    0x2A	JZC	        Imm			                            2	    Set PC to imm if ZF is not set
-    0x2B	JZS	        Imm			                            2	    Set PC to imm if ZF is set
+    0x24	JSC	        Imm			                            3	    Set PC to imm if SF is not set
+    0x25	JSS	        Imm			                            3	    Set PC to imm if SF is set
+    0x26	JCC	        Imm			                            3	    Set PC to imm if CF is not set
+    0x27	JCS	        Imm			                            3	    Set PC to imm if CF is set
+    0x28	JOC	        Imm			                            3	    Set PC to imm if OF is not set
+    0x29	JOS	        Imm			                            3	    Set PC to imm if OF is set
+    0x2A	JZC	        Imm			                            3	    Set PC to imm if ZF is not set
+    0x2B	JZS	        Imm			                            3	    Set PC to imm if ZF is set
     0x2C	CCF			                        CF	            1	    Clear CF
     0x2D	SCF			                        CF	            1	    Set CF
     0x2E	CSF			                        SF	            1	    Clear SF

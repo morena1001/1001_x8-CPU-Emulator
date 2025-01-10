@@ -137,11 +137,8 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     while (ins != INS_HALT) {
         if (!skipped && PC == skip_to)      skipped = true;
         
-        if (skipped && PC >= 0xE085 && PC <= 0xFFF0) {
-            cout << "PROGRAM COUNTER" << endl;
-            cout << huh (PC >> 8) << huh (PC & 0xFF) << endl;
-            
-            cout << endl << "VARIABLES" << endl;
+        if (skipped && PC >= 0xE085 && PC <= 0xFFF0) {          
+            cout << "VARIABLES" << endl;
             for (int i = 0xFF55; i < 0xFF85; i++) {
                 switch (i) {
                     case 0xFF55 : cout << "aux_offset_L        : " << huh (ReadByte (i, memory)) << endl; break;
@@ -242,9 +239,10 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
             else if (NEEDS_3_BYTES (ins))       cout << huh (ins) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC + 1, memory)) << endl; 
             else if (NEEDS_4_BYTES (ins))       cout << huh (ins) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC + 1, memory)) << " " << huh (ReadByte (PC + 2, memory)) << endl;
             else if (NEEDS_5_BYTES (ins))       cout << huh (ins) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC + 1, memory)) << " " << huh (ReadByte (PC + 2, memory)) << " " << huh (ReadByte (PC + 3, memory)) << endl;
-            cout << endl;
+            
+            cout << endl << "PROGRAM COUNTER" << endl;
+            cout << huh (PC >> 8) << huh (PC & 0xFF) << endl << endl;
 
-            // system ("pause");
             cout << "Press 'q' then 'enter' to quit, or 'enter' to move to next instruction... ";
             while (true) {
                 if (kbhit ()) {
