@@ -131,7 +131,7 @@ string huh (byte value) {
 void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
     char ch;
-    word skip_to = 0xE2BB;
+    word skip_to = 0xE4FB;//0xE307;    //0xE4F8;//0xE304;//0xE2BB;    
     bool skipped = false;
 
     while (ins != INS_HALT) {
@@ -797,6 +797,7 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
             default : {
                 printf ("Instruction 0x%X not handled\r\n", ins);
                 cout << PC << endl;
+                cout << huh (ins) << " " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC + 1, memory)) << " " << huh (ReadByte (PC + 2, memory)) << " " << huh (ReadByte (PC + 3, memory)) << endl;
                 // printf ("%d %d %d    %d\n", memory[PC - 1], memory[PC], memory[PC + 1], PC);
                 return;
             } break;
@@ -804,6 +805,74 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
 
         ins = FetchByte (memory);
     }
+
+    cout << "VARIABLES" << endl;
+            for (int i = 0xFF55; i < 0xFF85; i++) {
+                switch (i) {
+                    case 0xFF55 : cout << "aux_offset_L        : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF56 : cout << "aux_offset_H        : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF57 : cout << "low_byte            : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF58 : cout << "high_byte           : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF59 : cout << "high_next           : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+                    case 0xFF5A : cout << "instruction         : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF5B : cout << "opcode              : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+                    case 0xFF5C : cout << "p_stack_offset      : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF5D : cout << "end_addr_L          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF5E : cout << "end_addr_H          : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+                    case 0xFF5F : cout << "pc_set              : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF60 : cout << "pc_start_addr_L     : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF61 : cout << "pc_start_addr_H     : " << huh (ReadByte (i, memory)) << endl << endl; break;
+                
+                    case 0xFF62 : cout << "RAM_offset_L        : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF63 : cout << "RAM_offset_H        : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+                    case 0xFF64 : cout << "var_offset_L        : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF65 : cout << "var_offset_H        : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+
+                    case 0xFF66 : cout << "l_offset_L          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF67 : cout << "l_offset_H          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF68 : cout << "unL_offset_L        : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF69 : cout << "unL_offset_H        : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF6A : cout << "s_offset_L          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF6B : cout << "s_offset_H          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF6C : cout << "unS_offset_L        : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF6D : cout << "unS_offset_H        : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+                    case 0xFF6E : cout << "l_size_L            : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF6F : cout << "l_size_H            : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF70 : cout << "unL_size_L          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF71 : cout << "unL_size_H          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF72 : cout << "s_size_L            : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF73 : cout << "s_size_H            : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF74 : cout << "unS_size_L          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF75 : cout << "unS_size_H          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF76 : cout << "var_size_L          : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF77 : cout << "var_size_H          : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+
+                    case 0xFF78 : cout << "l_start_addr_L      : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF79 : cout << "l_start_addr_H      : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF7A : cout << "unL_start_addr_L    : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF7B : cout << "unL_start_addr_H    : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF7C : cout << "s_start_addr_L      : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF7D : cout << "s_start_addr_H      : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF7E : cout << "unS_start_addr_L    : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF7F : cout << "unS_start_addr_H    : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+                    case 0xFF80 : cout << "i                   : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF81 : cout << "j                   : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+                    case 0xFF82 : cout << "p_stack_counter     : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF83 : cout << "aux_mem_addr_L      : " << huh (ReadByte (i, memory)) << endl; break;
+                    case 0xFF84 : cout << "aux_mem_addr_H      : " << huh (ReadByte (i, memory)) << endl << endl; break;
+
+                    default : cout << huh (i >> 8) << huh (i & 0xFF) << "                : " << huh (ReadByte (i, memory)) << endl; break;
+                }
+            }
 }
 
 void CPU::Set_CF (word value) {

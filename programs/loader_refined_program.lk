@@ -169,7 +169,7 @@ _Check_Opcode_Type
 
         CMPI @A %44
         JCS #sj_check
-        CMPI @A %24
+        CMPI @A %36
         JCS #is_lj
 
         JMP #sj_check
@@ -284,6 +284,7 @@ _Check_Opcode_Type
 
     #is_reg_op2
         LDFI @A %2
+        CCF
         ADD @B @A
         RSR
 
@@ -310,6 +311,7 @@ _Check_Opcode_Type
     
     #is_mem_op2
         LDFI @A %4
+        CCF
         ADD @B @A 
         RSR
 
@@ -328,6 +330,7 @@ _Check_Opcode_Type
 
     #is_imm_op2
         LDFI @A %6
+        CCF
         ADD @B @A 
         RSR
 
@@ -399,11 +402,11 @@ _start
             JSR _Grab_Byte
             COPM $instruction $low_byte
 
-        ; Check if the instruction is a label encoding (0x35, 54)
+        ; Check if the instruction is a label encoding (0x36, 54)
         #label_check_1
             LDFM @A $instruction 
             CMPI @A %54
-            JZC #subr_check_1
+            JZC #start_check_1
             
             INCM $l_size_L
             LDFM @A $l_size_L
@@ -411,9 +414,19 @@ _start
             INCM $l_size_H
 
         #continue_1
+            ; Skip the label id 
+            JSR _Grab_Word
             JMP #loop_start_2
-            ;JSR _Grab_Byte
-            ;COPM $instruction $low_byte
+
+        ; Check if the instruction is a start encoding (0x37, 55)
+        #start_check_1
+            LDFM @A $instruction 
+            CMPI @A %55
+            JZC #subr_check_1
+
+            ; Grab the next instruction and check for subroutine encoding 
+            JSR _Grab_Byte
+            COPM $instruction $low_byte
 
         ; Check if the instruction is a subroutine encoding (0x41, 65)
         #subr_check_1
@@ -427,9 +440,9 @@ _start
             INCM $s_size_H
 
         #continue_2
+            ; Skip the subroutine id
+            JSR _Grab_Word
             JMP #loop_start_2
-            ;JSR _Grab_Byte
-            ;COPM $instruction $low_byte
 
         ; Check opcode operands for any possible unL or unS values
         #op_check_1
@@ -1025,17 +1038,21 @@ _start
             DECR @B
             
             #add_1
+            CCF
             ADD @E @A
             JOC #add_2
             INCR @F
 
             #add_2
+            CCF
             ADD @F @B
+            CCF
             ADD @E @A
             JOC #add_3
             INCR @F
 
             #add_3
+            CCF
             ADD @F @B
 
             #get_label_addr_1
@@ -1060,11 +1077,13 @@ _start
 
             LDFM @A $unL_offset_L
             LDFM @B $unL_offset_H
+            CCF
             ADD @E @A
             JOC #add_4
             INCR @F
 
             #add_4
+            CCF
             ADD @F @B
 
             COPO &0000 $low_byte
@@ -1210,12 +1229,14 @@ _start
 
             #add_addr_1
                 LDFI @B %88
+                CCF
                 ADD @C @B
                 JOC #add_addr_2
                 INCR @D
 
             #add_addr_2
                 LDFI @B %216
+                CCF
                 ADD @D @B
 
             LDFM @E $RAM_offset_L
@@ -1314,12 +1335,14 @@ _start
 
             #add_addr_1_1
                 LDFI @B %88
+                CCF
                 ADD @C @B
                 JOC #add_addr_2_1
                 INCR @D
 
             #add_addr_2_1
                 LDFI @B %216
+                CCF
                 ADD @D @B
 
             LDFM @E $RAM_offset_L
@@ -1419,12 +1442,14 @@ _start
 
             #add_addr_1_2
                 LDFI @B %88
+                CCF
                 ADD @C @B
                 JOC #add_addr_2_2
                 INCR @D
 
             #add_addr_2_2
                 LDFI @B %216
+                CCF
                 ADD @D @B
 
             LDFM @E $RAM_offset_L
@@ -1492,12 +1517,14 @@ _start
 
             #add_addr_1_3
                 LDFI @B %88
+                CCF
                 ADD @C @B
                 JOC #add_addr_2_3
                 INCR @D
 
             #add_addr_2_3
                 LDFI @B %216
+                CCF
                 ADD @D @B
 
             LDFM @E $RAM_offset_L
@@ -1561,12 +1588,14 @@ _start
 
             #add_addr_1_4
                 LDFI @B %88
+                CCF
                 ADD @C @B
                 JOC #add_addr_2_4
                 INCR @D
 
             #add_addr_2_4
                 LDFI @B %216
+                CCF
                 ADD @D @B
 
             LDFM @E $RAM_offset_L
@@ -1665,12 +1694,14 @@ _start
 
             #add_addr_1_5
                 LDFI @B %88
+                CCF
                 ADD @C @B
                 JOC #add_addr_2_5
                 INCR @D
 
             #add_addr_2_5
                 LDFI @B %216
+                CCF
                 ADD @D @B
 
             LDFM @E $RAM_offset_L
