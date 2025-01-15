@@ -131,11 +131,11 @@ string huh (byte value) {
 void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
     char ch;
-    word skip_to = 0xE4FB;//0xE307;    //0xE4F8;//0xE304;//0xE2BB;    
+    word skip_to = 0xE7DC;//0xE7D4;//0xE708;     //0xE55D;//0xE6B3;//0xE4FB;//0xE2C0;//0xE307;    //0xE4F8;//0xE304;//0xE2BB;    
     bool skipped = false;
 
     while (ins != INS_HALT) {
-        if (!skipped && PC == skip_to)      skipped = true;
+        if (!skipped && PC == skip_to && PC < 0xFFFD)      skipped = true;
         
         if (skipped && PC >= 0xE085 && PC <= 0xFFF0) {          
             cout << "VARIABLES" << endl;
@@ -260,6 +260,8 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
             memory.WriteByte (0, 0xDA5A);
             // printf ("YEAH               %d %d %d %d\n", ReadByte (0xDA58, memory), ReadByte (0xDA59, memory), ReadByte (0xDA5B, memory), ReadByte (0xDA5C, memory));
         }
+
+        // cout << huh (ins) << " : " << huh (PC >> 8) << huh (PC & 0xFF) << "         " << huh (ReadByte (PC, memory)) << " " << huh (ReadByte (PC + 1, memory)) << " " << huh (ReadByte (PC + 2, memory)) << " " << huh (ReadByte (PC + 3, memory)) << endl;
 
         switch (ins) {
             case INS_LDFM: {
