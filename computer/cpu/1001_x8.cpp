@@ -131,13 +131,13 @@ string huh (byte value) {
 void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
     char ch;
-    word skip_to = 0xE7DC;//0xE7D4;//0xE708;     //0xE55D;//0xE6B3;//0xE4FB;//0xE2C0;//0xE307;    //0xE4F8;//0xE304;//0xE2BB;    
+    word skip_to = 0xE822;//0xE80A;//0xE550;//0xE65B; //0xE80A;  //0xE889;//0xE7E5;  //0xE7DC;//0xE7D4;//0xE708;     //0xE55D;//0xE6B3;//0xE4FB;//0xE2C0;//0xE307;    //0xE4F8;//0xE304;//0xE2BB;    
     bool skipped = false;
 
     while (ins != INS_HALT) {
-        if (!skipped && PC == skip_to && PC < 0xFFFD)      skipped = true;
+        // if (!skipped && PC == skip_to && PC < 0xFFFD)      skipped = true;
         
-        if (skipped && PC >= 0xE085 && PC <= 0xFFF0) {          
+        if (skipped && PC >= 0xE085 && PC <= 0xFFF0) {     
             cout << "VARIABLES" << endl;
             for (int i = 0xFF55; i < 0xFF85; i++) {
                 switch (i) {
@@ -213,9 +213,13 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
             cout << "0xDA5B GL : " << huh (ReadByte (0xDA5B, memory)) << endl;
             cout << "0xDA5C GH : " << huh (ReadByte (0xDA5C, memory)) << endl;
 
-            cout << endl << "P STACK ADDRESSES" << endl;
-            for (byte i = 0; i < 16; i++)       cout << huh (ReadByte (0xFF85 + i, memory)) << " ";
+            cout << endl << "FINAL PROGRAM" << endl;
+            for (byte i = 0; i < 10; i++)       cout << huh (ReadByte (0x0100 + i, memory)) << " ";
             cout << endl;
+
+            // cout << endl << "P STACK ADDRESSES" << endl;
+            // for (byte i = 0; i < 16; i++)       cout << huh (ReadByte (0xFF85 + i, memory)) << " ";
+            // cout << endl;
 
             cout << endl << "REGISTERS" << endl;
             cout << "A : " << huh (GPR[A]) << endl;

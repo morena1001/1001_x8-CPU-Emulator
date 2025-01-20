@@ -787,7 +787,7 @@ _start
                     
                 #high_byte_check
                     CMPO @B &0000
-                    JZC #get_addr_low
+                    JZC #id_nq_1
                     INCR @E
                     JZC #get_addr_low
                     INCR @F
@@ -811,14 +811,23 @@ _start
                     LDFR @E @A
                     LDFR @F @B
 
-                    COPO &0100 $RAM_offset_L
+                    LDFI @A %1
+                    CCF                    
+                    ADD @F @A
+
+                    LDFM @C $RAM_offset_L
+                    LDFM @D $RAM_offset_H
+                    CCF 
+                    ADD @D @A
+
+                    STOO &0000 @C
 
                     INCR @E
                     JZC #store_id_addr_high
                     INCR @F
 
                 #store_id_addr_high
-                    COPO &0100 $RAM_offset_H
+                    STOO &0000 @D
                     PULR @E
                     PULR @F
                     LDFM @A $low_byte
@@ -930,7 +939,7 @@ _start
                     
                 #high_byte_check_1
                     CMPO @B &0000
-                    JZC #get_addr_low_1
+                    JZC #id_nq_1_1
                     INCR @E
                     JZC #get_addr_low_1
                     INCR @F
@@ -954,14 +963,23 @@ _start
                     LDFR @E @A
                     LDFR @F @B
 
-                    COPO &0100 $RAM_offset_L
+                    LDFI @A %1
+                    CCF                    
+                    ADD @F @A
+
+                    LDFM @C $RAM_offset_L
+                    LDFM @D $RAM_offset_H
+                    CCF 
+                    ADD @D @A
+
+                    STOO &0000 @C
 
                     INCR @E
                     JZC #store_id_addr_high_1
                     INCR @F
 
                 #store_id_addr_high_1
-                    COPO &0100 $RAM_offset_H
+                    STOO &0000 @D
                     PULR @E
                     PULR @F
                     LDFM @A $low_byte
@@ -1017,6 +1035,18 @@ _start
             STRI $pc_set %1
 
         #ins_to_op
+            LDFI @C %0
+            LDFI @D %0
+            LDFM @E $RAM_offset_L
+            LDFM @F $RAM_offset_H
+            COPO &0100 $instruction
+
+            LDFR @C @E 
+            LDFR @D @F
+            JSR _Increment_Address
+            STOR $RAM_offset_L @C
+            STOR $RAM_offset_H @D
+
             COPM $opcode $instruction
 
             JSR _Check_Opcode_Type
@@ -1030,7 +1060,7 @@ _start
             LDFM @F $l_start_addr_H
 
             LDFM @A $low_byte
-            LDFM @A $high_byte
+            LDFM @B $high_byte
             DECR @A
             CMPI @A %255
             JZC #add_1
@@ -1118,7 +1148,7 @@ _start
                 INCR @B
 
             #copy_addr_high
-                COPO &0000 $RAM_offset_L
+                COPO &0000 $RAM_offset_H
                 INCR @A
                 JZC #store_offset
                 INCR @B
@@ -1162,6 +1192,140 @@ _start
         #subr_value_2
             CMPI @B %2
             JZC #r_value_2
+            JSR _Grab_Word
+
+            LDFM @E $l_start_addr_L
+            LDFM @F $l_start_addr_H
+
+            LDFM @A $low_byte
+            LDFM @B $high_byte
+            DECR @A
+            CMPI @A %255
+            JZC #add_1_1
+            DECR @B
+            
+            #add_1_1
+            CCF
+            ADD @E @A
+            JOC #add_2_1
+            INCR @F
+
+            #add_2_1
+            CCF
+            ADD @F @B
+            CCF
+            ADD @E @A
+            JOC #add_3_1
+            INCR @F
+
+            #add_3_1
+            CCF
+            ADD @F @B
+
+            #get_label_addr_1_1
+            LDFO @A &0000
+            INCR @E 
+            JZC #get_label_addr_2_1
+            INCR @F
+
+            #get_label_addr_2_1
+            LDFO @B &0000
+
+            ; If the label address is 0, write the label to unL
+            CMPR @A @B 
+            JZC #write_label_to_memory_1
+            CMPI @A %0
+            JZC #write_label_to_memory_1
+
+            LDFI @C %0
+            LDFI @D %0
+            LDFM @E $unL_start_addr_L
+            LDFM @F $unL_start_addr_H
+
+            LDFM @A $unL_offset_L
+            LDFM @B $unL_offset_H
+            CCF
+            ADD @E @A
+            JOC #add_4_1
+            INCR @F
+
+            #add_4_1
+            CCF
+            ADD @F @B
+
+            COPO &0000 $low_byte
+            INCR @E 
+            JZC #inc_unL_offset_1_1
+            INCR @F
+
+            #inc_unL_offset_1_1
+                INCR @A
+                JZC #copy_high_byte_1
+                INCR @B
+
+            #copy_high_byte_1
+                COPO &0000 $high_byte
+                INCR @E 
+                JZC #inc_unL_offset_2_1
+                INCR @F
+
+            #inc_unL_offset_2_1
+                INCR @A
+                JZC #copy_addr_low_1
+                INCR @B
+
+            #copy_addr_low_1
+                COPO &0000 $RAM_offset_L
+                INCR @E 
+                JZC #inc_unL_offset_3_1
+                INCR @F
+
+            #inc_unL_offset_3_1
+                INCR @A
+                JZC #copy_addr_high_1
+                INCR @B
+
+            #copy_addr_high_1
+                COPO &0000 $RAM_offset_H
+                INCR @A
+                JZC #store_offset_1
+                INCR @B
+
+            #store_offset_1
+            STOR $unL_offset_L @A
+            STOR $unL_offset_H @B
+
+            LDFM @C $RAM_offset_L
+            LDFM @D $RAM_offset_H
+            JSR _Increment_Address
+            JSR _Increment_Address
+            STOR $RAM_offset_L @C
+            STOR $RAM_offset_H @D
+
+            JMP #loop_start_3
+
+            #write_label_to_memory_1
+            LDFR @C @A
+            LDFR @D @B
+            LDFM @E $RAM_offset_L
+            LDFM @F $RAM_offset_H
+            
+            STOO &0100 @A
+            INCR @E 
+            JZC #store_high_1
+            INCR @F
+
+            #store_high_1
+                STOO &0100 @B
+
+            LDFM @C $RAM_offset_L
+            LDFM @D $RAM_offset_H
+            JSR _Increment_Address
+            JSR _Increment_Address
+            STOR $RAM_offset_L @C
+            STOR $RAM_offset_H @D
+
+            JMP #loop_start_3
 
         #r_value_2
             CMPI @B %3
@@ -1190,6 +1354,7 @@ _start
 
             ; Check if instruction is an address encoding
             LDFI @A %66
+            CMPM @A $low_byte
             JZC #no_address
 
             JSR _Grab_Word
@@ -1251,7 +1416,6 @@ _start
                 LDFR @C @E
                 LDFR @D @F
                 JSR _Increment_Address
-                JSR _Increment_Address
 
             STOR $RAM_offset_L @C
             STOR $RAM_offset_H @D
@@ -1290,12 +1454,13 @@ _start
             JMP #loop_start_3
 
         #mr_value_2
-            CMPI @B %4
-            JZC #rr_value_2
+            CMPI @B %6
+            JZC #rm_value_2
             JSR _Grab_Byte
 
             ; Check if instruction is an address encoding
             LDFI @A %66
+            CMPM @A $low_byte
             JZC #no_address_1
 
             JSR _Grab_Word
@@ -1357,7 +1522,6 @@ _start
                 LDFR @C @E
                 LDFR @D @F
                 JSR _Increment_Address
-                JSR _Increment_Address
 
             STOR $RAM_offset_L @C
             STOR $RAM_offset_H @D
@@ -1403,6 +1567,7 @@ _start
 
             ; Check if instruction is an address encoding
             LDFI @A %66
+            CMPM @A $low_byte
             JZC #no_address_2
 
             JSR _Grab_Word
@@ -1464,7 +1629,6 @@ _start
                 LDFR @C @E
                 LDFR @D @F
                 JSR _Increment_Address
-                JSR _Increment_Address
 
             STOR $RAM_offset_L @C
             STOR $RAM_offset_H @D
@@ -1478,6 +1642,7 @@ _start
 
             ; Check if instruction is an address encoding
             LDFI @A %66
+            CMPM @A $low_byte
             JZC #no_address_3
 
             JSR _Grab_Word
@@ -1539,7 +1704,6 @@ _start
                 LDFR @C @E
                 LDFR @D @F
                 JSR _Increment_Address
-                JSR _Increment_Address
 
             STOR $RAM_offset_L @C
             STOR $RAM_offset_H @D
@@ -1549,6 +1713,7 @@ _start
 
             ; Check if instruction is an address encoding
             LDFI @A %66
+            CMPM @A $low_byte
             JZC #no_address_4
 
             JSR _Grab_Word
@@ -1610,7 +1775,6 @@ _start
                 LDFR @C @E
                 LDFR @D @F
                 JSR _Increment_Address
-                JSR _Increment_Address
 
             STOR $RAM_offset_L @C
             STOR $RAM_offset_H @D
@@ -1655,6 +1819,7 @@ _start
 
             ; Check if instruction is an address encoding
             LDFI @A %66
+            CMPM @A $low_byte
             JZC #no_address_5
 
             JSR _Grab_Word
@@ -1715,7 +1880,6 @@ _start
                 STOO &0100 @D
                 LDFR @C @E
                 LDFR @D @F
-                JSR _Increment_Address
                 JSR _Increment_Address
 
             STOR $RAM_offset_L @C
