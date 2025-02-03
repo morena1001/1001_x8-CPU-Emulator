@@ -7,5 +7,9 @@ _start
     LDFI @A %41
     LDFR @B @A
     STOR $b @B
+
+    LDFI @C %0
+    LDFM @F $b
+    SYS %2
     HALT
     

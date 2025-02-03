@@ -452,6 +452,17 @@ int main (int argc, char** argv) {
                         instructions[ins_idx++] = (address >> 8);
                     } break;
 
+                    case '%': { // literal
+                        if (!IMM_AS_OPERAND1 (opcodes[opcode])) {
+                            cout << line_number << " : Opcode " << opcode << " cannot have an immediate as its 1st operand." << endl;
+                            return 0;
+                        }
+
+                        word num = stoi (op1.substr (1, -1));
+
+                        instructions[ins_idx++] = (byte) num;
+                    } break;
+
                     default: {
                         cout << line_number << " : Symbol " << op1[0] << " is undefined." << endl;
                         return 0;
@@ -668,6 +679,7 @@ void Opcodes_Init (map<string, word>& opcodes) {
     opcodes.insert (pair<string, word> ("STRI", 0x45));
     opcodes.insert (pair<string, word> ("STRO", 0x46));
     opcodes.insert (pair<string, word> ("JMPO", 0x47));
+    opcodes.insert (pair<string, word> ("SYS", 0x48));
 }
 
 void Registers_Init (map<char, word>& registers) {

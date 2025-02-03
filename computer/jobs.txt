@@ -1,1 +1,2 @@
 ../programs/test2.output
+../programs/test1.output

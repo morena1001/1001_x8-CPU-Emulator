@@ -42,14 +42,14 @@ int main (int argc, char** argv) {
 
 
     cout << endl;
-    cout << "A : " << htos (cpu.GPR[A]) << endl;
-    cout << "B : " << htos (cpu.GPR[B]) << endl;
-    cout << "C : " << htos (cpu.GPR[C]) << endl;
-    cout << "D : " << htos (cpu.GPR[D]) << endl;
-    cout << "E : " << htos (cpu.GPR[E]) << endl;
-    cout << "F : " << htos (cpu.GPR[F]) << endl;
-    cout << "G : " << htos (cpu.GPR[G]) << endl;
-    cout << "H : " << htos (cpu.GPR[H]) << endl;
+    // cout << "A : " << htos (cpu.GPR[A]) << endl;
+    // cout << "B : " << htos (cpu.GPR[B]) << endl;
+    // cout << "C : " << htos (cpu.GPR[C]) << endl;
+    // cout << "D : " << htos (cpu.GPR[D]) << endl;
+    // cout << "E : " << htos (cpu.GPR[E]) << endl;
+    // cout << "F : " << htos (cpu.GPR[F]) << endl;
+    // cout << "G : " << htos (cpu.GPR[G]) << endl;
+    // cout << "H : " << htos (cpu.GPR[H]) << endl;
     
     ofstream file ("memory.txt");
     char byte_info[4];

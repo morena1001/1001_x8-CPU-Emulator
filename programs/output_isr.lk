@@ -1,0 +1,10 @@
+.variables
+    ; x_pos     &FF50
+    ; y_pos     &FF51
+    ; type      &FF52
+    ; length    &FF53
+    ; address   &FF54
+
+.data
+_start
+    

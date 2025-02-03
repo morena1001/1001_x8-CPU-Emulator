@@ -113,6 +113,7 @@ INSTRUCTIONS
     0x45    STRI        Mem         Imm                         4       Stores an immediate into the mem location
     0x46    STRO        Mem         Imm                         4       Stores an immediate into the mem location with offset stored in registers E (low) and F (high).
     0x47    JMPO        Mem                                     3       Sets the PC to the memory address given the offset stored in registers E (low byte) and F (high byte).
+    0x48    SYS         Imm                                     2       Calls the ISR to print values to the screen. Uses registers A (x pos), B (y pos), C (Type (R, M, or I)), D (length (only for memory)), and E (Address of memory message)
 
 
 

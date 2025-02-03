@@ -76,7 +76,7 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
             else if (MEM_AS_OPERAND1 (opcode)) {
                 Grab_Byte (aux_mem, loader);
                 Grab_Word (aux_mem, loader);
-            }
+            } else if (IMM_AS_OPERAND1 (opcode))    Grab_Byte (aux_mem, loader);
 
             if (REG_AS_OPERAND2 (opcode))   Grab_Byte (aux_mem, loader); 
             else if (MEM_AS_OPERAND2 (opcode)) {
@@ -85,7 +85,6 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
             } else if (IMM_AS_OPERAND2 (opcode))    Grab_Byte (aux_mem, loader);
         }
     }
-    cout << headers_size << " " << unInit_headers_size << " " << subroutines_size << " " << unInit_subroutines_size << endl;
 
 
     loader.mem_addr = temp_addr;
@@ -171,6 +170,9 @@ void Load_Program_From_AuxMem (cpu_t& cpu, mem_t& mem, aux_mem_t& aux_mem, aux_l
             else                mem.WriteWord (variables[var_id], address);
 
             address += 2;
+        } else if (IMM_AS_OPERAND1 (opcode)) {
+            instruction = Grab_Byte (aux_mem, loader);
+            mem.WriteByte (instruction, address++);
         } else if (LAB_AS_OPERAND1 (opcode)) {
             word label_id = Grab_Word (aux_mem, loader);
 

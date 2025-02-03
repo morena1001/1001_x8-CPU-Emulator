@@ -8,4 +8,7 @@ _start
     JMP #end
 
     #end
+    LDFI @C %2
+    LDFR @F @A
+    SYS %2
     HALT

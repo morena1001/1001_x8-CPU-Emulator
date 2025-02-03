@@ -5,7 +5,8 @@
 
 #include <conio.h>
 
-#include "1001_x8.h"
+// #include "1001_x8.h"
+#include "../ISRs/isr.h"
 
 void Load_OS (byte data[mem_t::MAX_MEM], word& address);
 void Load_PL (byte data[mem_t::MAX_MEM], word& address);
@@ -812,7 +813,26 @@ void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
                 word address = FetchWord (memory);
                 PC = address + ((word) (GPR[E]) | (word) (GPR[F] << 8));
 
-                system ("pause");
+                // system ("pause");
+            } break;
+
+            case INS_SYS: {
+                byte imm = FetchByte (memory);
+
+                switch (imm) {
+                    case 0x02: {
+                        byte type  = GPR[C];
+                        byte value = GPR[F];
+
+                        if (type == 0 || type == 2) {
+                            cout << "OUTPUT :" << endl << huh (GPR[F]) << endl << endl;
+                        } else if (type == 1) {
+                            cout << "OUTPUT :" << endl << endl;
+                        } else {
+                            cout << "ERROR  :" << endl << "Type " << huh (type) << " unsupported." << endl << endl;
+                        }
+                    } break;
+                }
             } break;
 
             default : {
