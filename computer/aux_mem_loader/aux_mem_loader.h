@@ -21,7 +21,7 @@ using namespace std;
 
 
 #define REG_AS_OPERAND1(opcode)         ((opcode >= 0x01 && opcode <= 0x03) || opcode == 0x05 || opcode == 0x07 || opcode == 0x08 || (opcode >= 0x0E && opcode <= 0x19) || opcode == 0x1B || opcode == 0x1D || opcode == 0x1E || opcode == 0x38 || opcode == 0x3C)
-#define MEM_AS_OPERAND1(opcode)         (opcode == 0x04 || opcode == 0x06 || opcode == 0x09 || opcode == 0x1A || opcode == 0x1C || opcode == 0x1F || opcode == 0x20 || (opcode >= 0x39 && opcode <= 0x3B) || (opcode >= 0x3D && opcode <= 0x40) || (opcode >= 0x43 && opcode <= 0x46))
+#define MEM_AS_OPERAND1(opcode)         (opcode == 0x04 || opcode == 0x06 || opcode == 0x09 || opcode == 0x1A || opcode == 0x1C || opcode == 0x1F || opcode == 0x20 || (opcode >= 0x39 && opcode <= 0x3B) || (opcode >= 0x3D && opcode <= 0x40) || (opcode >= 0x43 && opcode <= 0x47))
 #define LAB_AS_OPERAND1(opcode)         (opcode == 0x21 || (opcode >= 0x24 && opcode <= 0x2B))
 #define SBR_AS_OPERAND1(opcode)         (opcode == 0x22)
 

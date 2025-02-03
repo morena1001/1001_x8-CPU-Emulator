@@ -336,10 +336,113 @@ _Check_Opcode_Type
         RSR
 
 _start
+    ; RESET VARIABLES
+    STRI $aux_offset_L %0
+    STRI $aux_offset_H %0
+    STRI $low_byte %0
+    STRI $high_byte %0
+    STRI $high_next %0
+
+    STRI $instruction %0
+    STRI $opcode %0
+
+    STRI $end_addr_L %0
+    STRI $end_addr_H %0
+
+    STRI $pc_set %0
+    STRI $pc_start_addr_L %0
+    STRI $pc_start_addr_H %0
+
+    STRI $var_offset_L %0
+    STRI $var_offset_H %0
+
+    STRI $l_offset_L %0
+    STRI $l_offset_H %0
+    STRI $unL_offset_L %0
+    STRI $unL_offset_H %0
+    STRI $s_offset_L %0
+    STRI $s_offset_H %0
+    STRI $unS_offset_L %0
+    STRI $unS_offset_H %0
+
+    STRI $l_size_L %0
+    STRI $l_size_H %0
+    STRI $unL_size_L %0
+    STRI $unL_size_H %0
+    STRI $s_size_L %0
+    STRI $s_size_H %0
+    STRI $unS_size_L %0
+    STRI $unS_size_H %0
+    STRI $var_size_L %0
+    STRI $var_size_H %0
+
+    STRI $l_start_addr_L %0
+    STRI $l_start_addr_H %0
+    STRI $unL_start_addr_L %0
+    STRI $unL_start_addr_H %0
+    STRI $s_start_addr_L %0
+    STRI $s_start_addr_H %0
+    STRI $unS_start_addr_L %0
+    STRI $unS_start_addr_H %0
+
+    STRI $i %0
+    STRI $j %0
+
+    ; RESET PROGRAM AND VARIABLE RAM
+    LDFM @C $RAM_offset_L
+    LDFM @D $RAM_offset_H
+    JSR _Increment_Address
+    LDFI @E %0
+    LDFI @F %0
+
+    STRI $RAM_offset_L %0
+    STRI $RAM_offset_H %0
+
+
+    #reset_prog_loop
+        CMPR @E @C
+        JZC #make_zero
+        CMPR @F @D
+        JZS #reset_mem_loop_setup
+
+        #make_zero
+        STRI &0100 %0
+        SWPR @E @C
+        SWPR @F @D
+        JSR _Increment_Address
+        SWPR @C @E
+        SWPR @D @F
+        JMP #reset_prog_loop
+
+    #reset_mem_loop_setup
+        LDFI @E %88
+        LDFI @F %216
+        LDFI @C %88 
+        LDFI @D %218
+
+    #reset_mem_loop
+        CMPR @E @C
+        JZC #make_zero_1
+        CMPR @F @D
+        JZS #get_addr
+
+        #make_zero_1
+        STRI &0000 %0
+        SWPR @E @C
+        SWPR @F @D
+        JSR _Increment_Address
+        SWPR @C @E
+        SWPR @D @F
+        JMP #reset_mem_loop
+        
+
     ; GET THE NUMBER OF VARIABLES 
     ; Get the first address from p_stack
+    #get_addr
     LDFM @E $p_stack_offset
     LDFI @F %0
+    CMPM @E &FF82
+    JCS #end
     LDFO @A &FF85
     STOR $aux_offset_L @A
     INCR @E 
@@ -689,22 +792,52 @@ _start
             JZC #label_check_2
 
             LDFM @A $pc_set
-            JZS #write_halt_to_memory
+            JZC #write_halt_to_memory
             COPM $pc_start_addr_L $RAM_offset_L
-            COPM $pc_start_addr_H $RAM_offset_H
+            LDFM @A $RAM_offset_H
+            LDFI @B %1
+            CCF
+            ADD @A @B
+            STOR $pc_start_addr_H @A
             STRI $pc_set %1
 
             #write_halt_to_memory
-                LDFI @C %0
-                LDFI @D %0
+                LDFI @C %33
                 LDFM @E $RAM_offset_L
                 LDFM @F $RAM_offset_H
-                COPO &0100 $instruction
-                LDFM @C $RAM_offset_L
-                LDFM @D $RAM_offset_H
+                STOO &0100 @C 
+                LDFR @C @E
+                LDFR @D @F
+                JSR _Increment_Address
+
+                LDFR @E @C
+                LDFR @F @D
+                LDFI @C %161
+                STOO &0100 @C
+                LDFR @C @E
+                LDFR @D @F
+                JSR _Increment_Address
+
+                LDFR @E @C
+                LDFR @F @D
+                LDFI @C %226
+                STOO &0100 @C
+                LDFR @C @E
+                LDFR @D @F
                 JSR _Increment_Address
                 STOR $RAM_offset_L @C
                 STOR $RAM_offset_H @D
+
+                ;LDFI @C %0
+                ;LDFI @D %0
+                ;LDFM @E $RAM_offset_L
+                ;LDFM @F $RAM_offset_H
+                ;COPO &0100 $instruction
+                ;LDFM @C $RAM_offset_L
+                ;LDFM @D $RAM_offset_H
+                ;JSR _Increment_Address
+                ;STOR $RAM_offset_L @C
+                ;STOR $RAM_offset_H @D
                 
             
             JMP #loop_start_3
@@ -1020,7 +1153,11 @@ _start
             JZC #pc_set_check
 
             COPM $pc_start_addr_L $RAM_offset_L
-            COPM $pc_start_addr_H $RAM_offset_H
+            LDFM @A $RAM_offset_H
+            LDFI @B %1
+            CCF
+            ADD @A @B
+            STOR $pc_start_addr_H @A
             STRI $pc_set %1
             
             JMP #loop_start_3
@@ -1031,7 +1168,11 @@ _start
             JZC #ins_to_op
 
             COPM $pc_start_addr_L $RAM_offset_L
-            COPM $pc_start_addr_H $RAM_offset_H
+            LDFM @A $RAM_offset_H
+            LDFI @B %1
+            CCF
+            ADD @A @B
+            STOR $pc_start_addr_H @A
             STRI $pc_set %1
 
         #ins_to_op
@@ -1364,8 +1505,8 @@ _start
             LDFM @F $RAM_offset_H
 
             COPO &0100 $low_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             LDFR @E @C
@@ -1374,8 +1515,8 @@ _start
             LDFI @D %0
 
             COPO &0100 $high_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             STOR $RAM_offset_L @C
@@ -1435,8 +1576,8 @@ _start
 
             JSR _Grab_Byte
 
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
             LDFR @E @C
             LDFR @F @D
@@ -1445,8 +1586,8 @@ _start
 
             COPO &0100 $low_byte
         
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
             STOR $RAM_offset_L @C
             STOR $RAM_offset_H @D
@@ -1470,8 +1611,8 @@ _start
             LDFM @F $RAM_offset_H
 
             COPO &0100 $low_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             LDFR @E @C
@@ -1480,8 +1621,8 @@ _start
             LDFI @D %0
 
             COPO &0100 $high_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             STOR $RAM_offset_L @C
@@ -1536,8 +1677,8 @@ _start
 
                 COPO &0100 $low_byte
             
-                LDFM @C $RAM_offset_L
-                LDFM @D $RAM_offset_H
+                LDFR @C @E
+                LDFR @D @F
                 JSR _Increment_Address
                 STOR $RAM_offset_L @C
                 STOR $RAM_offset_H @D
@@ -1557,8 +1698,8 @@ _start
 
             COPO &0100 $low_byte
         
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
             STOR $RAM_offset_L @C
             STOR $RAM_offset_H @D
@@ -1577,8 +1718,8 @@ _start
             LDFM @F $RAM_offset_H
 
             COPO &0100 $low_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             LDFR @E @C
@@ -1587,8 +1728,8 @@ _start
             LDFI @D %0
 
             COPO &0100 $high_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             STOR $RAM_offset_L @C
@@ -1652,8 +1793,8 @@ _start
             LDFM @F $RAM_offset_H
 
             COPO &0100 $low_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             LDFR @E @C
@@ -1662,8 +1803,8 @@ _start
             LDFI @D %0
 
             COPO &0100 $high_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             STOR $RAM_offset_L @C
@@ -1723,8 +1864,8 @@ _start
             LDFM @F $RAM_offset_H
 
             COPO &0100 $low_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             LDFR @E @C
@@ -1733,8 +1874,8 @@ _start
             LDFI @D %0
 
             COPO &0100 $high_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             STOR $RAM_offset_L @C
@@ -1794,8 +1935,8 @@ _start
 
             JSR _Grab_Byte
 
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
             LDFR @E @C
             LDFR @F @D
@@ -1804,8 +1945,8 @@ _start
 
             COPO &0100 $low_byte
         
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
             STOR $RAM_offset_L @C
             STOR $RAM_offset_H @D
@@ -1829,8 +1970,8 @@ _start
             LDFM @F $RAM_offset_H
 
             COPO &0100 $low_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             LDFR @E @C
@@ -1839,8 +1980,8 @@ _start
             LDFI @D %0
 
             COPO &0100 $high_byte
-            LDFM @C $RAM_offset_L
-            LDFM @D $RAM_offset_H
+            LDFR @C @E
+            LDFR @D @F
             JSR _Increment_Address
 
             STOR $RAM_offset_L @C
@@ -1895,8 +2036,8 @@ _start
 
                 COPO &0100 $low_byte
             
-                LDFM @C $RAM_offset_L
-                LDFM @D $RAM_offset_H
+                LDFR @C @E
+                LDFR @D @F
                 JSR _Increment_Address
                 STOR $RAM_offset_L @C
                 STOR $RAM_offset_H @D
@@ -1904,4 +2045,11 @@ _start
                 JMP #loop_start_3
     #loop_end_3
 
-    HALT
+    LDFM @A $pc_set
+    JZS #end
+    LDFM @E $pc_start_addr_L
+    LDFM @F $pc_start_addr_H
+    JMPO &0000
+
+    #end 
+        HALT

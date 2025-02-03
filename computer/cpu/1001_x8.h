@@ -10,7 +10,7 @@ using u32 = unsigned int;
 
 #define NEEDS_1_BYTE(opcode)        ((opcode >= 0x0A && opcode <= 0x0D) || opcode == 0x23 || (opcode >= 0x2C && opcode <= 0x35))
 #define NEEDS_2_BYTES(opcode)       (opcode == 0x07 || opcode == 0x08 || opcode == 0x11 || opcode == 0x19 || opcode == 0x1B || opcode == 0x1D || opcode == 0x1E)
-#define NEEDS_3_BYTES(opcode)       (opcode == 0x02 || opcode == 0x03 || opcode == 0x05 || opcode == 0x09 || (opcode >= 0x0E && opcode <= 0x10) || (opcode >= 0x12 && opcode <= 0x16) || opcode == 0x18 || opcode == 0x1A || opcode == 0x1C || (opcode >= 0x1F && opcode <= 0x22) || (opcode >= 0x24 && opcode <= 0x2B) || (opcode >= 0x3D && opcode <= 0x40))
+#define NEEDS_3_BYTES(opcode)       (opcode == 0x02 || opcode == 0x03 || opcode == 0x05 || opcode == 0x09 || (opcode >= 0x0E && opcode <= 0x10) || (opcode >= 0x12 && opcode <= 0x16) || opcode == 0x18 || opcode == 0x1A || opcode == 0x1C || (opcode >= 0x1F && opcode <= 0x22) || (opcode >= 0x24 && opcode <= 0x2B) || (opcode >= 0x3D && opcode <= 0x40) || opcode == 0x47)
 #define NEEDS_4_BYTES(opcode)       (opcode == 0x01 || opcode == 0x04 || opcode == 0x17 || opcode == 0x38 || opcode == 0x39 || opcode == 0x3C || opcode == 0x45 || opcode == 0x46)
 #define NEEDS_5_BYTES(opcode)       (opcode == 0x06 || opcode == 0x3A || opcode == 0x43 || opcode == 0x44)
 
@@ -150,7 +150,8 @@ typedef struct CPU {
         INS_COPM = 0x43,
         INS_COPO = 0x44,
         INS_STRI = 0x45,
-        INS_STRO = 0x46;
+        INS_STRO = 0x46,
+        INS_JMPO = 0x47;
 } cpu_t;
 
 const byte char_bitmaps[69][7] = {

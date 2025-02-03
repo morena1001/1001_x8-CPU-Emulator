@@ -112,6 +112,7 @@ INSTRUCTIONS
     0x44    COPO        Mem1        Mem2                        5       Copies the contents of mem location 2 given offset stored in registers C (low byte) and D (high byte) into mem location 1 given offset stored in registers E (low byte) and F (high byte), using register H to store a temporary value
     0x45    STRI        Mem         Imm                         4       Stores an immediate into the mem location
     0x46    STRO        Mem         Imm                         4       Stores an immediate into the mem location with offset stored in registers E (low) and F (high).
+    0x47    JMPO        Mem                                     3       Sets the PC to the memory address given the offset stored in registers E (low byte) and F (high byte).
 
 
 
