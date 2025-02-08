@@ -3,5 +3,9 @@
     $a 'h'
 
 .data
+_start
     LDFM @A $a
+    LDFI @C %2
+    LDFR @F @A
+    SYS %2
     HALT

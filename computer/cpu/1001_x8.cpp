@@ -132,12 +132,12 @@ string huh (byte value) {
 void CPU::Execute (mem_t& memory, aux_mem_t& aux_mem) {
     byte ins = FetchByte (memory);
     char ch;
-    word skip_to = 0xEFC6;//0x0101; //0xE822;//0xE80A;//0xE550;//0xE65B; //0xE80A;  //0xE889;//0xE7E5;  //0xE7DC;//0xE7D4;//0xE708;     //0xE55D;//0xE6B3;//0xE4FB;//0xE2C0;//0xE307;    //0xE4F8;//0xE304;//0xE2BB;    
+    word skip_to = 0x0101; //0xE822;//0xE80A;//0xE550;//0xE65B; //0xE80A;  //0xE889;//0xE7E5;  //0xE7DC;//0xE7D4;//0xE708;     //0xE55D;//0xE6B3;//0xE4FB;//0xE2C0;//0xE307;    //0xE4F8;//0xE304;//0xE2BB;    
     bool skipped = false;
     bool jump = false;
 
     while (ins != INS_HALT) {
-        if (!skipped && PC == skip_to && PC < 0xFFFD)      skipped = true;
+        // if (!skipped && PC == skip_to && PC < 0xFFFD)      skipped = true;
         // if (!skipped && PC > 0xE523 && ins == 0x18 && ReadByte (PC, memory) == 0x01 && ReadByte (PC + 1, memory) == 0x09) skipped = true;
         if (skipped) {//&& jump ) {//&& PC >= 0xE089 && PC <= 0xFFF0) {     
             cout << "VARIABLES" << endl;

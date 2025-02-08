@@ -1336,6 +1336,9 @@ _start
             INCR @F
 
             #store_high
+                LDFI @A %1
+                CCF 
+                ADD @B @A 
                 STOO &0100 @B
 
             LDFM @C $RAM_offset_L
@@ -1474,6 +1477,9 @@ _start
             INCR @F
 
             #store_high_1
+                LDFI @A %1
+                CCF 
+                ADD @B @A 
                 STOO &0100 @B
 
             LDFM @C $RAM_offset_L
@@ -2086,6 +2092,7 @@ _start
     JZS #end
     LDFM @E $pc_start_addr_L
     LDFM @F $pc_start_addr_H
+    
     JMPO &0000
 
     #end 

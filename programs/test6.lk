@@ -1,14 +1,16 @@
 ; Testing labels and trying out a loop
 .data
+_start
     LDFI @A %5
     LDFI @B %10
-    LDFI @H %2
+    LDFI @C %2
 
     #loop
     CCF
     ADD  @A @B
-    CZF
-    DECR @H
-    CMPI @H %0
-    JZC  #loop
+    DECR @C
+    JZC #loop
+    LDFI @C %2
+    LDFR @F @A
+    SYS %2
     HALT

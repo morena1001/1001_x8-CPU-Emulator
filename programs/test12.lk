@@ -6,6 +6,7 @@
 	$k %0
 	
 .data
+_start
 	LDFI @A %4
 	LDFI @B %5
 
@@ -15,9 +16,8 @@
 	JZS #end
 
 	; At the beginning of each inner loop, j = i + 1
-	LDFM @C $i
-	INCR @C
-	STOR $j @C
+	COPM $j $i
+	INCM $j
 
 		#innerloopstart
 		; If @B (%5) == $j : Jump to outerloopend
@@ -28,17 +28,21 @@
 
 			#swaploop
 			; If a[i] < a[j], jump to innerloopend
-			LDFM @F $i
+			LDFM @E $i
+			LDFI @F %0
 			LDFO @C $a
-			LDFM @F $j
+			LDFM @E $j
+			LDFI @F %0
 			CMPO @C $a
 			JCC #innerloopend
 			JZS #innerloopend
 
 			; Swap $a[j] and $a[j - 1], decrement $j
+			LDFM @C $j
+			LDFI @D %0
 			LDFM @E $j
-			LDFM @F $j
-			DECR @F
+			LDFI @F %0
+			DECR @E
 			SWPO $a $a
 			DECM $j
 			JMP #swaploop

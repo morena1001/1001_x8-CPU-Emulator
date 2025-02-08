@@ -3,7 +3,12 @@
     $a %[10] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
 .data
+_start
     LDFM @A $a
-    LDFI @F %9
+    LDFI @E %9
+    LDFI @F %0
     STOO $a @A 
+    LDFI @C %2
+    LDFM @F $a
+    SYS %2
     HALT
